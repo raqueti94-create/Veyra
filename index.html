@@ -46,14 +46,17 @@
                     <div class="barra-grafica">
                         <div class="etiqueta-barra">Ingresos</div>
                         <div class="fondo-barra"><div id="barraIngresos" class="barra valor-ingreso" style="height:0%"></div></div>
+                        <div class="valor-barra" id="valorBarraIngresos">$0</div>
                     </div>
                     <div class="barra-grafica">
                         <div class="etiqueta-barra">Gastos</div>
                         <div class="fondo-barra"><div id="barraGastos" class="barra valor-gasto" style="height:0%"></div></div>
+                        <div class="valor-barra" id="valorBarraGastos">$0</div>
                     </div>
                     <div class="barra-grafica">
                         <div class="etiqueta-barra">Saldo</div>
                         <div class="fondo-barra"><div id="barraSaldo" class="barra valor-saldo" style="height:0%"></div></div>
+                        <div class="valor-barra" id="valorBarraSaldo">$0</div>
                     </div>
                 </div>
             </div>
@@ -94,14 +97,9 @@
                 </div>
                 <input type="text" id="descripcionMov" class="campo-form" placeholder="Descripción">
                 <input type="number" id="montoMov" class="campo-form" placeholder="Monto" min="1">
+                <!-- ✅ SE ACTUALIZA DINÁMICAMENTE -->
                 <select id="categoriaMov" class="campo-form">
                     <option value="">Seleccionar categoría</option>
-                    <option value="Trabajo">💼 Trabajo</option>
-                    <option value="Casa">🏠 Casa</option>
-                    <option value="Comida">🍽️ Comida</option>
-                    <option value="Transporte">🚗 Transporte</option>
-                    <option value="Servicios">💡 Servicios</option>
-                    <option value="Otros">📦 Otros</option>
                 </select>
                 <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
             </div>
@@ -148,7 +146,8 @@
                 <input type="text" id="nombreHabito" class="campo-form" placeholder="Nombre del hábito">
                 <button id="btnCrearHabito" class="btn-principal">✅ Crear Hábito</button>
             </div>
-            <div id="listaHabitos" class="bloque vacio">Crea tu primer hábito 💪</div>
+            <!-- ✅ AHORA CON CASILLAS PARA MARCAR -->
+            <div id="listaHabitos"></div>
         </section>
 
         <section id="logros" class="pagina oculto">
@@ -220,7 +219,7 @@ auth.onAuthStateChanged(async usuario => {
         document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
         mostrarPantallaPrincipal();
         await inicializarCategoriasDefault();
-        await cargarDatos(); // ✅ Aseguramos que espere a cargar todo
+        await cargarDatos();
     } else {
         usuarioActual = null;
         mostrarPantallaLogin();
@@ -243,6 +242,25 @@ async function inicializarCategoriasDefault() {
     } catch (e) {
         console.log('Categorías:', e.message);
     }
+}
+
+// ✅ ACTUALIZAR EL DESPLEGABLE DE CATEGORÍAS
+async function actualizarSelectCategorias() {
+    if (!usuarioActual) return;
+    const select = document.getElementById('categoriaMov');
+    const valorActual = select.value; // Mantener la selección si existe
+    
+    // Limpiar y dejar la opción por defecto
+    select.innerHTML = '<option value="">Seleccionar categoría</option>';
+    
+    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).orderBy('nombre').get();
+    snap.forEach(doc => {
+        const c = doc.data();
+        select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
+    });
+    
+    // Restaurar selección si sigue existiendo
+    if (valorActual) select.value = valorActual;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -309,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             document.getElementById('descripcionMov').value = '';
             document.getElementById('montoMov').value = '';
-            await cargarDatos(); // ✅ Recarga todo al guardar
+            await cargarDatos();
             alert('✅ Movimiento guardado');
         } catch (e) {
             alert('❌ Error: ' + e.message);
@@ -326,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nombreCat').value = '';
         document.getElementById('formNuevaCat').classList.add('oculto');
         await cargarCategorias();
+        await actualizarSelectCategorias(); // ✅ Se actualiza el desplegable automáticamente
     });
 
     document.getElementById('btnGuardarPres').addEventListener('click', async () => {
@@ -339,22 +358,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnCrearHabito').addEventListener('click', async () => {
         const nombre = document.getElementById('nombreHabito').value.trim();
         if (!nombre) return;
-        await db.collection('habitos').add({ userId: usuarioActual.uid, nombre, fechaCreacion: new Date() });
+        await db.collection('habitos').add({ 
+            userId: usuarioActual.uid, 
+            nombre, 
+            fechaCreacion: new Date() 
+        });
         document.getElementById('nombreHabito').value = '';
         await cargarHabitos();
     });
 
     document.querySelectorAll('.pestaña').forEach(boton => {
-        boton.addEventListener('click', () => {
+        boton.addEventListener('click', async () => {
             document.querySelectorAll('.pestaña').forEach(b => b.classList.remove('activa'));
             document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
             boton.classList.add('activa');
             document.getElementById(boton.dataset.pagina).classList.remove('oculto');
+            // ✅ Cargar categorías al entrar a la página para que el select esté al día
+            if (boton.dataset.pagina === 'contable') {
+                await actualizarSelectCategorias();
+            }
         });
     });
 
     document.getElementById('mesSeleccionado').addEventListener('change', async () => {
-        await cargarDatos(); // ✅ Espera a recargar todo al cambiar de mes
+        await cargarDatos();
     });
 
     document.getElementById('btnCancelarModal').addEventListener('click', () => {
@@ -377,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nombre = document.getElementById('inputEditar').value.trim();
                 if (!nombre) return alert('Escribe un nombre');
                 await db.collection('categorias').doc(estadoEdicion.id).update({ nombre });
+                await actualizarSelectCategorias(); // ✅ También actualiza si editas una categoría
             }
             document.getElementById('modalEditar').classList.add('oculto');
             estadoEdicion = { tipo: null, id: null, esIngreso: false };
@@ -392,6 +420,7 @@ async function cargarDatos() {
     await Promise.all([
         cargarMovimientos(),
         cargarCategorias(),
+        actualizarSelectCategorias(), // ✅ Siempre actualizar las opciones
         cargarPresupuesto(),
         cargarHabitos()
     ]);
@@ -415,7 +444,7 @@ async function cargarMovimientos() {
     } else {
         snap.forEach(doc => {
             const m = doc.data();
-            const montoNum = Number(m.monto) || 0; // ✅ Aseguramos que sea número
+            const montoNum = Number(m.monto) || 0;
             if (montoNum >= 0) {
                 ingresos += montoNum;
             } else {
@@ -467,20 +496,23 @@ async function cargarMovimientos() {
         });
     }
 
-    // ✅ ACTUALIZAR TARJETAS
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
     document.getElementById('saldoTotal').textContent = `$ ${(ingresos - gastos).toLocaleString()}`;
 
-    // ✅ ACTUALIZAR GRÁFICOS
-    const maximo = Math.max(ingresos, gastos, 1); // Evitamos división por cero
+    const maximo = Math.max(ingresos, gastos, 1);
     const porcIngresos = (ingresos / maximo) * 100;
     const porcGastos = (gastos / maximo) * 100;
-    const porcSaldo = ((ingresos - gastos) / maximo) * 100;
+    const saldo = ingresos - gastos;
+    const porcSaldo = (saldo / maximo) * 100;
 
     document.getElementById('barraIngresos').style.height = `${porcIngresos}%`;
     document.getElementById('barraGastos').style.height = `${porcGastos}%`;
     document.getElementById('barraSaldo').style.height = `${Math.max(0, porcSaldo)}%`;
+    
+    document.getElementById('valorBarraIngresos').textContent = `$${ingresos.toLocaleString()}`;
+    document.getElementById('valorBarraGastos').textContent = `$${gastos.toLocaleString()}`;
+    document.getElementById('valorBarraSaldo').textContent = `$${saldo.toLocaleString()}`;
 }
 
 async function cargarCategorias() {
@@ -521,6 +553,7 @@ async function cargarCategorias() {
             if (confirm('¿Eliminar esta categoría?')) {
                 await db.collection('categorias').doc(btn.dataset.id).delete();
                 await cargarCategorias();
+                await actualizarSelectCategorias(); // ✅ Queda eliminada del desplegable también
             }
         });
     });
@@ -564,6 +597,28 @@ async function cargarPresupuesto() {
     }
 }
 
+// ✅ NUEVA FUNCIÓN: MARCAR/DESMARCAR DÍA
+async function alternarDiaHábito(hábitoId, fecha) {
+    if (!usuarioActual) return;
+    const registroRef = db.collection('seguimiento_habitos').doc(`${hábitoId}_${fecha}`);
+    
+    const doc = await registroRef.get();
+    if (doc.exists) {
+        // Si ya existe → quitar marca
+        await registroRef.delete();
+    } else {
+        // Si no existe → poner marca
+        await registroRef.set({
+            userId: usuarioActual.uid,
+            habitoId: hábitoId,
+            fecha: fecha,
+            completado: true,
+            fechaRegistro: new Date()
+        });
+    }
+    await cargarHabitos();
+}
+
 async function cargarHabitos() {
     if (!usuarioActual) return;
     const snap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
@@ -575,14 +630,69 @@ async function cargarHabitos() {
         return;
     }
 
+    // Fecha de hoy y los últimos 6 días (semana)
+    const hoy = new Date();
+    const diasSemana = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(hoy);
+        d.setDate(hoy.getDate() - i);
+        diasSemana.push({
+            fechaCod: d.toISOString().split('T')[0], // "2026-10-08"
+            diaNombre: d.toLocaleDateString('es-ES', { weekday: 'short' }),
+            diaNum: d.getDate(),
+            esHoy: i === 0
+        });
+    }
+
+    // Cargar todo el seguimiento de estos días
+    const fechasConsultar = diasSemana.map(d => d.fechaCod);
+    const seguimientoSnap = await db.collection('seguimiento_habitos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('fecha', 'in', fechasConsultar)
+        .get();
+    
+    // Mapa: "habitoId_fecha" → true/false
+    const completados = {};
+    seguimientoSnap.forEach(doc => {
+        const d = doc.data();
+        completados[`${d.habitoId}_${d.fecha}`] = true;
+    });
+
     snap.forEach(doc => {
-        lista.innerHTML += `<div class="bloque"><h4>${doc.data().nombre}</h4><div class="acciones"><button class="btn-accion eliminar-habito" data-id="${doc.id}">🗑️ Eliminar</button></div></div>`;
+        const h = doc.data();
+        lista.innerHTML += `
+            <div class="bloque habito-tarjeta">
+                <div class="cabecera-habito">
+                    <h4>${h.nombre}</h4>
+                    <button class="btn-accion eliminar-habito" data-id="${doc.id}">🗑️</button>
+                </div>
+                <div class="dias-habito">
+                    ${diasSemana.map(dia => {
+                        const clave = `${doc.id}_${dia.fechaCod}`;
+                        const hecho = completados[clave];
+                        return `
+                            <button class="dia-habito ${hecho ? 'hecho' : ''} ${dia.esHoy ? 'hoy' : ''}"
+                                data-habito="${doc.id}" data-fecha="${dia.fechaCod}">
+                                <div class="dia-nombre">${dia.diaNombre}</div>
+                                <div class="dia-num">${dia.diaNum}</div>
+                            </button>`;
+                    }).join('')}
+                </div>
+            </div>`;
+    });
+
+    // Asignar eventos a cada casilla
+    document.querySelectorAll('.dia-habito').forEach(boton => {
+        boton.addEventListener('click', () => {
+            alternarDiaHábito(boton.dataset.habito, boton.dataset.fecha);
+        });
     });
 
     document.querySelectorAll('.eliminar-habito').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar este hábito?')) {
                 await db.collection('habitos').doc(btn.dataset.id).delete();
+                // También se podría borrar su seguimiento, pero lo dejamos por si acaso
                 await cargarHabitos();
             }
         });
@@ -618,7 +728,7 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .introduccion {text-align:center;color:rgba(255,255,255,0.9);margin-bottom:20px}
 
 /* GRÁFICOS */
-.grafico-contenedor {display:flex;justify-content:space-around;align-items:flex-end;height:200px;margin-top:20px;padding:0 10px}
+.grafico-contenedor {display:flex;justify-content:space-around;align-items:flex-end;height:240px;margin-top:20px;padding:0 5px}
 .barra-grafica {display:flex;flex-direction:column;align-items:center;gap:8px;width:28%}
 .etiqueta-barra {font-size:0.8rem;font-weight:600;color:var(--texto-claro)}
 .fondo-barra {width:100%;height:150px;background:#f1f5f9;border-radius:8px 8px 4px 4px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid var(--borde)}
@@ -626,6 +736,7 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .valor-ingreso {background:linear-gradient(to top, #059669, #10b981)}
 .valor-gasto {background:linear-gradient(to top, #dc2626, #ef4444)}
 .valor-saldo {background:linear-gradient(to top, #7c3aed, #a78bfa)}
+.valor-barra {font-size:0.75rem;font-weight:600;color:var(--texto);margin-top:4px;text-align:center;word-break:break-all}
 
 .tarjetas-resumen {display:flex;flex-direction:column;gap:12px;margin-bottom:24px;margin-top:24px}
 .tarjeta {background:white;padding:18px 20px;border-radius:16px;box-shadow:var(--sombra)}
@@ -685,6 +796,19 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .numero-grande {font-size:1.8rem;font-weight:700;text-align:center;margin:10px 0}
 .morado {background:var(--primario)}
 h4 {margin-bottom:8px}
+
+/* ✅ ESTILOS DEL SEGUIMIENTO DE HÁBITOS */
+.habito-tarjeta {margin-bottom:16px}
+.cabecera-habito {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cabecera-habito h4 {font-size:1rem}
+.dias-habito {display:grid;grid-template-columns:repeat(7, 1fr);gap:6px}
+.dia-habito {display:flex;flex-direction:column;align-items:center;padding:10px 6px;border-radius:10px;border:2px solid var(--borde);background:#f8fafc;cursor:pointer;transition:all 0.2s}
+.dia-habito:hover {transform:scale(1.05)}
+.dia-habito.hecho {background:#d1fae5;border-color:var(--exito)}
+.dia-habito.hecho .dia-num {color:#065f46;font-weight:700}
+.dia-habito.hoy {border-color:var(--primario);border-width:2px}
+.dia-nombre {font-size:0.7rem;color:var(--texto-claro);margin-bottom:4px;text-transform:uppercase}
+.dia-num {font-size:1rem;font-weight:600;color:var(--texto)}
 </style>
 </body>
 </html>
