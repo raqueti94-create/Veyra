@@ -12,10 +12,22 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
+// ------------------- CONFIGURACIÓN DE LOGROS -------------------
+const LOGROS = [
+    { dias: 1,  nombre: "Primer paso dado ✅",   emoji: "🔥", descripcion: "¡Empezaste con fuerza!" },
+    { dias: 7,  nombre: "Una semana completa 💪", emoji: "⭐", descripcion: "7 días sin detenerse" },
+    { dias: 14, nombre: "Dos semanas sin fallar 🏅", emoji: "🏅", descripcion: "Constancia de acero" },
+    { dias: 30, nombre: "Un mes entero en racha 🏆", emoji: "🏆", descripcion: "30 días de compromiso" },
+    { dias: 100, nombre: "¡Casi tres meses! ⭐", emoji: "🌟", descripcion: "Dedicarón excepcional" },
+    { dias: 365, nombre: "Todo un año 🎖️", emoji: "🎖️", descripcion: "¡Un año completo! Eres imparable" }
+];
+
 // Variables Globales
 let usuarioActual = null;
 let tipoMovimiento = 'ingreso';
 let estadoEdicion = { tipo: null, id: null, esIngreso: false };
+let rachaActual = 0;
+let logrosAnteriores = new Set();
 
 const categoriasDefault = [
     { nombre: 'Trabajo', icono: '💼' },
@@ -46,6 +58,10 @@ auth.onAuthStateChanged(async usuario => {
         mostrarPantallaPrincipal();
         await inicializarCategoriasDefault();
         await cargarDatos();
+        // Guardar logros ya desbloqueados al iniciar
+        LOGROS.forEach(l => {
+            if (rachaActual >= l.dias) logrosAnteriores.add(l.dias);
+        });
     } else {
         usuarioActual = null;
         mostrarPantallaLogin();
@@ -171,7 +187,7 @@ async function cargarMovimientos() {
                 document.getElementById('inputEditar').value = btn.dataset.desc;
                 document.getElementById('inputEditarNumero').value = btn.dataset.monto;
                 document.getElementById('inputEditarNumero').classList.remove('oculto');
-                document.getElementById('modalEditar').classList.remove('oculto');
+                document.getElementById('modalEditar').classList.add('oculto');
             });
         });
     }
@@ -286,7 +302,6 @@ async function cargarAhorro() {
                 </div>`;
         });
 
-        // Eliminar depósito
         document.querySelectorAll('.eliminar-deposito').forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (confirm('¿Eliminar este depósito?\nEsto restará el monto del total ahorrado.')) {
@@ -405,8 +420,8 @@ async function cargarHabitos() {
                         return `
                             <button class="dia-habito ${hecho ? 'hecho' : ''} ${dia.esHoy ? 'hoy' : ''}"
                                 onclick="alternarDiaHábito('${hId}', '${dia.fechaCod}')">
-                                <span class="dia-nombre">${dia.diaNombre}</span>
-                                <span class="dia-num">${dia.diaNum}</span>
+                                <span class="nombre-dia">${dia.diaNombre}</span>
+                                <span class="numero-dia">${dia.diaNum}</span>
                             </button>
                         `;
                     }).join('')}
@@ -425,7 +440,26 @@ async function cargarHabitos() {
     });
 }
 
-// ------------------- CÁLCULO DE RACHA -------------------
+// ------------------- LLUVIA DE EMOJIS 🎊 -------------------
+function lanzarLluviaEmojis(emoji, cantidad = 25) {
+    const contenedor = document.createElement('div');
+    contenedor.className = 'lluvia-emojis';
+    document.body.appendChild(contenedor);
+
+    for (let i = 0; i < cantidad; i++) {
+        const emojiElemento = document.createElement('span');
+        emojiElemento.className = 'emoji-cayendo';
+        emojiElemento.textContent = emoji;
+        emojiElemento.style.left = `${Math.random() * 95 + 2.5}%`;
+        emojiElemento.style.animationDelay = `${Math.random() * 2}s`;
+        contenedor.appendChild(emojiElemento);
+    }
+
+    // Se elimina automáticamente a los 6 segundos
+    setTimeout(() => contenedor.remove(), 6000);
+}
+
+// ------------------- CÁLCULO DE RACHA Y LOGROS -------------------
 async function calcularRachaGeneral() {
     if (!usuarioActual) return;
     
@@ -433,8 +467,10 @@ async function calcularRachaGeneral() {
     const idsHabitos = habitosSnap.docs.map(d => d.id);
     
     if (idsHabitos.length === 0) {
+        rachaActual = 0;
         const elem = document.getElementById('diasActivos');
         if (elem) elem.textContent = '0 días en racha';
+        renderizarLogros();
         return;
     }
 
@@ -462,10 +498,40 @@ async function calcularRachaGeneral() {
         fechaActual = sumarDias(fechaActual, -1);
     }
 
+    rachaActual = racha;
     const elem = document.getElementById('diasActivos');
     if (elem) {
         elem.textContent = `${racha} ${racha === 1 ? 'día' : 'días'} en racha`;
     }
+
+    // ✅ DETECTAR NUEVO LOGRO DESBLOQUEADO
+    for (const logro of LOGROS) {
+        if (racha >= logro.dias && !logrosAnteriores.has(logro.dias)) {
+            logrosAnteriores.add(logro.dias);
+            lanzarLluviaEmojis(logro.emoji); // 🎊 Lluvia de emojis del logro
+        }
+    }
+
+    renderizarLogros();
+}
+
+// Dibujar la lista de logros en pantalla
+function renderizarLogros() {
+    const contenedor = document.getElementById('lista-logros');
+    if (!contenedor) return;
+    
+    contenedor.innerHTML = LOGROS.map(logro => {
+        const desbloqueado = rachaActual >= logro.dias;
+        return `
+            <div class="logro-tarjeta ${desbloqueado ? 'desbloqueado' : 'bloqueado'}">
+                <span class="logro-emoji">${desbloqueado ? logro.emoji : '🔒'}</span>
+                <div class="logro-info">
+                    <h4>${logro.nombre}</h4>
+                    <p>${desbloqueado ? logro.descripcion : `Alcanza ${logro.dias} días para desbloquear`}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // ------------------- EVENTOS GENERALES -------------------
@@ -501,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const destino = tab.dataset.pagina;
             document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
             document.getElementById(destino).classList.remove('oculto');
-            if (destino === 'logros') calcularRachaGeneral();
+            if (destino === 'logros') renderizarLogros();
         });
     });
 
