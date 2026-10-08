@@ -394,3 +394,9 @@ body {
     color: var(--texto-claro);
     padding: 30px 20px;
 }
+/* 👇 PEGA AQUÍ LAS LÍNEAS NUEVAS 👇 */
+.datos-ahorro {margin: 16px 0}
+.datos-ahorro .fila-dato {display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.exito {color: #10b981; font-weight: 700}
+.porcentaje-ahorro {font-size: 1.1rem; font-weight: 600; margin-top: 8px}
+.alerta.exito {background:#d1fae5; color:#065f46; margin-top:12px}
