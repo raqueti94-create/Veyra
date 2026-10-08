@@ -11,6 +11,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
+const el = id => document.getElementById(id);
 
 // ------------------- CONFIGURACIÓN DE LOGROS -------------------
 const LOGROS = [
