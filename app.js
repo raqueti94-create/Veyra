@@ -27,6 +27,16 @@ const HITOS = [
 let graficaCategoriasInst = null;
 let graficaComparativaInst = null;
 
+// ========== CATEGORÍAS — POR DEFECTO ==========
+const CATEGORIAS_POR_DEFECTO = [
+    { id: 'trabajo', nombre: 'Trabajo', tipo: 'ambos', color: '#3b82f6', icono: '💼' },
+    { id: 'casa', nombre: 'Casa', tipo: 'gasto', color: '#f59e0b', icono: '🏠' },
+    { id: 'comida', nombre: 'Comida', tipo: 'gasto', color: '#ef4444', icono: '🍽️' },
+    { id: 'transporte', nombre: 'Transporte', tipo: 'gasto', color: '#8b5cf6', icono: '🚗' },
+    { id: 'servicios', nombre: 'Servicios', tipo: 'gasto', color: '#10b981', icono: '💡' },
+    { id: 'otros', nombre: 'Otros', tipo: 'ambos', color: '#6b7280', icono: '📦' }
+];
+
 // ========== INICIO ==========
 document.addEventListener('DOMContentLoaded', () => {
     if (usuarioActivo) {
@@ -36,12 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') ingresar();
     });
     
-    // Actualizar gráficas al cambiar de mes
-    const selector = document.getElementById('selectorMesContable');
-    if (selector) {
-        selector.addEventListener('change', () => {
-            cargarMovimientos();
-        });
+    // Actualizar select de categorías al cambiar tipo de movimiento
+    const selectTipo = document.getElementById('tipoMovimiento');
+    if (selectTipo) {
+        selectTipo.addEventListener('change', actualizarSelectCategorias);
     }
 });
 
@@ -57,17 +65,19 @@ function ingresar() {
     entrarComoUsuario(nombre);
 }
 
-function entrarComoUsuario(nombre) {
+async function entrarComoUsuario(nombre) {
     document.getElementById('pantallaAcceso').classList.add('oculto');
     document.getElementById('pantallaPrincipal').classList.remove('oculto');
     document.getElementById('nombreUsuarioActivo').textContent = nombre;
     
     document.getElementById('fechaMovimiento').valueAsDate = new Date();
     mesSeleccionado = new Date().toISOString().slice(0, 7);
-    cargarSelectorMesesContable();
-    cargarMovimientos();
-    cargarHabitos();
-    cargarLogros();
+    
+    await cargarSelectorMesesContable();
+    await cargarListaCategorias();
+    await cargarMovimientos();
+    await cargarHabitos();
+    await cargarLogros();
 }
 
 function cerrarSesion() {
@@ -89,6 +99,143 @@ function cambiarSeccion(nombre) {
     document.getElementById(nombre).classList.add('activa');
 }
 
+// ========== CATEGORÍAS — GESTIÓN ==========
+async function obtenerCategorias() {
+    const ref = db.collection('configuracion').doc(usuarioActivo);
+    const doc = await ref.get();
+    
+    if (!doc.exists || !doc.data()?.categorias) {
+        await ref.set({ categorias: CATEGORIAS_POR_DEFECTO }, { merge: true });
+        return CATEGORIAS_POR_DEFECTO;
+    }
+    return doc.data().categorias;
+}
+
+async function guardarCategorias(lista) {
+    await db.collection('configuracion').doc(usuarioActivo).set(
+        { categorias: lista },
+        { merge: true }
+    );
+}
+
+async function cargarListaCategorias() {
+    const categorias = await obtenerCategorias();
+    const lista = document.getElementById('listaCategorias');
+    lista.innerHTML = '';
+
+    categorias.forEach(cat => {
+        lista.innerHTML += `
+            <div class="tarjeta-categoria" style="border-color:${cat.color}">
+                <div class="info-categoria">
+                    <span class="nombre-categoria">${cat.icono || '🏷️'} ${cat.nombre}</span>
+                    <span class="tipo-categoria">${cat.tipo === 'ambos' ? 'Ingreso y Gasto' : cat.tipo === 'ingreso' ? 'Solo Ingreso' : 'Solo Gasto'}</span>
+                </div>
+                <div class="acciones-categoria">
+                    <button class="btn-editar-cat" onclick="editarCategoria('${cat.id}')" title="Editar">✏️</button>
+                    <button class="btn-eliminar-cat" onclick="eliminarCategoria('${cat.id}')" title="Eliminar">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+
+    await actualizarSelectCategorias();
+}
+
+async function actualizarSelectCategorias() {
+    const categorias = await obtenerCategorias();
+    const select = document.getElementById('categoria');
+    const tipoSeleccionado = document.getElementById('tipoMovimiento')?.value || 'gasto';
+    
+    select.innerHTML = '';
+    categorias
+        .filter(cat => cat.tipo === 'ambos' || cat.tipo === tipoSeleccionado)
+        .forEach(cat => {
+            select.innerHTML += `<option value="${cat.id}">${cat.icono || '🏷️'} ${cat.nombre}</option>`;
+        });
+}
+
+function abrirModalCategoria(id = null) {
+    document.getElementById('modalCategoria').classList.remove('oculto');
+    document.getElementById('nombreCategoria').value = '';
+    document.getElementById('colorCategoria').value = '#7c3aed';
+    document.getElementById('idCategoriaEditar').value = '';
+    document.querySelector('input[name="tipoCat"][value="gasto"]').checked = true;
+    document.getElementById('tituloModalCat').textContent = 'Nueva Categoría';
+
+    if (id) {
+        editarCategoria(id);
+    }
+}
+
+function cerrarModalCategoria() {
+    document.getElementById('modalCategoria').classList.add('oculto');
+}
+
+async function editarCategoria(id) {
+    const categorias = await obtenerCategorias();
+    const cat = categorias.find(c => c.id === id);
+    if (!cat) return;
+
+    document.getElementById('nombreCategoria').value = cat.nombre;
+    document.getElementById('colorCategoria').value = cat.color;
+    document.getElementById('idCategoriaEditar').value = id;
+    document.getElementById('tituloModalCat').textContent = 'Editar Categoría';
+    
+    const radio = document.querySelector(`input[name="tipoCat"][value="${cat.tipo}"]`);
+    if (radio) radio.checked = true;
+}
+
+async function guardarCategoria() {
+    const nombre = document.getElementById('nombreCategoria').value.trim();
+    const tipo = document.querySelector('input[name="tipoCat"]:checked')?.value || 'gasto';
+    const color = document.getElementById('colorCategoria').value;
+    const idEditar = document.getElementById('idCategoriaEditar').value;
+
+    if (!nombre) {
+        alert('Escribe el nombre de la categoría');
+        return;
+    }
+
+    let categorias = await obtenerCategorias();
+
+    if (idEditar) {
+        // Editar existente
+        categorias = categorias.map(cat => 
+            cat.id === idEditar 
+                ? { ...cat, nombre, tipo, color }
+                : cat
+        );
+    } else {
+        // Nueva categoría
+        const idNuevo = nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-áéíóúñ]/g, '');
+        const icono = prompt('¿Qué emoji quieres usar? (ej: 🎓, 🛒, 💎)') || '🏷️';
+        categorias.push({ id: idNuevo, nombre, tipo, color, icono });
+    }
+
+    await guardarCategorias(categorias);
+    cerrarModalCategoria();
+    await cargarListaCategorias();
+    await cargarGraficas();
+}
+
+async function eliminarCategoria(id) {
+    if (!confirm('¿Eliminar esta categoría? Los movimientos no se borrarán, quedarán sin categoría asignada.')) return;
+    
+    const categorias = await obtenerCategorias();
+    const filtradas = categorias.filter(cat => cat.id !== id);
+    await guardarCategorias(filtradas);
+    
+    await cargarListaCategorias();
+    await cargarGraficas();
+}
+
+async function obtenerNombreCategoria(catId) {
+    const categorias = await obtenerCategorias();
+    const cat = categorias.find(c => c.id === catId);
+    if (cat) return `${cat.icono || '🏷️'} ${cat.nombre}`;
+    return catId;
+}
+
 // ========== CONTABLE ==========
 async function cargarSelectorMesesContable() {
     const snapshot = await db.collection('movimientos')
@@ -106,6 +253,11 @@ async function cargarSelectorMesesContable() {
         const nombreMes = new Date(anio, mes - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
         selector.innerHTML += `<option value="${m}" ${m === mesSeleccionado ? 'selected' : ''}>${nombreMes}</option>`;
     });
+    
+    selector.onchange = () => {
+        mesSeleccionado = selector.value;
+        cargarMovimientos();
+    };
 }
 
 async function cargarMovimientos() {
@@ -120,7 +272,7 @@ async function cargarMovimientos() {
     const todos = snapshot.docs.filter(doc => {
         const f = doc.data().fecha;
         return f >= inicio && f <= fin;
-    });
+    }).sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
 
     let ingresos = 0, gastos = 0;
     const lista = document.getElementById('listaMovimientos');
@@ -129,19 +281,21 @@ async function cargarMovimientos() {
     if (todos.length === 0) {
         lista.innerHTML = '<p class="sin-registros">Sin movimientos este mes</p>';
     } else {
-        todos.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha)).forEach(doc => {
+        for (const doc of todos) {
             const m = doc.data();
             const fecha = new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-ES');
             
             if (m.tipo === 'ingreso') ingresos += m.monto;
             else gastos += m.monto;
 
+            const etiquetaCat = await obtenerNombreCategoria(m.categoria);
+            
             lista.innerHTML += `
                 <div class="movimiento ${m.tipo}">
                     <div class="info">
                         <span class="fecha">${fecha}</span>
                         <span class="descripcion">${m.descripcion}</span>
-                        <span class="categoria">${iconoCategoria(m.categoria)}</span>
+                        <span class="categoria">${etiquetaCat}</span>
                     </div>
                     <div class="valor">
                         ${m.tipo === 'ingreso' ? '+' : '-'} $${m.monto.toLocaleString('es-CO')}
@@ -149,33 +303,21 @@ async function cargarMovimientos() {
                     </div>
                 </div>
             `;
-        });
+        }
     }
 
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString('es-CO')}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString('es-CO')}`;
     document.getElementById('saldo').textContent = `$ ${(ingresos - gastos).toLocaleString('es-CO')}`;
 
-    // Cargar gráficas después de los datos
-    cargarGraficas();
-}
-
-function iconoCategoria(cat) {
-    const iconos = {
-        trabajo: '💼 Trabajo',
-        casa: '🏠 Casa',
-        comida: '🍽️ Comida',
-        transporte: '🚗 Transporte',
-        servicios: '💡 Servicios',
-        otros: '📦 Otros'
-    };
-    return iconos[cat] || cat;
+    await cargarGraficas();
 }
 
 function abrirFormularioContable() {
     document.getElementById('modalContable').classList.remove('oculto');
     document.getElementById('fechaMovimiento').valueAsDate = new Date();
 }
+
 function cerrarModalContable() {
     document.getElementById('modalContable').classList.add('oculto');
 }
@@ -187,33 +329,40 @@ async function guardarMovimiento() {
     const cat = document.getElementById('categoria').value;
     const monto = parseFloat(document.getElementById('monto').value);
 
-    if (!desc || !monto) return alert('Completa todos los campos');
+    if (!desc || !monto) {
+        alert('Completa todos los campos');
+        return;
+    }
 
     await db.collection('movimientos').add({
         usuario: usuarioActivo,
-        tipo: tipo,
-        fecha: fecha,
+        tipo,
+        fecha,
         descripcion: desc,
         categoria: cat,
-        monto: monto,
+        monto,
         creado: new Date()
     });
 
     cerrarModalContable();
-    cargarSelectorMesesContable();
-    cargarMovimientos();
+    document.getElementById('descripcion').value = '';
+    document.getElementById('monto').value = '';
+    await cargarSelectorMesesContable();
+    await cargarMovimientos();
 }
 
 async function eliminarMovimiento(id) {
-    if (confirm('¿Eliminar?')) {
-        await db.collection('movimientos').doc(id).delete();
-        cargarMovimientos();
-    }
+    if (!confirm('¿Eliminar este movimiento?')) return;
+    await db.collection('movimientos').doc(id).delete();
+    await cargarMovimientos();
 }
 
-// ========== GRÁFICAS DE FINANZAS ==========
+// ========== GRÁFICAS ==========
 async function cargarGraficas() {
-    mesSeleccionado = document.getElementById('selectorMesContable').value;
+    const categorias = await obtenerCategorias();
+    const mapaColores = {};
+    categorias.forEach(c => mapaColores[c.id] = c.color);
+
     const inicio = mesSeleccionado + '-01';
     const fin = mesSeleccionado + '-31';
 
@@ -222,7 +371,7 @@ async function cargarGraficas() {
         .get();
 
     const movsMes = snapshot.docs
-        .map(doc => doc.data())
+        .map(d => d.data())
         .filter(m => m.fecha >= inicio && m.fecha <= fin);
 
     const porCategoria = {};
@@ -237,75 +386,75 @@ async function cargarGraficas() {
         }
     });
 
-    const coloresCategorias = {
-        trabajo: '#3b82f6',
-        casa: '#f59e0b',
-        comida: '#ef4444',
-        transporte: '#8b5cf6',
-        servicios: '#10b981',
-        otros: '#6b7280'
-    };
-
-    const etiquetas = Object.keys(porCategoria);
-    const valores = etiquetas.map(cat => porCategoria[cat]);
-    const colores = etiquetas.map(cat => coloresCategorias[cat] || '#9ca3af');
+    const etiquetasIds = Object.keys(porCategoria);
+    const valores = etiquetasIds.map(id => porCategoria[id]);
+    const colores = etiquetasIds.map(id => mapaColores[id] || '#9ca3af');
+    
+    const etiquetasNombres = [];
+    for (const id of etiquetasIds) {
+        etiquetasNombres.push(await obtenerNombreCategoria(id));
+    }
 
     if (graficaCategoriasInst) graficaCategoriasInst.destroy();
     if (graficaComparativaInst) graficaComparativaInst.destroy();
 
-    const ctxCat = document.getElementById('graficaCategorias').getContext('2d');
-    graficaCategoriasInst = new Chart(ctxCat, {
-        type: 'doughnut',
-        data: {
-            labels: etiquetas.map(cat => iconoCategoria(cat)),
-            datasets: [{
-                data: valores,
-                backgroundColor: colores,
-                borderWidth: 0,
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
-                    }
-                }
-            }
-        }
-    });
-
-    const ctxComp = document.getElementById('graficaComparativa').getContext('2d');
-    graficaComparativaInst = new Chart(ctxComp, {
-        type: 'bar',
-        data: {
-            labels: ['Ingresos', 'Gastos'],
-            datasets: [{
-                label: 'Monto',
-                data: [totalIngresos, totalGastos],
-                backgroundColor: ['#10b981', '#ef4444'],
-                borderRadius: 10,
-                barThickness: 60
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { ticks: { callback: v => `$ ${v.toLocaleString('es-CO')}` } }
+    const ctxCat = document.getElementById('graficaCategorias')?.getContext('2d');
+    if (ctxCat) {
+        graficaCategoriasInst = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: etiquetasNombres,
+                datasets: [{
+                    data: valores,
+                    backgroundColor: colores,
+                    borderWidth: 0,
+                    borderRadius: 6
+                }]
             },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
+                        }
                     }
                 }
             }
-        }
-    });
+        });
+    }
+
+    const ctxComp = document.getElementById('graficaComparativa')?.getContext('2d');
+    if (ctxComp) {
+        graficaComparativaInst = new Chart(ctxComp, {
+            type: 'bar',
+            data: {
+                labels: ['Ingresos', 'Gastos'],
+                datasets: [{
+                    label: 'Monto',
+                    data: [totalIngresos, totalGastos],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderRadius: 10,
+                    barThickness: 60
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { ticks: { callback: v => `$ ${v.toLocaleString('es-CO')}` } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 // ========== HÁBITOS ==========
@@ -313,17 +462,21 @@ function abrirFormularioHabito() {
     document.getElementById('modalHabito').classList.remove('oculto');
     document.getElementById('nombreHabito').value = '';
 }
+
 function cerrarModalHabito() {
     document.getElementById('modalHabito').classList.add('oculto');
 }
 
 async function guardarHabito() {
     const nombre = document.getElementById('nombreHabito').value.trim();
-    if (!nombre) return alert('Escribe el nombre del hábito');
+    if (!nombre) {
+        alert('Escribe el nombre del hábito');
+        return;
+    }
 
     await db.collection('habitos').add({
         usuario: usuarioActivo,
-        nombre: nombre,
+        nombre,
         diasCompletados: 0,
         rachaActual: 0,
         ultimaFecha: null,
@@ -331,7 +484,7 @@ async function guardarHabito() {
     });
 
     cerrarModalHabito();
-    cargarHabitos();
+    await cargarHabitos();
 }
 
 async function cargarHabitos() {
@@ -343,7 +496,7 @@ async function cargarHabitos() {
     lista.innerHTML = '';
 
     if (snapshot.empty) {
-        lista.innerHTML = '<p class="sin-registros">Crea tu primer hábito</p>';
+        lista.innerHTML = '<p class="sin-registros">Crea tu primer hábito y empieza hoy 💪</p>';
         return;
     }
 
@@ -351,7 +504,7 @@ async function cargarHabitos() {
         const h = doc.data();
         const id = doc.id;
         const porcentaje = Math.min(100, (h.diasCompletados / DIAS_META) * 100);
-        const {color, cara} = estiloPorPorcentaje(porcentaje);
+        const { color, cara } = estiloPorPorcentaje(porcentaje);
 
         lista.innerHTML += `
             <div class="tarjeta-habito">
@@ -374,15 +527,17 @@ async function cargarHabitos() {
 }
 
 function estiloPorPorcentaje(p) {
-    if (p <= 25) return {color: '#6b7280', cara: '😴'};
-    if (p <= 50) return {color: '#eab308', cara: '🙂'};
-    if (p <= 75) return {color: '#22c55e', cara: '😊'};
-    if (p < 100) return {color: '#10b981', cara: '🤩'};
-    return {color: '#f59e0b', cara: '🥳🏆'};
+    if (p <= 25) return { color: '#6b7280', cara: '😴' };
+    if (p <= 50) return { color: '#eab308', cara: '🙂' };
+    if (p <= 75) return { color: '#22c55e', cara: '😊' };
+    if (p < 100) return { color: '#10b981', cara: '🤩' };
+    return { color: '#f59e0b', cara: '🥳🏆' };
 }
 
 async function marcarDia(id) {
     const hoy = new Date().toISOString().slice(0, 10);
+    const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    
     const ref = db.collection('habitos').doc(id);
     const doc = await ref.get();
     const h = doc.data();
@@ -392,7 +547,6 @@ async function marcarDia(id) {
         return;
     }
 
-    const ayer = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const nuevaRacha = h.ultimaFecha === ayer ? h.rachaActual + 1 : 1;
 
     await ref.update({
@@ -401,46 +555,46 @@ async function marcarDia(id) {
         ultimaFecha: hoy
     });
 
-    verificarLogros(nuevaRacha, h.nombre);
+    await verificarLogros(nuevaRacha, h.nombre);
     await actualizarRachaGeneral(nuevaRacha);
-
-    cargarHabitos();
-    cargarLogros();
+    await cargarHabitos();
+    await cargarLogros();
 }
 
 async function reiniciarHabito(id) {
-    if (!confirm('¿Reiniciar este hábito? Se pierde el progreso')) return;
+    if (!confirm('¿Reiniciar este hábito? Se borrará tu progreso')) return;
     await db.collection('habitos').doc(id).update({
         diasCompletados: 0,
         rachaActual: 0,
         ultimaFecha: null
     });
-    cargarHabitos();
+    await cargarHabitos();
 }
 
 async function eliminarHabito(id) {
     if (!confirm('¿Eliminar este hábito definitivamente?')) return;
     await db.collection('habitos').doc(id).delete();
-    cargarHabitos();
+    await cargarHabitos();
 }
 
 // ========== LOGROS ==========
 async function verificarLogros(dias, nombreHabito) {
-    const logrosUsuario = await db.collection('logros')
-        .where('usuario', '==', usuarioActivo).get();
+    const logros = await db.collection('logros')
+        .where('usuario', '==', usuarioActivo)
+        .get();
     
-    const codigosDesbloqueados = new Set();
-    logrosUsuario.forEach(d => codigosDesbloqueados.add(d.data().codigo));
+    const codigos = new Set();
+    logros.forEach(d => codigos.add(d.data().codigo));
 
     for (const hito of HITOS) {
         if (dias === hito.dias) {
             const codigo = `${usuarioActivo}-${nombreHabito}-${hito.dias}`;
-            if (!codigosDesbloqueados.has(codigo)) {
+            if (!codigos.has(codigo)) {
                 await db.collection('logros').add({
                     usuario: usuarioActivo,
-                    codigo: codigo,
-                    nombreHabito: nombreHabito,
-                    hito: hito,
+                    codigo,
+                    nombreHabito,
+                    hito,
                     fecha: new Date().toISOString().slice(0, 10)
                 });
                 mostrarNotificacion(hito);
@@ -452,36 +606,35 @@ async function verificarLogros(dias, nombreHabito) {
 async function actualizarRachaGeneral(racha) {
     const ref = db.collection('configuracion').doc(usuarioActivo);
     const doc = await ref.get();
-    
-    if (!doc.exists || racha > (doc.data()?.rachaGeneral || 0)) {
-        await ref.set({ 
-            rachaGeneral: racha, 
-            ultimaActualizacion: new Date() 
-        }, { merge: true });
+    const actual = doc.data()?.rachaGeneral || 0;
+    if (racha > actual) {
+        await ref.set({ rachaGeneral: racha }, { merge: true });
     }
 }
 
 async function cargarLogros() {
-    const confRef = await db.collection('configuracion').doc(usuarioActivo).get();
-    const rachaGeneral = confRef.exists ? confRef.data()?.rachaGeneral || 0 : 0;
+    const confRef = db.collection('configuracion').doc(usuarioActivo);
+    const confDoc = await confRef.get();
+    const rachaGeneral = confDoc.exists ? confDoc.data()?.rachaGeneral || 0 : 0;
     
-    const porcentajeGeneral = Math.min(100, (rachaGeneral / DIAS_META) * 100);
-    document.getElementById('barraGeneral').style.width = `${porcentajeGeneral}%`;
-    document.getElementById('diasGenerales').textContent = `${rachaGeneral} días consecutivos activo`;
+    const porcentaje = Math.min(100, (rachaGeneral / DIAS_META) * 100);
+    document.getElementById('barraGeneral').style.width = `${porcentaje}%`;
+    document.getElementById('diasGenerales').textContent = `${rachaGeneral} días activo`;
 
     const snapshot = await db.collection('logros')
         .where('usuario', '==', usuarioActivo)
+        .orderBy('fecha', 'desc')
         .get();
 
     const lista = document.getElementById('listaLogros');
     lista.innerHTML = '';
 
     if (snapshot.empty) {
-        lista.innerHTML = '<p class="sin-registros">Aún no hay logros. ¡Empieza hoy!</p>';
+        lista.innerHTML = '<p class="sin-registros">Aún no tienes logros. ¡Empieza hoy! 💪</p>';
         return;
     }
 
-    snapshot.docs.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha)).forEach(doc => {
+    snapshot.forEach(doc => {
         const l = doc.data();
         lista.innerHTML += `
             <div class="tarjeta-logro">
@@ -497,9 +650,8 @@ async function cargarLogros() {
 }
 
 function mostrarNotificacion(hito) {
-    const notif = document.getElementById('notificacionLogro');
     document.getElementById('nombreLogro').textContent = `${hito.icono} ${hito.nombre} — ${hito.descripcion}`;
-    notif.classList.remove('oculto');
+    document.getElementById('notificacionLogro').classList.remove('oculto');
 }
 
 function cerrarNotificacion() {
