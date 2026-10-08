@@ -1,4 +1,3 @@
-/* ========== BASE — SOLO MÓVIL ========== */
 * {
     margin: 0;
     padding: 0;
@@ -18,26 +17,95 @@
     --blanco: #ffffff;
     --sombra: 0 2px 10px rgba(0,0,0,0.08);
     --radio: 16px;
-    --espacio: 16px;
 }
 
 body {
-    min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: var(--texto);
-    padding-bottom: 30px;
+    min-height: 100vh;
 }
 
-.oculto { display: none !important; }
+.oculto {
+    display: none !important;
+}
 
-/* ========== BARRA DE USUARIO ========== */
+/* Pantalla Login */
+.pantalla-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.caja-login {
+    background: white;
+    padding: 30px 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 420px;
+}
+
+.titulo-login {
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 25px;
+    font-size: 1.4rem;
+}
+
+.campo-login {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.campo-login:focus {
+    border-color: #7c3aed;
+}
+
+.btn-principal {
+    width: 100%;
+    padding: 14px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.btn-secundario {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: #7c3aed;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.mensaje-error {
+    color: var(--peligro);
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+/* Barra Superior */
 .barra-usuario {
     background: rgba(255,255,255,0.95);
     padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
@@ -49,14 +117,13 @@ body {
     cursor: pointer;
 }
 
-/* ========== PESTAÑAS DE NAVEGACIÓN ========== */
+/* Pestañas de Navegación */
 .pestañas {
     display: flex;
     background: rgba(255,255,255,0.9);
     padding: 10px 12px;
     gap: 6px;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .pestaña {
@@ -70,21 +137,20 @@ body {
     font-weight: 600;
     color: var(--texto-claro);
     cursor: pointer;
-    transition: all 0.25s ease;
     white-space: nowrap;
 }
 
 .pestaña.activa {
     background: var(--primario);
     color: white;
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 2px 6px rgba(124,58,237,0.3);
 }
 
-/* ========== CONTENEDOR ========== */
+/* Contenido */
 .contenedor {
     max-width: 520px;
     margin: 0 auto;
-    padding: var(--espacio);
+    padding: 16px;
 }
 
 .titulo-principal {
@@ -92,13 +158,11 @@ body {
     color: white;
     font-size: 1.5rem;
     margin: 10px 0 24px;
-    font-weight: 700;
 }
 
 .subtitulo {
     font-size: 1.1rem;
     margin-bottom: 14px;
-    color: var(--texto);
 }
 
 .introduccion {
@@ -107,18 +171,81 @@ body {
     margin-bottom: 20px;
 }
 
-/* ========== TARJETAS DE RESUMEN ========== */
+/* Gráficos */
+.grafico-contenedor {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 240px;
+    margin-top: 20px;
+    padding: 0 5px;
+}
+
+.barra-grafica {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 28%;
+}
+
+.etiqueta-barra {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--texto-claro);
+}
+
+.fondo-barra {
+    width: 100%;
+    height: 150px;
+    background: #f1f5f9;
+    border-radius: 8px 8px 4px 4px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    border: 1px solid var(--borde);
+}
+
+.barra {
+    width: 100%;
+    transition: height 0.5s ease;
+    border-radius: 4px 4px 0 0;
+}
+
+.valor-ingreso {
+    background: linear-gradient(to top, #059669, #10b981);
+}
+
+.valor-gasto {
+    background: linear-gradient(to top, #dc2626, #ef4444);
+}
+
+.valor-saldo {
+    background: linear-gradient(to top, #7c3aed, #a78bfa);
+}
+
+.valor-barra {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--texto);
+    margin-top: 4px;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* Tarjetas de Resumen */
 .tarjetas-resumen {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 24px;
+    margin-top: 24px;
 }
 
 .tarjeta {
-    background: var(--blanco);
+    background: white;
     padding: 18px 20px;
-    border-radius: var(--radio);
+    border-radius: 16px;
     box-shadow: var(--sombra);
 }
 
@@ -126,7 +253,6 @@ body {
     font-size: 0.95rem;
     color: var(--texto-claro);
     margin-bottom: 4px;
-    font-weight: 500;
 }
 
 .tarjeta p {
@@ -138,20 +264,15 @@ body {
 .gastos p { color: var(--peligro); }
 .saldo p { color: var(--primario); }
 
-/* ========== SELECTOR DE MES ========== */
+/* Selector de Mes */
 .selector-mes {
-    background: var(--blanco);
+    background: white;
     padding: 16px 20px;
-    border-radius: var(--radio);
+    border-radius: 16px;
     margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.selector-mes label {
-    font-weight: 600;
-    color: var(--texto);
 }
 
 .selector-mes select {
@@ -160,14 +281,13 @@ body {
     border: 2px solid var(--borde);
     border-radius: 10px;
     font-size: 0.95rem;
-    background: white;
 }
 
-/* ========== BLOQUES GENERALES ========== */
+/* Bloques */
 .bloque {
-    background: var(--blanco);
+    background: white;
     padding: 20px;
-    border-radius: var(--radio);
+    border-radius: 16px;
     margin-bottom: 20px;
     box-shadow: var(--sombra);
 }
@@ -179,13 +299,6 @@ body {
     margin-bottom: 16px;
 }
 
-.cabecera-bloque h3 {
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
 .btn-nueva {
     padding: 8px 16px;
     background: var(--primario);
@@ -194,14 +307,79 @@ body {
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    font-size: 0.9rem;
 }
 
-/* ========== CATEGORÍAS ========== */
+/* Selector de Tipo */
+.selector-tipo {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.btn-tipo {
+    flex: 1;
+    padding: 14px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-tipo.active[data-tipo="ingreso"] {
+    background: #d1fae5;
+    color: #065f46;
+    box-shadow: 0 0 0 2px var(--exito);
+}
+
+.btn-tipo.active[data-tipo="gasto"] {
+    background: #fee2e2;
+    color: #991b1b;
+    box-shadow: 0 0 0 2px var(--peligro);
+}
+
+.icono-tipo {
+    font-size: 1.2rem;
+    margin-right: 6px;
+}
+
+/* Formularios */
+.campo-form {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    border: 2px solid var(--borde);
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.campo-form:focus {
+    border-color: var(--primario);
+}
+
+.fila-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.etiqueta-form {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Categorías */
 .lista-categorias {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 12px;
 }
 
 .categoria {
@@ -214,105 +392,69 @@ body {
     border-left: 3px solid var(--primario);
 }
 
-.categoria .icono {
-    font-size: 1.2rem;
+.categoria strong { display: block; }
+.categoria small { color: var(--texto-claro); font-size: 0.8rem; }
+
+.icono { font-size: 1.2rem; }
+
+.acciones {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
 }
 
-.categoria strong {
-    display: block;
-    font-size: 0.95rem;
-}
-
-.categoria small {
-    color: var(--texto-claro);
-    font-size: 0.8rem;
-}
-
-/* ========== GRÁFICAS ========== */
-.grafica-titulo {
-    text-align: center;
-    color: var(--texto-claro);
-    margin-bottom: 12px;
-    font-size: 0.9rem;
-}
-
-.grafica-placeholder {
-    background: #f8fafc;
-    padding: 40px 20px;
-    border-radius: 10px;
-    text-align: center;
-    color: var(--texto-claro);
-    margin-bottom: 20px;
-}
-
-/* ========== BOTONES ========== */
-.btn-principal {
-    width: 100%;
-    padding: 14px;
-    background: var(--primario);
-    color: white;
+.btn-accion {
+    background: transparent;
     border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
     cursor: pointer;
-    margin-bottom: 20px;
-    transition: transform 0.2s;
-}
-
-.btn-principal:active {
-    transform: scale(0.98);
-}
-
-.btn-guardar {
-    width: 100%;
-    padding: 12px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
     font-size: 1rem;
-    cursor: pointer;
-    margin-top: 10px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
 }
 
-/* ========== FORMULARIO PRESUPUESTO ========== */
-.etiqueta-form {
-    display: block;
-    font-weight: 600;
-    color: var(--texto-claro);
-    margin-bottom: 8px;
+.btn-accion:hover { background: #e2e8f0; }
+
+/* Movimientos */
+.movimiento {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--borde);
 }
 
-.campo-texto {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 1rem;
-    outline: none;
-}
+.info-mov { flex: 1; }
+.fecha { font-size: 0.8rem; color: var(--texto-claro); }
+.descripcion { font-weight: 600; }
+.categoria-pequeña { font-size: 0.85rem; color: var(--texto-claro); }
 
-.datos-presupuesto {
-    margin-top: 20px;
-}
+.valor-botones { text-align: right; }
+.valor { font-weight: 700; font-size: 1.05rem; }
+.positivo { color: var(--exito); }
+.negativo { color: var(--peligro); }
 
-.fila-dato {
+/* Sección Ahorro */
+.datos-ahorro { margin: 16px 0; }
+.datos-ahorro .fila-dato {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    font-size: 0.95rem;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.fila-dato strong {
-    font-weight: 700;
+.exito { color: #10b981; font-weight: 700; }
+.porcentaje-ahorro { font-size: 1.1rem; font-weight: 600; margin-top: 8px; }
+
+.alerta {
+    padding: 14px 16px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 12px;
 }
 
-.rojo { color: var(--peligro); }
-.azul { color: var(--primario); }
-.morado { background: var(--primario); }
-.naranja { background: var(--advertencia); }
+.alerta.exito { background: #d1fae5; color: #065f46; }
 
 .barra-fondo {
     height: 12px;
@@ -325,78 +467,89 @@ body {
 .barra-progreso {
     height: 100%;
     border-radius: 6px;
-    transition: width 0.5s ease;
+    transition: all 0.3s;
 }
 
-.alerta {
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-weight: 500;
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.9rem;
-}
+.barra-progreso.verde { background: linear-gradient(to right, #10b981, #34d399); }
+.morado { background: linear-gradient(to right, #7c3aed, #a78bfa); }
 
-.amarilla { background: #fef3c7; color: #92400e; }
-
-/* ========== MOVIMIENTOS ========== */
-.movimiento {
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--borde);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
 }
 
-.movimiento:last-child { border-bottom: none; }
-
-.fecha {
-    font-size: 0.8rem;
-    color: var(--texto-claro);
-    margin-bottom: 2px;
+.modal-contenido {
+    background: white;
+    padding: 24px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
 }
 
-.descripcion {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
+.modal-contenido h3 { margin-bottom: 18px; text-align: center; }
+.botones-modal { display: flex; gap: 10px; margin-top: 8px; }
+.botones-modal button { flex: 1; }
 
-.etiqueta {
-    font-size: 0.85rem;
-    color: var(--texto-claro);
-    margin-top: 2px;
-}
-
-.valor {
-    font-weight: 700;
-    font-size: 1rem;
-}
-
-.positivo { color: var(--exito); }
-.negativo { color: var(--peligro); }
-
-/* ========== LOGROS ========== */
-.numero-grande {
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-    margin: 10px 0;
-}
-
+/* Hábitos */
 .texto-centrado {
     text-align: center;
     color: var(--texto-claro);
-    padding: 10px;
+    padding: 20px 0;
 }
 
-.vacio {
-    text-align: center;
-    color: var(--texto-claro);
-    padding: 30px 20px;
+.dias-habito {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
 }
-/* 👇 PEGA AQUÍ LAS LÍNEAS NUEVAS 👇 */
-.datos-ahorro {margin: 16px 0}
-.datos-ahorro .fila-dato {display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9}
-.exito {color: #10b981; font-weight: 700}
-.porcentaje-ahorro {font-size: 1.1rem; font-weight: 600; margin-top: 8px}
-.alerta.exito {background:#d1fae5; color:#065f46; margin-top:12px}
+
+.dia-habito {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 6px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dia-habito.hecho { background: var(--exito); color: white; }
+.dia-habito.hoy { box-shadow: 0 0 0 2px var(--primario); }
+
+.dia-nombre { font-size: 0.7rem; font-weight: 600; }
+.dia-num { font-size: 1rem; font-weight: 700; }
+
+.habito-tarjeta { margin-bottom: 14px; }
+.cabecera-habito {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.numero-grande {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    color: white;
+    margin: 10px 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .contenedor { padding: 12px; }
+    .titulo-principal { font-size: 1.3rem; }
+    .tarjeta p { font-size: 1.25rem; }
+    .grafico-contenedor { height: 200px; }
+    .fondo-barra { height: 120px; }
+    .pestaña { font-size: 0.75rem; padding: 8px 4px; }
+}
