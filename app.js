@@ -75,6 +75,7 @@ async function entrarComoUsuario(nombre) {
     await cargarSelectorMesesContable();
     await cargarListaCategorias();
     await cargarMovimientos();
+    await cargarPresupuesto();
     await cargarHabitos();
     await cargarLogros();
 }
@@ -124,14 +125,17 @@ async function cargarListaCategorias() {
 
     categorias.forEach(cat => {
         lista.innerHTML += `
-            <div class="tarjeta-categoria" style="border-color:${cat.color}">
+            <div class="tarjeta-categoria" style="border-left-color:${cat.color}">
                 <div class="info-categoria">
-                    <span class="nombre-categoria">${cat.icono || '🏷️'} ${cat.nombre}</span>
-                    <span class="tipo-categoria">${cat.tipo === 'ambos' ? 'Ingreso y Gasto' : cat.tipo === 'ingreso' ? 'Solo Ingreso' : 'Solo Gasto'}</span>
+                    <span class="icono-categoria">${cat.icono || '🏷️'}</span>
+                    <div>
+                        <strong>${cat.nombre}</strong>
+                        <small>${cat.tipo === 'ambos' ? 'Ingreso y Gasto' : cat.tipo === 'ingreso' ? 'Solo Ingreso' : 'Solo Gasto'}</small>
+                    </div>
                 </div>
                 <div class="acciones-categoria">
-                    <button class="btn-editar-cat" onclick="editarCategoria('${cat.id}')" title="Editar">✏️</button>
-                    <button class="btn-eliminar-cat" onclick="eliminarCategoria('${cat.id}')" title="Eliminar">🗑️</button>
+                    <button class="btn-icono" onclick="abrirModalCategorias('${cat.id}')" title="Editar">✏️</button>
+                    <button class="btn-icono" onclick="eliminarCategoria('${cat.id}')" title="Eliminar">🗑️</button>
                 </div>
             </div>
         `;
@@ -153,7 +157,7 @@ async function actualizarSelectCategorias() {
         });
 }
 
-function abrirModalCategoria(id = null) {
+function abrirModalCategorias(id = null) {
     document.getElementById('modalCategoria').classList.remove('oculto');
     document.getElementById('nombreCategoria').value = '';
     document.getElementById('colorCategoria').value = '#7c3aed';
@@ -166,7 +170,7 @@ function abrirModalCategoria(id = null) {
     }
 }
 
-function cerrarModalCategoria() {
+function cerrarModalCategorias() {
     document.getElementById('modalCategoria').classList.add('oculto');
 }
 
@@ -210,7 +214,7 @@ async function guardarCategoria() {
     }
 
     await guardarCategorias(categorias);
-    cerrarModalCategoria();
+    cerrarModalCategorias();
     await cargarListaCategorias();
     await cargarGraficas();
 }
@@ -254,6 +258,7 @@ async function cargarSelectorMesesContable() {
     selector.onchange = () => {
         mesSeleccionado = selector.value;
         cargarMovimientos();
+        cargarPresupuesto();
     };
 }
 
@@ -310,6 +315,7 @@ async function cargarMovimientos() {
     document.getElementById('saldo').textContent = `$ ${(ingresos - gastos).toLocaleString('es-CO')}`;
 
     await cargarGraficas();
+    await cargarPresupuesto();
 }
 
 function abrirFormularioContable() {
@@ -354,6 +360,80 @@ async function eliminarMovimiento(id) {
     if (!confirm('¿Eliminar este movimiento?')) return;
     await db.collection('movimientos').doc(id).delete();
     await cargarMovimientos();
+}
+
+// ========== PRESUPUESTO MENSUAL ==========
+async function guardarPresupuesto() {
+    const valor = parseFloat(document.getElementById('valorPresupuesto').value);
+    if (!valor || valor <= 0) {
+        alert('Escribe un monto válido para tu presupuesto 💡');
+        return;
+    }
+
+    await db.collection('presupuestos').doc(`${usuarioActivo}-${mesSeleccionado}`).set({
+        usuario: usuarioActivo,
+        mes: mesSeleccionado,
+        monto: valor,
+        fechaActualizacion: new Date()
+    });
+
+    await cargarPresupuesto();
+    document.getElementById('valorPresupuesto').value = '';
+}
+
+async function cargarPresupuesto() {
+    const ref = db.collection('presupuestos').doc(`${usuarioActivo}-${mesSeleccionado}`);
+    const doc = await ref.get();
+    
+    const inicio = mesSeleccionado + '-01';
+    const fin = mesSeleccionado + '-31';
+    
+    const snapshot = await db.collection('movimientos')
+        .where('usuario', '==', usuarioActivo)
+        .get();
+    
+    const gastosMes = snapshot.docs
+        .map(d => d.data())
+        .filter(m => m.tipo === 'gasto' && m.fecha >= inicio && m.fecha <= fin)
+        .reduce((sum, m) => sum + m.monto, 0);
+
+    if (!doc.exists || !doc.data()?.monto) {
+        document.getElementById('visualPresupuesto').style.display = 'none';
+        return;
+    }
+
+    const presupuesto = doc.data().monto;
+    const disponible = presupuesto - gastosMes;
+    const porcentaje = Math.min(100, (gastosMes / presupuesto) * 100);
+
+    document.getElementById('visualPresupuesto').style.display = 'block';
+    document.getElementById('montoPresupuesto').textContent = `$ ${presupuesto.toLocaleString('es-CO')}`;
+    document.getElementById('montoGastadoPresupuesto').textContent = `$ ${gastosMes.toLocaleString('es-CO')}`;
+    document.getElementById('montoDisponible').textContent = `$ ${Math.max(0, disponible).toLocaleString('es-CO')}`;
+    
+    const barra = document.getElementById('barraPresupuesto');
+    barra.style.width = `${Math.min(100, porcentaje)}%`;
+    
+    const mensaje = document.getElementById('mensajePresupuesto');
+    mensaje.className = 'mensaje-presupuesto';
+    
+    if (porcentaje < 70) {
+        barra.style.background = '#10b981';
+        mensaje.classList.add('ok');
+        mensaje.textContent = '✅ ¡Vas muy bien! Sigues dentro del presupuesto 💚';
+    } else if (porcentaje < 90) {
+        barra.style.background = '#f59e0b';
+        mensaje.classList.add('casi');
+        mensaje.textContent = '⚠️ Atención: Ya usaste más del 70% del presupuesto';
+    } else if (porcentaje <= 100) {
+        barra.style.background = '#f97316';
+        mensaje.classList.add('casi');
+        mensaje.textContent = '⚠️ ¡Casi al límite! Solo te queda un margen pequeño';
+    } else {
+        barra.style.background = '#ef4444';
+        mensaje.classList.add('excedido');
+        mensaje.textContent = `🔴 Has excedido el presupuesto por $ ${Math.abs(disponible).toLocaleString('es-CO')}`;
+    }
 }
 
 // ========== GRÁFICAS ==========
@@ -657,7 +737,7 @@ function cerrarNotificacion() {
     document.getElementById('notificacionLogro').classList.add('oculto');
 }
 
-// ========== EXPOSICIÓN PARA HTML — SOLUCIÓN DEL ERROR ==========
+// ========== EXPOSICIÓN PARA HTML ==========
 window.ingresar = ingresar;
 window.cerrarSesion = cerrarSesion;
 window.cambiarSeccion = cambiarSeccion;
@@ -665,11 +745,13 @@ window.abrirFormularioContable = abrirFormularioContable;
 window.cerrarModalContable = cerrarModalContable;
 window.guardarMovimiento = guardarMovimiento;
 window.eliminarMovimiento = eliminarMovimiento;
-window.abrirModalCategoria = abrirModalCategoria;
-window.cerrarModalCategoria = cerrarModalCategoria;
+window.abrirModalCategorias = abrirModalCategorias;
+window.cerrarModalCategorias = cerrarModalCategorias;
 window.guardarCategoria = guardarCategoria;
 window.editarCategoria = editarCategoria;
 window.eliminarCategoria = eliminarCategoria;
+window.guardarPresupuesto = guardarPresupuesto;
+window.cargarPresupuesto = cargarPresupuesto;
 window.abrirFormularioHabito = abrirFormularioHabito;
 window.cerrarModalHabito = cerrarModalHabito;
 window.guardarHabito = guardarHabito;
