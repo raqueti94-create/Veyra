@@ -240,6 +240,8 @@ body {
 }
 
 .filtro-mes select {
+    flex: 1;
+    min-width: 180px;
     padding: 10px 15px;
     border: 2px solid var(--borde);
     border-radius: 10px;
@@ -259,7 +261,10 @@ body {
 .contenedor-presupuesto h3 {
     color: var(--texto);
     margin-bottom: 16px;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .entrada-presupuesto {
@@ -267,7 +272,7 @@ body {
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .entrada-presupuesto label {
@@ -278,11 +283,11 @@ body {
 
 .entrada-presupuesto input {
     flex: 1;
-    min-width: 140px;
-    padding: 10px 14px;
+    min-width: 160px;
+    padding: 12px 15px;
     border: 2px solid var(--borde);
     border-radius: 10px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     outline: none;
     transition: border 0.3s;
 }
@@ -292,13 +297,13 @@ body {
 }
 
 .btn-guardar-presupuesto {
-    padding: 10px 18px;
+    padding: 12px 24px;
     background: var(--primario);
     color: white;
     border: none;
     border-radius: 10px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
@@ -316,35 +321,36 @@ body {
 .fila-datos {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
-    font-size: 0.92rem;
+    padding: 8px 0;
+    font-size: 0.95rem;
 }
 
 .fila-datos strong {
-    font-size: 0.98rem;
+    font-size: 1rem;
 }
 
 .barra-fondo.presupuesto {
-    height: 14px;
-    margin: 12px 0;
-    border-radius: 7px;
+    height: 16px;
+    margin: 16px 0;
+    border-radius: 8px;
     background: #e2e8f0;
     overflow: hidden;
 }
 
 .barra-progreso.presupuesto {
     height: 100%;
-    border-radius: 7px;
+    border-radius: 8px;
     transition: width 0.5s ease, background 0.3s ease;
 }
 
 .mensaje-presupuesto {
     text-align: center;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 10px;
-    font-weight: 600;
-    margin-top: 8px;
+    font-weight: 500;
+    margin-top: 12px;
     font-size: 0.9rem;
+    line-height: 1.4;
 }
 
 .mensaje-presupuesto.ok {
@@ -375,18 +381,21 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     flex-wrap: wrap;
     gap: 12px;
 }
 
 .cabecera-categorias h3 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--texto);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-agregar-categoria {
-    padding: 10px 18px;
+    padding: 10px 22px;
     background: var(--primario);
     color: white;
     border: none;
@@ -403,17 +412,17 @@ body {
 
 .lista-categorias {
     display: grid;
-    gap: 10px;
+    gap: 12px;
 }
 
 .tarjeta-categoria {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px;
+    padding: 16px;
     border-left: 4px solid;
     background: #f8fafc;
-    border-radius: 10px;
+    border-radius: 12px;
     transition: background 0.2s;
 }
 
@@ -424,31 +433,31 @@ body {
 .info-categoria {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .icono-categoria {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
 }
 
 .info-categoria small {
     color: var(--texto-claro);
     display: block;
-    margin-top: 2px;
-    font-size: 0.8rem;
+    margin-top: 4px;
+    font-size: 0.85rem;
 }
 
 .acciones-categoria {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .btn-icono {
     background: transparent;
     border: none;
-    font-size: 0.95rem;
+    font-size: 1rem;
     cursor: pointer;
-    padding: 4px 6px;
+    padding: 6px 8px;
     border-radius: 6px;
     transition: background 0.2s;
 }
@@ -467,34 +476,34 @@ body {
 }
 
 .contenedor-graficas h3 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--texto);
-    margin-bottom: 18px;
+    margin-bottom: 20px;
 }
 
 .graficas-fila {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    gap: 24px;
 }
 
 .tarjeta-grafica {
-    padding: 18px;
+    padding: 20px;
     background: #f8fafc;
     border-radius: 12px;
 }
 
 .tarjeta-grafica h4 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--texto-claro);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     text-align: center;
 }
 
 /* ========== BOTÓN AGREGAR ========== */
 .btn-agregar {
     width: 100%;
-    padding: 14px;
+    padding: 16px;
     background: var(--primario);
     color: white;
     border: none;
@@ -519,25 +528,25 @@ body {
 }
 
 .contenedor-lista h3 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--texto);
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .sin-registros {
     text-align: center;
     color: var(--texto-claro);
-    padding: 30px;
+    padding: 40px 20px;
 }
 
 .movimiento {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
+    padding: 16px 0;
     border-bottom: 1px solid var(--borde);
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .movimiento:last-child {
@@ -578,15 +587,15 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 .btn-eliminar {
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.95rem;
-    padding: 4px 6px;
+    font-size: 1rem;
+    padding: 6px;
     border-radius: 6px;
     transition: background 0.2s;
 }
@@ -612,7 +621,7 @@ body {
 
 .modal-contenido {
     background: white;
-    padding: 28px 24px;
+    padding: 30px 24px;
     border-radius: 20px;
     width: 100%;
     max-width: 420px;
@@ -622,14 +631,14 @@ body {
 }
 
 .modal-contenido h3 {
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     font-size: 1.3rem;
     color: var(--primario);
 }
 
 .modal-contenido label {
     display: block;
-    margin: 14px 0 6px;
+    margin: 16px 0 8px;
     font-weight: 600;
     color: var(--texto-claro);
 }
@@ -637,10 +646,10 @@ body {
 .modal-contenido input,
 .modal-contenido select {
     width: 100%;
-    padding: 11px 14px;
+    padding: 12px 16px;
     border: 2px solid var(--borde);
     border-radius: 10px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     outline: none;
     transition: border 0.3s;
 }
@@ -654,7 +663,7 @@ body {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
-    margin: 10px 0;
+    margin: 12px 0;
 }
 
 .opcion-tipo label {
@@ -668,12 +677,12 @@ body {
 .botones-modal {
     display: flex;
     gap: 12px;
-    margin-top: 22px;
+    margin-top: 28px;
 }
 
 .btn-secundario {
     flex: 1;
-    padding: 12px;
+    padding: 14px;
     background: transparent;
     border: 2px solid var(--borde);
     border-radius: 10px;
@@ -699,7 +708,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .cabecera-habito h4 {
@@ -707,32 +716,32 @@ body {
 }
 
 .cara-estado {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
 }
 
 .barra-fondo {
-    height: 10px;
+    height: 12px;
     background: #e2e8f0;
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
-    margin: 8px 0;
+    margin: 10px 0;
 }
 
 .barra-progreso {
     height: 100%;
-    border-radius: 5px;
+    border-radius: 6px;
     transition: width 0.5s ease, background 0.3s ease;
 }
 
 .texto-progreso {
     color: var(--texto-claro);
-    margin-bottom: 14px;
-    font-size: 0.9rem;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
 }
 
 .botones-habito {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
@@ -763,7 +772,7 @@ body {
 /* ========== LOGROS ========== */
 .tarjeta-general {
     background: white;
-    padding: 26px var(--espacio-interno);
+    padding: 30px var(--espacio-interno);
     border-radius: var(--radio-tarjeta);
     margin-bottom: var(--espacio-seccion);
     text-align: center;
@@ -772,13 +781,13 @@ body {
 
 .tarjeta-general h3 {
     color: var(--primario);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .tarjeta-general p {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .progreso-general {
@@ -797,27 +806,27 @@ body {
 
 .tarjeta-logro {
     background: white;
-    padding: 18px;
+    padding: 20px;
     border-radius: 12px;
     margin-bottom: 12px;
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: 16px;
     box-shadow: var(--sombra);
 }
 
 .icono-trofeo {
-    font-size: 1.8rem;
+    font-size: 2rem;
 }
 
 .tarjeta-logro h4 {
-    font-size: 1rem;
-    margin-bottom: 4px;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
 }
 
 .detalle-logro {
     color: var(--texto-claro);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     margin-bottom: 4px;
 }
 
@@ -844,7 +853,7 @@ body {
 }
 
 .trofeo-animado {
-    font-size: 3.5rem;
+    font-size: 4rem;
     animation: rebote 1s ease infinite;
     margin-bottom: 20px;
 }
@@ -856,23 +865,23 @@ body {
 
 .notificacion h3 {
     color: white;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     margin-bottom: 10px;
 }
 
 .notificacion p {
     color: rgba(255,255,255,0.9);
-    font-size: 1rem;
-    margin-bottom: 24px;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
 }
 
 .notificacion button {
-    padding: 14px 36px;
+    padding: 15px 40px;
     background: var(--exito);
     color: white;
     border: none;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
     transition: transform 0.2s;
@@ -892,7 +901,7 @@ body {
         flex-direction: column;
         gap: 12px;
         text-align: center;
-        padding: 12px 16px;
+        padding: 14px 16px;
     }
     
     .tarjetas-resumen {
@@ -903,14 +912,27 @@ body {
         grid-template-columns: 1fr;
     }
     
+    /* PRESUPUESTO EN MÓVIL — ARREGLADO ✅ */
     .entrada-presupuesto {
         flex-direction: column;
         align-items: stretch;
     }
     
+    .entrada-presupuesto label {
+        margin-bottom: 6px;
+    }
+    
     .entrada-presupuesto input,
     .btn-guardar-presupuesto {
         width: 100%;
+    }
+    
+    .fila-datos {
+        font-size: 0.9rem;
+    }
+    
+    .mensaje-presupuesto {
+        font-size: 0.85rem;
     }
     
     .botones-habito {
@@ -929,5 +951,14 @@ body {
     .valor {
         width: 100%;
         justify-content: space-between;
+    }
+    
+    .filtro-mes {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filtro-mes select {
+        width: 100%;
     }
 }
