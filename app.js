@@ -114,14 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const cat = document.getElementById('categoriaMov').value;
         if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
         
-       if (tipoMovimiento === 'gasto') {
-    try {
-        // Ya no hay límite de presupuesto mensual — se cambió por Ahorro Programado
-        // Se eliminó la validación anterior para evitar conflictos
-    } catch (e) {
-        console.log('Validación de límite desactivada:', e.message);
-    }
-}
+        if (tipoMovimiento === 'gasto') {
+            try {
+                // Validación de límite desactivada — se reemplazó por Ahorro Programado
+            } catch (e) {
+                console.log('Validación desactivada:', e.message);
+            }
+        }
 
         try {
             await db.collection('movimientos').add({
