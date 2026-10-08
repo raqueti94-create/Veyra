@@ -526,3 +526,101 @@ async function cargarHabitos() {
     document.querySelectorAll('.eliminar-habito').forEach(b => b.onclick = async () => { if(confirm('¿Eliminar hábito?')) { await db.collection('habitos').doc(b.dataset.id).delete(); await cargarHabitos(); } });
 }
 </script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
+:root{--primario:#7c3aed;--exito:#10b981;--advertencia:#f59e0b;--peligro:#ef4444;--fondo:#eef2ff;--texto:#1e293b;--texto-claro:#64748b;--borde:#e2e8f0;--blanco:#fff;--sombra:0 2px 10px rgba(0,0,0,.08);--radio:16px}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh}
+.oculto{display:none!important}
+.pantalla-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.caja-login{background:#fff;padding:30px 25px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.15);width:100%;max-width:420px}
+.titulo-login{text-align:center;color:#1e293b;margin-bottom:25px;font-size:1.4rem}
+.campo-login,.campo-form{width:100%;padding:14px 16px;margin-bottom:14px;border:2px solid var(--borde);border-radius:12px;font-size:1rem;outline:none}
+.campo-login:focus,.campo-form:focus{border-color:var(--primario)}
+.btn-principal{width:100%;padding:14px;background:var(--primario);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-secundario{width:100%;padding:12px;background:transparent;color:var(--primario);border:none;font-size:.95rem;font-weight:600;cursor:pointer;margin-top:10px}
+.mensaje-error{color:var(--peligro);text-align:center;margin-top:15px;font-size:.9rem}
+.barra-usuario{background:rgba(255,255,255,.95);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.btn-cerrar{background:transparent;border:none;color:var(--primario);font-weight:600;cursor:pointer}
+.pestañas{display:flex;background:rgba(255,255,255,.9);padding:10px 12px;gap:6px;overflow-x:auto}
+.pestaña{flex:1;min-width:80px;padding:10px 8px;background:transparent;border:none;border-radius:10px;font-size:.85rem;font-weight:600;color:var(--texto-claro);cursor:pointer;white-space:nowrap}
+.pestaña.activa{background:var(--primario);color:#fff;box-shadow:0 2px 6px rgba(124,58,237,.3)}
+.contenedor{max-width:520px;margin:0 auto;padding:16px}
+.titulo-principal{text-align:center;color:#fff;font-size:1.5rem;margin:10px 0 24px}
+.subtitulo{font-size:1.1rem;margin-bottom:14px}
+.introduccion{text-align:center;color:rgba(255,255,255,.9);margin-bottom:20px}
+.grafico-contenedor{display:flex;justify-content:space-around;align-items:flex-end;height:240px;margin-top:20px;padding:0 5px}
+.barra-grafica{display:flex;flex-direction:column;align-items:center;gap:8px;width:28%}
+.etiqueta-barra{font-size:.8rem;font-weight:600;color:var(--texto-claro)}
+.fondo-barra{width:100%;height:150px;background:#f1f5f9;border-radius:8px 8px 4px 4px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid var(--borde)}
+.barra{width:100%;transition:height .5s ease}
+.valor-ingreso{background:linear-gradient(to top,#059669,#10b981)}
+.valor-gasto{background:linear-gradient(to top,#dc2626,#ef4444)}
+.valor-saldo{background:linear-gradient(to top,#7c3aed,#a78bfa)}
+.valor-barra{font-size:.75rem;font-weight:600;color:var(--texto);margin-top:4px;text-align:center;word-break:break-all}
+.tarjetas-resumen{display:flex;flex-direction:column;gap:12px;margin:24px 0}
+.tarjeta{background:#fff;padding:18px 20px;border-radius:var(--radio);box-shadow:var(--sombra)}
+.tarjeta h3{font-size:.95rem;color:var(--texto-claro);margin-bottom:4px}
+.tarjeta p{font-size:1.5rem;font-weight:700}
+.ingresos p{color:var(--exito)}
+.gastos p{color:var(--peligro)}
+.saldo p{color:var(--primario)}
+.selector-mes{background:#fff;padding:16px 20px;border-radius:var(--radio);margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.selector-mes select{flex:1;padding:10px 14px;border:2px solid var(--borde);border-radius:10px;font-size:.95rem}
+.bloque{background:#fff;padding:20px;border-radius:var(--radio);margin-bottom:20px;box-shadow:var(--sombra)}
+.cabecera-bloque{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.btn-nueva{padding:8px 16px;background:var(--primario);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+.selector-tipo{display:flex;gap:10px;margin-bottom:14px}
+.btn-tipo{flex:1;padding:14px;background:#f1f5f9;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:.2s}
+.btn-tipo.active[data-tipo="ingreso"]{background:#d1fae5;color:#065f46;box-shadow:0 0 0 2px var(--exito)}
+.btn-tipo.active[data-tipo="gasto"]{background:#fee2e2;color:#991b1b;box-shadow:0 0 0 2px var(--peligro)}
+.fila-form{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.etiqueta-form{display:block;font-weight:600;margin-bottom:8px}
+.lista-categorias{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.categoria{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8fafc;border-radius:10px;border-left:3px solid var(--primario)}
+.categoria strong{display:block}
+.categoria small{color:var(--texto-claro);font-size:.8rem}
+.icono{font-size:1.2rem}
+.acciones{display:flex;gap:6px;margin-left:auto}
+.btn-accion{background:transparent;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;transition:.2s}
+.btn-accion:hover{background:#e2e8f0}
+.movimiento{display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--borde)}
+.info-mov{flex:1}
+.fecha{font-size:.8rem;color:var(--texto-claro)}
+.descripcion{font-weight:600}
+.categoria-pequeña{font-size:.85rem;color:var(--texto-claro)}
+.valor-botones{text-align:right}
+.valor{font-weight:700;font-size:1.05rem}
+.positivo{color:var(--exito)}
+.negativo{color:var(--peligro)}
+.datos-presupuesto{margin:16px 0}
+.fila-dato{display:flex;justify-content:space-between;padding:8px 0}
+.rojo{color:var(--peligro);font-weight:700}
+.barra-fondo{height:12px;background:#e2e8f0;border-radius:6px;margin:14px 0;overflow:hidden}
+.barra-progreso{height:100%;border-radius:6px;transition:.3s}
+.verde{background:var(--exito)}
+.naranja{background:var(--advertencia)}
+.rojo{background:var(--peligro)}
+.alerta{padding:14px 16px;border-radius:12px;text-align:center;font-weight:600;margin-top:12px}
+.amarilla{background:#fef3c7;color:#92400e}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+.modal-contenido{background:#fff;padding:24px;border-radius:20px;width:100%;max-width:400px}
+.modal-contenido h3{margin-bottom:16px;text-align:center}
+.botones-modal{display:flex;gap:10px;margin-top:10px}
+.botones-modal button{flex:1}
+.texto-centrado{text-align:center;color:var(--texto-claro);padding:10px}
+.numero-grande{font-size:1.8rem;font-weight:700;text-align:center;margin:10px 0}
+h4{margin-bottom:8px}
+.habito-tarjeta{margin-bottom:16px}
+.cabecera-habito{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cabecera-habito h4{font-size:1rem}
+.dias-habito{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dia-habito{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--borde);border-radius:10px;background:#fff;cursor:pointer;transition:.2s;font-size:.85rem}
+.dia-habito.hecho{background:#d1fae5;border-color:var(--exito);color:#065f46;font-weight:600}
+.dia-habito.hoy{border-color:var(--primario);box-shadow:0 0 0 2px rgba(124,58,237,.3)}
+.dia-habito.hecho.hoy{background:#ddd6fe;border-color:var(--primario);color:#4c1d95}
+.dia-nombre{font-size:.7rem;text-transform:uppercase;color:var(--texto-claro)}
+.dia-num{font-weight:700;font-size:1rem}
+pre{background:#f8f9fa;padding:10px;border-radius:8px;overflow-x:auto;margin-top:8px;font-size:.85rem}
+</style>
+</body>
+</html>
