@@ -267,7 +267,6 @@ async function cargarAhorro() {
     
     const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
     const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    const lugar = configDoc.exists ? (configDoc.data()?.lugar || '') : '';
     const nombreBanco = configDoc.exists ? (configDoc.data()?.nombreBanco || '') : '';
     
     const depSnap = await db.collection('ahorro_depositos')
@@ -276,6 +275,7 @@ async function cargarAhorro() {
         .get();
     
     let totalAhorrado = 0;
+    let totalNequi = 0, totalBanco = 0, totalEfectivo = 0;
     const listaDep = document.getElementById('listaDepositos');
     listaDep.innerHTML = '';
     
@@ -285,6 +285,12 @@ async function cargarAhorro() {
         depSnap.forEach(doc => {
             const d = doc.data();
             totalAhorrado += d.monto;
+            
+            // Sumar por ubicación
+            if (d.lugar === 'nequi') totalNequi += d.monto;
+            else if (d.lugar === 'banco') totalBanco += d.monto;
+            else if (d.lugar === 'efectivo') totalEfectivo += d.monto;
+            
             const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
             const lugarTexto = { nequi: 'Nequi', banco: 'Cuenta Bancaria', efectivo: 'Efectivo' }[d.lugar] || d.lugar;
             listaDep.innerHTML += `
@@ -302,6 +308,7 @@ async function cargarAhorro() {
                 </div>`;
         });
 
+        // Eliminar depósito
         document.querySelectorAll('.eliminar-deposito').forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (confirm('¿Eliminar este depósito?\nEsto restará el monto del total ahorrado.')) {
@@ -314,31 +321,52 @@ async function cargarAhorro() {
 
     const falta = Math.max(0, meta - totalAhorrado);
     const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
+    const circunferencia = 2 * Math.PI * 40; // 251.2
 
+    // Actualizar gráfico circular
+    const actualizarArco = (id, valor) => {
+        const porc = totalAhorrado > 0 ? valor / totalAhorrado : 0;
+        const longitud = porc * circunferencia;
+        const resto = circunferencia - longitud;
+        const elem = document.getElementById(id);
+        if (elem) elem.style.strokeDasharray = `${longitud} ${resto}`;
+    };
+
+    // Orden de arcos: Nequi → Banco → Efectivo
+    // Nequi
+    actualizarArco('arcNequi', totalNequi);
+    document.getElementById('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`;
+    
+    // Banco — desplazado por lo que ocupa Nequi
+    const desplazamientoBanco = totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0;
+    const arcoBanco = document.getElementById('arcBanco');
+    if (arcoBanco) arcoBanco.style.strokeDashoffset = `${-desplazamientoBanco}`;
+    actualizarArco('arcBanco', totalBanco);
+    document.getElementById('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`;
+    
+    // Efectivo — desplazado por Nequi + Banco
+    const desplazamientoEfectivo = totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0;
+    const arcoEfectivo = document.getElementById('arcEfectivo');
+    if (arcoEfectivo) arcoEfectivo.style.strokeDashoffset = `${-desplazamientoEfectivo}`;
+    actualizarArco('arcEfectivo', totalEfectivo);
+    document.getElementById('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`;
+
+    // Textos generales
     const el = id => document.getElementById(id);
     if (el('metaTotal')) el('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
     if (el('totalAhorrado')) el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
     if (el('faltaParaMeta')) el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
     if (el('porcentajeAhorro')) el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
 
-    let ubicacionTexto = { nequi: 'Nequi', banco: `Cuenta: ${nombreBanco}`, efectivo: 'Efectivo' }[lugar] || '—';
-    if (el('ubicacionAhorro')) el('ubicacionAhorro').textContent = ubicacionTexto;
-
     const barra = el('barraAhorro');
-    if (barra) {
-        barra.style.width = `${porcentaje}%`;
-        barra.className = 'barra-progreso verde';
-    }
+    if (barra) barra.style.width = `${porcentaje}%`;
     if (el('alertaMeta')) el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
 
     if (meta > 0 && el('metaAhorro')) el('metaAhorro').value = meta;
-    if (lugar && el('lugarAhorro')) {
-        el('lugarAhorro').value = lugar;
-        if (el('campoBanco')) el('campoBanco').classList.toggle('oculto', lugar !== 'banco');
+    if (el('lugarAhorro')) {
         if (nombreBanco && el('nombreBanco')) el('nombreBanco').value = nombreBanco;
     }
 }
-
 // ------------------- HÁBITOS -------------------
 function obtenerFechaHoy() {
     return new Date().toISOString().split('T')[0];
