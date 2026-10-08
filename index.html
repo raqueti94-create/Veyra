@@ -120,23 +120,74 @@
             </div>
         </section>
 
-        <section id="presupuesto" class="pagina oculto">
-            <h1 class="titulo-principal">📊 Presupuesto Mensual</h1>
-            <div class="bloque">
-                <label class="etiqueta-form">Mi presupuesto mensual:</label>
-                <input type="number" class="campo-form" id="inputPresupuesto" placeholder="Ej: 2000000" min="0">
-                <!-- ✅ BOTÓN CON ID CORRECTO -->
-                <button id="btnGuardarPresupuesto" class="btn-principal">💾 Guardar Presupuesto</button>
-                <div class="datos-presupuesto">
-                    <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
-                    <div class="fila-dato"><span>Gastado:</span><strong class="rojo" id="montoGastado">$ 0</strong></div>
-                    <div class="fila-dato"><span>Disponible:</span><strong id="montoDisponible">$ 0</strong></div>
-                </div>
-                <div class="barra-fondo"><div class="barra-progreso verde" id="barraPresupuesto" style="width:0%"></div></div>
-                <div id="alerta80" class="alerta amarilla" style="display:none">⚠️ Has usado el 80% del presupuesto</div>
-                <div id="alertaLimite" class="alerta roja" style="display:none">🚫 HAS LLEGADO AL LÍMITE — NO HAY MÁS DINERO DISPONIBLE</div>
+       <section id="presupuesto" class="pagina oculto">
+    <h1 class="titulo-principal">🎯 Ahorro Programado</h1>
+    
+    <div class="bloque">
+        <label class="etiqueta-form">💰 Meta de ahorro:</label>
+        <input type="number" class="campo-form" id="metaAhorro" placeholder="Ej: 2.000.000" min="0">
+        
+        <label class="etiqueta-form">💵 Monto que vas a guardar ahora:</label>
+        <input type="number" class="campo-form" id="montoGuardar" placeholder="Ej: 100.000" min="0">
+        
+        <label class="etiqueta-form">📍 Guardado en:</label>
+        <select id="lugarAhorro" class="campo-form">
+            <option value="">Seleccionar dónde está</option>
+            <option value="nequi">Nequi</option>
+            <option value="banco">Cuenta Bancaria</option>
+            <option value="efectivo">Efectivo</option>
+        </select>
+        
+        <div id="campoBanco" class="oculto">
+            <label class="etiqueta-form">🏦 Nombre del banco:</label>
+            <input type="text" class="campo-form" id="nombreBanco" placeholder="Ej: Bancolombia, Davivienda...">
+        </div>
+        
+        <button id="btnGuardarAhorro" class="btn-principal">💾 Guardar Ahorro</button>
+    </div>
+
+    <div class="bloque">
+        <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
+        
+        <div class="datos-ahorro">
+            <div class="fila-dato">
+                <span>Meta:</span>
+                <strong id="metaTotal">$ 0</strong>
             </div>
-        </section>
+            <div class="fila-dato">
+                <span>Ahorrado:</span>
+                <strong class="exito" id="totalAhorrado">$ 0</strong>
+            </div>
+            <div class="fila-dato">
+                <span>Falta:</span>
+                <strong id="faltaParaMeta">$ 0</strong>
+            </div>
+            <div class="fila-dato">
+                <span>📍 Ubicación:</span>
+                <strong id="ubicacionAhorro">—</strong>
+            </div>
+        </div>
+
+        <div class="barra-fondo">
+            <div class="barra-progreso verde" id="barraAhorro" style="width:0%"></div>
+        </div>
+        
+        <p class="texto-centrado porcentaje-ahorro">
+            <span id="porcentajeAhorro">0%</span> completado
+        </p>
+
+        <div id="alertaMeta" class="alerta exito oculto">
+            🎉 ¡Felicidades! Has alcanzado tu meta de ahorro ✅
+        </div>
+    </div>
+
+    <div class="bloque">
+        <h3 class="subtitulo">📋 Historial de Depósitos</h3>
+        <div id="listaDepositos">
+            <p class="texto-centrado">Aún no has guardado nada 💪</p>
+        </div>
+    </div>
+</section>
 
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
