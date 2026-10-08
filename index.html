@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resumen Financiero</title>
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <!-- Estilos -->
+    <link rel="stylesheet" href="estilos.css">
     <link rel="icon" href="data:;base64,=">
 </head>
 <body>
+
+<!-- Pantalla de Login -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
         <h2 class="titulo-login">🔐 Iniciar Sesión</h2>
@@ -20,18 +25,23 @@
         <p id="mensajeError" class="mensaje-error"></p>
     </div>
 </div>
+
+<!-- Pantalla Principal -->
 <div id="pantallaPrincipal" class="oculto">
     <div class="barra-usuario">
         <span class="saludo" id="nombreUsuario">👋 Bienvenido</span>
         <button class="btn-cerrar">Cerrar sesión</button>
     </div>
+
     <nav class="pestañas">
         <button class="pestaña activa" data-pagina="contable">💰 Contable</button>
         <button class="pestaña" data-pagina="presupuesto">🪙📅 Ahorro</button>
         <button class="pestaña" data-pagina="habitos">🎯 Hábitos</button>
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
     </nav>
+
     <main class="contenedor">
+        <!-- Sección Contable -->
         <section id="contable" class="pagina">
             <h1 class="titulo-principal">💰 Resumen Financiero</h1>
             
@@ -55,6 +65,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="tarjetas-resumen">
                 <div class="tarjeta ingresos">
                     <h3>Ingresos</h3>
@@ -69,6 +80,7 @@
                     <p id="saldoTotal">$ 0</p>
                 </div>
             </div>
+
             <div class="selector-mes">
                 <label>Mes:</label>
                 <select id="mesSeleccionado">
@@ -77,6 +89,7 @@
                     <option value="2026-12">diciembre de 2026</option>
                 </select>
             </div>
+
             <div class="bloque">
                 <h3 class="subtitulo">➕ Nuevo Movimiento</h3>
                 <div class="selector-tipo">
@@ -94,6 +107,7 @@
                 </select>
                 <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
             </div>
+
             <div class="bloque">
                 <div class="cabecera-bloque">
                     <h3>🏷️ Mis Categorías</h3>
@@ -105,11 +119,14 @@
                 </div>
                 <div id="listaCategorias" class="lista-categorias"></div>
             </div>
+
             <div class="bloque">
                 <h3 class="subtitulo">📋 Movimientos</h3>
                 <div id="listaMovimientos"><p class="texto-centrado">Cargando...</p></div>
             </div>
         </section>
+
+        <!-- Sección Ahorro -->
         <section id="presupuesto" class="pagina oculto">
             <h1 class="titulo-principal">🪙📅 Ahorro Programado</h1>
             
@@ -135,9 +152,9 @@
                 
                 <button id="btnGuardarAhorro" class="btn-principal">💾 Guardar Ahorro</button>
             </div>
+
             <div class="bloque">
                 <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
-                
                 <div class="datos-ahorro">
                     <div class="fila-dato">
                         <span>Meta:</span>
@@ -159,7 +176,6 @@
                 <div class="barra-fondo">
                     <div class="barra-progreso verde" id="barraAhorro" style="width:0%"></div>
                 </div>
-                
                 <p class="texto-centrado porcentaje-ahorro">
                     <span id="porcentajeAhorro">0%</span> completado
                 </p>
@@ -167,6 +183,7 @@
                     🎉 ¡Felicidades! Has alcanzado tu meta de ahorro ✅
                 </div>
             </div>
+
             <div class="bloque">
                 <h3 class="subtitulo">📋 Historial de Depósitos</h3>
                 <div id="listaDepositos">
@@ -174,6 +191,8 @@
                 </div>
             </div>
         </section>
+
+        <!-- Sección Hábitos -->
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
             <p class="introduccion">Marca cada día tu progreso 💪</p>
@@ -183,6 +202,8 @@
             </div>
             <div id="listaHabitos"></div>
         </section>
+
+        <!-- Sección Logros -->
         <section id="logros" class="pagina oculto">
             <h1 class="titulo-principal">🏆 Mis Logros</h1>
             <div class="bloque">
@@ -197,6 +218,8 @@
         </section>
     </main>
 </div>
+
+<!-- Modal de Edición -->
 <div id="modalEditar" class="modal oculto">
     <div class="modal-contenido">
         <h3 id="tituloModal">Editar</h3>
@@ -208,691 +231,8 @@
         </div>
     </div>
 </div>
-<script>
-const firebaseConfig = {
-    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
-    authDomain: "veyra-faa0e.firebaseapp.com",
-    projectId: "veyra-faa0e",
-    storageBucket: "veyra-faa0e.firebasestorage.app",
-    messagingSenderId: "100478048311",
-    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-let usuarioActual = null;
-let tipoMovimiento = 'ingreso';
-let estadoEdicion = { tipo: null, id: null, esIngreso: false };
 
-const categoriasDefault = [
-    { nombre: 'Trabajo', icono: '💼' },
-    { nombre: 'Casa', icono: '🏠' },
-    { nombre: 'Comida', icono: '🍽️' },
-    { nombre: 'Transporte', icono: '🚗' },
-    { nombre: 'Servicios', icono: '💡' },
-    { nombre: 'Otros', icono: '📦' }
-];
-
-function mostrarPantallaPrincipal() {
-    document.getElementById('pantallaLogin').classList.add('oculto');
-    document.getElementById('pantallaPrincipal').classList.remove('oculto');
-}
-
-function mostrarPantallaLogin() {
-    document.getElementById('pantallaLogin').classList.remove('oculto');
-    document.getElementById('pantallaPrincipal').classList.add('oculto');
-    document.getElementById('mensajeError').textContent = '';
-}
-
-auth.onAuthStateChanged(async usuario => {
-    if (usuario) {
-        usuarioActual = usuario;
-        document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
-        mostrarPantallaPrincipal();
-        await inicializarCategoriasDefault();
-        await cargarDatos();
-    } else {
-        usuarioActual = null;
-        mostrarPantallaLogin();
-    }
-});
-
-async function inicializarCategoriasDefault() {
-    if (!usuarioActual) return;
-    try {
-        const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).limit(1).get();
-        if (snap.empty) {
-            const batch = db.batch();
-            categoriasDefault.forEach(cat => {
-                const ref = db.collection('categorias').doc();
-                batch.set(ref, { userId: usuarioActual.uid, nombre: cat.nombre, icono: cat.icono, esDefault: true });
-            });
-            await batch.commit();
-        }
-    } catch (e) {
-        console.log('Categorías:', e.message);
-    }
-}
-
-async function actualizarSelectCategorias() {
-    if (!usuarioActual) return;
-    const select = document.getElementById('categoriaMov');
-    const valorActual = select.value;
-    select.innerHTML = '<option value="">Seleccionar categoría</option>';
-    
-    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).orderBy('nombre').get();
-    snap.forEach(doc => {
-        const c = doc.data();
-        select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
-    });
-    
-    if (valorActual) select.value = valorActual;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnIngresar').addEventListener('click', () => {
-        const correo = document.getElementById('correoLogin').value.trim();
-        const clave = document.getElementById('claveLogin').value;
-        if (!correo || !clave) return document.getElementById('mensajeError').textContent = 'Completa todos los campos';
-        auth.signInWithEmailAndPassword(correo, clave).catch(e => {
-            document.getElementById('mensajeError').textContent = 'Error: ' + e.message;
-        });
-    });
-
-    document.getElementById('btnRegistrar').addEventListener('click', () => {
-        const correo = document.getElementById('correoLogin').value.trim();
-        const clave = document.getElementById('claveLogin').value;
-        if (!correo || clave.length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
-        auth.createUserWithEmailAndPassword(correo, clave).then(() => alert('✅ Cuenta creada')).catch(e => alert('Error: ' + e.message));
-    });
-
-    document.querySelector('.btn-cerrar').addEventListener('click', () => {
-        if (confirm('¿Cerrar sesión?')) auth.signOut();
-    });
-
-    document.querySelectorAll('.btn-tipo').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            tipoMovimiento = btn.dataset.tipo;
-        });
-    });
-
-    document.getElementById('btnGuardarMov').addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const desc = document.getElementById('descripcionMov').value.trim();
-        const monto = parseInt(document.getElementById('montoMov').value);
-        const cat = document.getElementById('categoriaMov').value;
-        if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
-
-        try {
-            await db.collection('movimientos').add({
-                userId: usuarioActual.uid,
-                descripcion: desc,
-                categoria: cat,
-                monto: tipoMovimiento === 'ingreso' ? monto : -monto,
-                fecha: new Date(),
-                mes: document.getElementById('mesSeleccionado').value
-            });
-            
-            document.getElementById('descripcionMov').value = '';
-            document.getElementById('montoMov').value = '';
-            await cargarDatos();
-            alert('✅ Movimiento guardado');
-        } catch (e) {
-            alert('❌ Error: ' + e.message);
-        }
-    });
-
-    document.getElementById('btnAbrirCat').addEventListener('click', () => {
-        document.getElementById('formNuevaCat').classList.toggle('oculto');
-    });
-
-    document.getElementById('btnGuardarCat').addEventListener('click', async () => {
-        const nombre = document.getElementById('nombreCat').value.trim();
-        if (!nombre) return;
-        await db.collection('categorias').add({ userId: usuarioActual.uid, nombre, icono: '📁', esDefault: false });
-        document.getElementById('nombreCat').value = '';
-        document.getElementById('formNuevaCat').classList.add('oculto');
-        await cargarCategorias();
-        await actualizarSelectCategorias();
-    });
-
-    document.getElementById('lugarAhorro').addEventListener('change', () => {
-        const valor = document.getElementById('lugarAhorro').value;
-        document.getElementById('campoBanco').classList.toggle('oculto', valor !== 'banco');
-    });
-
-    document.getElementById('btnGuardarAhorro').addEventListener('click', async () => {
-        if (!usuarioActual) {
-            alert('❌ No hay sesión activa');
-            return;
-        }
-        const meta = parseInt(document.getElementById('metaAhorro').value);
-        const monto = parseInt(document.getElementById('montoGuardar').value);
-        const lugar = document.getElementById('lugarAhorro').value;
-        const banco = document.getElementById('nombreBanco').value.trim();
-
-        if (!meta || meta <= 0) {
-            alert('⚠️ Escribe tu meta de ahorro');
-            return;
-        }
-        if (isNaN(monto) || monto < 0) {
-            alert('⚠️ Escribe un monto válido');
-            return;
-        }
-        if (!lugar) {
-            alert('⚠️ Selecciona dónde tienes guardado el dinero');
-            return;
-        }
-        if (lugar === 'banco' && !banco) {
-            alert('⚠️ Escribe el nombre del banco');
-            return;
-        }
-
-        try {
-            await db.collection('ahorro_config').doc(usuarioActual.uid).set({
-                meta: meta,
-                lugar: lugar,
-                nombreBanco: lugar === 'banco' ? banco : null,
-                fechaActualizacion: new Date()
-            }, { merge: true });
-
-            if (monto > 0) {
-                await db.collection('ahorro_depositos').add({
-                    userId: usuarioActual.uid,
-                    monto: monto,
-                    lugar: lugar,
-                    fecha: new Date()
-                });
-            }
-
-            alert('✅ Ahorro guardado correctamente');
-            document.getElementById('montoGuardar').value = '';
-            document.getElementById('nombreBanco').value = '';
-            await cargarAhorro();
-        } catch (e) {
-            alert('❌ Error: ' + e.message);
-        }
-    });
-
-    document.getElementById('btnCrearHabito').addEventListener('click', async () => {
-        const nombre = document.getElementById('nombreHabito').value.trim();
-        if (!nombre) return;
-        await db.collection('habitos').add({ 
-            userId: usuarioActual.uid, 
-            nombre, 
-            fechaCreacion: new Date() 
-        });
-        document.getElementById('nombreHabito').value = '';
-        await cargarHabitos();
-    });
-
-    document.querySelectorAll('.pestaña').forEach(boton => {
-        boton.addEventListener('click', async () => {
-            document.querySelectorAll('.pestaña').forEach(b => b.classList.remove('activa'));
-            document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
-            boton.classList.add('activa');
-            document.getElementById(boton.dataset.pagina).classList.remove('oculto');
-            
-            if (boton.dataset.pagina === 'contable') {
-                await actualizarSelectCategorias();
-            }
-            if (boton.dataset.pagina === 'presupuesto') {
-                await cargarAhorro();
-            }
-        });
-    });
-
-    document.getElementById('mesSeleccionado').addEventListener('change', async () => {
-        await cargarDatos();
-    });
-
-    document.getElementById('btnCancelarModal').addEventListener('click', () => {
-        document.getElementById('modalEditar').classList.add('oculto');
-        estadoEdicion = { tipo: null, id: null, esIngreso: false };
-    });
-
-    document.getElementById('btnConfirmarModal').addEventListener('click', async () => {
-        if (!estadoEdicion.id) return;
-        try {
-            if (estadoEdicion.tipo === 'movimiento') {
-                const desc = document.getElementById('inputEditar').value.trim();
-                const monto = parseInt(document.getElementById('inputEditarNumero').value);
-                if (!desc || isNaN(monto)) return alert('Datos incompletos');
-                await db.collection('movimientos').doc(estadoEdicion.id).update({
-                    descripcion: desc,
-                    monto: estadoEdicion.esIngreso ? monto : -monto
-                });
-            } else {
-                const nombre = document.getElementById('inputEditar').value.trim();
-                if (!nombre) return alert('Escribe un nombre');
-                await db.collection('categorias').doc(estadoEdicion.id).update({ nombre });
-                await actualizarSelectCategorias();
-            }
-            document.getElementById('modalEditar').classList.add('oculto');
-            estadoEdicion = { tipo: null, id: null, esIngreso: false };
-            await cargarDatos();
-        } catch (e) {
-            alert('❌ Error: ' + e.message);
-        }
-    });
-});
-
-async function cargarDatos() {
-    if (!usuarioActual) return;
-    await Promise.all([
-        cargarMovimientos(),
-        cargarCategorias(),
-        actualizarSelectCategorias(),
-        cargarAhorro(),
-        cargarHabitos()
-    ]);
-}
-
-async function cargarMovimientos() {
-    if (!usuarioActual) return;
-    const mes = document.getElementById('mesSeleccionado').value;
-    const snap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mes)
-        .orderBy('fecha', 'desc')
-        .get();
-    
-    let ingresos = 0, gastos = 0;
-    const lista = document.getElementById('listaMovimientos');
-    lista.innerHTML = '';
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
-    } else {
-        snap.forEach(doc => {
-            const m = doc.data();
-            const montoNum = Number(m.monto) || 0;
-            if (montoNum >= 0) {
-                ingresos += montoNum;
-            } else {
-                gastos += Math.abs(montoNum);
-            }
-            
-            const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
-            lista.innerHTML += `
-                <div class="movimiento">
-                    <div class="info-mov">
-                        <div class="fecha">${fecha.toLocaleDateString()}</div>
-                        <div class="descripcion">${m.descripcion}</div>
-                        <div class="categoria-pequeña">${m.categoria || 'Sin categoría'}</div>
-                    </div>
-                    <div class="valor-botones">
-                        <div class="valor ${montoNum >= 0 ? 'positivo' : 'negativo'}">
-                            ${montoNum >= 0 ? '+' : '-'} $ ${Math.abs(montoNum).toLocaleString()}
-                        </div>
-                        <div class="acciones">
-                            <button class="btn-accion editar-mov" data-id="${doc.id}" data-desc="${m.descripcion}" data-monto="${Math.abs(montoNum)}" data-ingreso="${montoNum >= 0}">✏️</button>
-                            <button class="btn-accion eliminar-mov" data-id="${doc.id}">🗑️</button>
-                        </div>
-                    </div>
-                </div>`;
-        });
-        document.querySelectorAll('.eliminar-mov').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (confirm('¿Eliminar este movimiento?')) {
-                    await db.collection('movimientos').doc(btn.dataset.id).delete();
-                    await cargarMovimientos();
-                }
-            });
-        });
-        document.querySelectorAll('.editar-mov').forEach(btn => {
-            btn.addEventListener('click', () => {
-                estadoEdicion = {
-                    tipo: 'movimiento',
-                    id: btn.dataset.id,
-                    esIngreso: btn.dataset.ingreso === 'true'
-                };
-                document.getElementById('tituloModal').textContent = 'Editar Movimiento';
-                document.getElementById('inputEditar').value = btn.dataset.desc;
-                document.getElementById('inputEditarNumero').value = btn.dataset.monto;
-                document.getElementById('inputEditarNumero').classList.remove('oculto');
-                document.getElementById('modalEditar').classList.remove('oculto');
-            });
-        });
-    }
-    document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
-    document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
-    document.getElementById('saldoTotal').textContent = `$ ${(ingresos - gastos).toLocaleString()}`;
-    const maximo = Math.max(ingresos, gastos, 1);
-    const porcIngresos = (ingresos / maximo) * 100;
-    const porcGastos = (gastos / maximo) * 100;
-    const saldo = ingresos - gastos;
-    const porcSaldo = (saldo / maximo) * 100;
-    document.getElementById('barraIngresos').style.height = `${porcIngresos}%`;
-    document.getElementById('barraGastos').style.height = `${porcGastos}%`;
-    document.getElementById('barraSaldo').style.height = `${Math.max(0, porcSaldo)}%`;
-    
-    document.getElementById('valorBarraIngresos').textContent = `$${ingresos.toLocaleString()}`;
-    document.getElementById('valorBarraGastos').textContent = `$${gastos.toLocaleString()}`;
-    document.getElementById('valorBarraSaldo').textContent = `$${saldo.toLocaleString()}`;
-}
-
-async function cargarCategorias() {
-    if (!usuarioActual) return;
-    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
-    const lista = document.getElementById('listaCategorias');
-    lista.innerHTML = '';
-    
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">Cargando categorías...</p>';
-        return;
-    }
-    snap.forEach(doc => {
-        const c = doc.data();
-        lista.innerHTML += `
-            <div class="categoria">
-                <span class="icono">${c.icono || '📁'}</span>
-                <div><strong>${c.nombre}</strong><small>${c.esDefault ? 'Predeterminada' : 'Personalizada'}</small></div>
-                <div class="acciones">
-                    ${!c.esDefault ? `<button class="btn-accion editar-cat" data-id="${doc.id}" data-nombre="${c.nombre}">✏️</button><button class="btn-accion eliminar-cat" data-id="${doc.id}">🗑️</button>` : ''}
-                </div>
-            </div>`;
-    });
-    document.querySelectorAll('.editar-cat').forEach(btn => {
-        btn.addEventListener('click', () => {
-            estadoEdicion = { tipo: 'categoria', id: btn.dataset.id };
-            document.getElementById('tituloModal').textContent = 'Editar Categoría';
-            document.getElementById('inputEditar').value = btn.dataset.nombre;
-            document.getElementById('inputEditarNumero').classList.add('oculto');
-            document.getElementById('modalEditar').classList.remove('oculto');
-        });
-    });
-    document.querySelectorAll('.eliminar-cat').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar esta categoría?')) {
-                await db.collection('categorias').doc(btn.dataset.id).delete();
-                await cargarCategorias();
-                await actualizarSelectCategorias();
-            }
-        });
-    });
-}
-
-async function cargarAhorro() {
-    if (!usuarioActual) return;
-
-    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    const lugar = configDoc.exists ? (configDoc.data()?.lugar || '') : '';
-    const nombreBanco = configDoc.exists ? (configDoc.data()?.nombreBanco || '') : '';
-
-    const depSnap = await db.collection('ahorro_depositos')
-        .where('userId', '==', usuarioActual.uid)
-        .orderBy('fecha', 'desc')
-        .get();
-
-    let totalAhorrado = 0;
-    const listaDep = document.getElementById('listaDepositos');
-    listaDep.innerHTML = '';
-
-    if (depSnap.empty) {
-        listaDep.innerHTML = '<p class="texto-centrado">Aún no has guardado nada 💪</p>';
-    } else {
-        depSnap.forEach(doc => {
-            const d = doc.data();
-            totalAhorrado += d.monto;
-            const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
-            const lugarTexto = {
-                nequi: 'Nequi',
-                banco: 'Cuenta Bancaria',
-                efectivo: 'Efectivo'
-            }[d.lugar] || d.lugar;
-
-            listaDep.innerHTML += `
-                <div class="movimiento">
-                    <div class="info-mov">
-                        <div class="fecha">${fecha.toLocaleDateString()}</div>
-                        <div class="descripcion">${lugarTexto}</div>
-                    </div>
-                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
-                </div>`;
-        });
-    }
-
-    const falta = Math.max(0, meta - totalAhorrado);
-    const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
-
-    document.getElementById('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
-    document.getElementById('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
-    document.getElementById('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
-    document.getElementById('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
-
-    let ubicacionTexto = {
-        nequi: 'Nequi',
-        banco: `Cuenta Bancaria — ${nombreBanco}`,
-        efectivo: 'Efectivo'
-    }[lugar] || '—';
-    document.getElementById('ubicacionAhorro').textContent = ubicacionTexto;
-
-    const barra = document.getElementById('barraAhorro');
-    barra.style.width = `${porcentaje}%`;
-    barra.className = 'barra-progreso';
-    if (porcentaje >= 100) {
-        barra.classList.add('verde');
-        document.getElementById('alertaMeta').classList.remove('oculto');
-    } else if (porcentaje >= 75) {
-        barra.classList.add('verde');
-        document.getElementById('alertaMeta').classList.add('oculto');
-    } else if (porcentaje >= 50) {
-        barra.style.background = '#f59e0b';
-        document.getElementById('alertaMeta').classList.add('oculto');
-    } else {
-        barra.style.background = '#6366f1';
-        document.getElementById('alertaMeta').classList.add('oculto');
-    }
-
-    if (meta > 0) {
-        document.getElementById('metaAhorro').value = meta;
-    }
-    if (lugar) {
-        document.getElementById('lugarAhorro').value = lugar;
-        document.getElementById('campoBanco').classList.toggle('oculto', lugar !== 'banco');
-        if (nombreBanco) {
-            document.getElementById('nombreBanco').value = nombreBanco;
-        }
-    }
-}
-
-async function alternarDiaHábito(hábitoId, fecha) {
-    if (!usuarioActual) return;
-    const registroRef = db.collection('seguimiento_habitos').doc(`${hábitoId}_${fecha}`);
-    
-    const doc = await registroRef.get();
-    if (doc.exists) {
-        await registroRef.delete();
-    } else {
-        await registroRef.set({
-            userId: usuarioActual.uid,
-            habitoId: hábitoId,
-            fecha: fecha,
-            completado: true,
-            fechaRegistro: new Date()
-        });
-    }
-    await cargarHabitos();
-}
-
-async function cargarHabitos() {
-    if (!usuarioActual) return;
-    const snap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
-    const lista = document.getElementById('listaHabitos');
-    lista.innerHTML = '';
-    
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">Crea tu primer hábito 💪</p>';
-        return;
-    }
-    const hoy = new Date();
-    const diasSemana = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(hoy);
-        d.setDate(hoy.getDate() - i);
-        diasSemana.push({
-            fechaCod: d.toISOString().split('T')[0],
-            diaNombre: d.toLocaleDateString('es-ES', { weekday: 'short' }),
-            diaNum: d.getDate(),
-            esHoy: i === 0
-        });
-    }
-    const fechasConsultar = diasSemana.map(d => d.fechaCod);
-    const seguimientoSnap = await db.collection('seguimiento_habitos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('fecha', 'in', fechasConsultar)
-        .get();
-    
-    const completados = {};
-    seguimientoSnap.forEach(doc => {
-        const d = doc.data();
-        completados[`${d.habitoId}_${d.fecha}`] = true;
-    });
-    snap.forEach(doc => {
-        const h = doc.data();
-        lista.innerHTML += `
-            <div class="bloque habito-tarjeta">
-                <div class="cabecera-habito">
-                    <h4>${h.nombre}</h4>
-                    <button class="btn-accion eliminar-habito" data-id="${doc.id}">🗑️</button>
-                </div>
-                <div class="dias-habito">
-                    ${diasSemana.map(dia => {
-                        const clave = `${doc.id}_${dia.fechaCod}`;
-                        const hecho = completados[clave];
-                        return `
-                            <button class="dia-habito ${hecho ? 'hecho' : ''} ${dia.esHoy ? 'hoy' : ''}"
-                                data-habito="${doc.id}" data-fecha="${dia.fechaCod}">
-                                <div class="dia-nombre">${dia.diaNombre}</div>
-                                <div class="dia-num">${dia.diaNum}</div>
-                            </button>`;
-                    }).join('')}
-                </div>
-            </div>`;
-    });
-    document.querySelectorAll('.dia-habito').forEach(boton => {
-        boton.addEventListener('click', () => {
-            alternarDiaHábito(boton.dataset.habito, boton.dataset.fecha);
-        });
-    });
-    document.querySelectorAll('.eliminar-habito').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar este hábito?')) {
-                await db.collection('habitos').doc(btn.dataset.id).delete();
-                await cargarHabitos();
-            }
-        });
-    });
-}
-</script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
-:root {
-    --primario: #7c3aed; --exito: #10b981; --advertencia: #f59e0b; --peligro: #ef4444;
-    --fondo: #eef2ff; --texto: #1e293b; --texto-claro: #64748b; --borde: #e2e8f0;
-    --blanco: #ffffff; --sombra: 0 2px 10px rgba(0,0,0,0.08); --radio: 16px;
-}
-body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:100vh}
-.oculto {display:none !important}
-.pantalla-login {min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.caja-login {background:white;padding:30px 25px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);width:100%;max-width:420px}
-.titulo-login {text-align:center;color:#1e293b;margin-bottom:25px;font-size:1.4rem}
-.campo-login {width:100%;padding:14px 16px;margin-bottom:14px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;outline:none}
-.campo-login:focus {border-color:#7c3aed}
-.btn-principal {width:100%;padding:14px;background:var(--primario);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px}
-.btn-secundario {width:100%;padding:12px;background:transparent;color:#7c3aed;border:none;font-size:0.95rem;font-weight:600;cursor:pointer;margin-top:10px}
-.mensaje-error {color:var(--peligro);text-align:center;margin-top:15px;font-size:0.9rem}
-.barra-usuario {background:rgba(255,255,255,0.95);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-.btn-cerrar {background:transparent;border:none;color:var(--primario);font-weight:600;cursor:pointer}
-.pestañas {display:flex;background:rgba(255,255,255,0.9);padding:10px 12px;gap:6px;overflow-x:auto}
-.pestaña {flex:1;min-width:80px;padding:10px 8px;background:transparent;border:none;border-radius:10px;font-size:0.85rem;font-weight:600;color:var(--texto-claro);cursor:pointer;white-space:nowrap}
-.pestaña.activa {background:var(--primario);color:white;box-shadow:0 2px 6px rgba(124,58,237,0.3)}
-.contenedor {max-width:520px;margin:0 auto;padding:16px}
-.titulo-principal {text-align:center;color:white;font-size:1.5rem;margin:10px 0 24px}
-.subtitulo {font-size:1.1rem;margin-bottom:14px}
-.introduccion {text-align:center;color:rgba(255,255,255,0.9);margin-bottom:20px}
-.grafico-contenedor {display:flex;justify-content:space-around;align-items:flex-end;height:240px;margin-top:20px;padding:0 5px}
-.barra-grafica {display:flex;flex-direction:column;align-items:center;gap:8px;width:28%}
-.etiqueta-barra {font-size:0.8rem;font-weight:600;color:var(--texto-claro)}
-.fondo-barra {width:100%;height:150px;background:#f1f5f9;border-radius:8px 8px 4px 4px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid var(--borde)}
-.barra {width:100%;transition:height 0.5s ease;border-radius:4px 4px 0 0}
-.valor-ingreso {background:linear-gradient(to top, #059669, #10b981)}
-.valor-gasto {background:linear-gradient(to top, #dc2626, #ef4444)}
-.valor-saldo {background:linear-gradient(to top, #7c3aed, #a78bfa)}
-.valor-barra {font-size:0.75rem;font-weight:600;color:var(--texto);margin-top:4px;text-align:center;word-break:break-all}
-.tarjetas-resumen {display:flex;flex-direction:column;gap:12px;margin-bottom:24px;margin-top:24px}
-.tarjeta {background:white;padding:18px 20px;border-radius:16px;box-shadow:var(--sombra)}
-.tarjeta h3 {font-size:0.95rem;color:var(--texto-claro);margin-bottom:4px}
-.tarjeta p {font-size:1.5rem;font-weight:700}
-.ingresos p {color:var(--exito)}
-.gastos p {color:var(--peligro)}
-.saldo p {color:var(--primario)}
-.selector-mes {background:white;padding:16px 20px;border-radius:16px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
-.selector-mes select {flex:1;padding:10px 14px;border:2px solid var(--borde);border-radius:10px;font-size:0.95rem}
-.bloque {background:white;padding:20px;border-radius:16px;margin-bottom:20px;box-shadow:var(--sombra)}
-.cabecera-bloque {display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.btn-nueva {padding:8px 16px;background:var(--primario);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer}
-.selector-tipo {display:flex;gap:10px;margin-bottom:14px}
-.btn-tipo {flex:1;padding:14px;background:#f1f5f9;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s}
-.btn-tipo.active[data-tipo="ingreso"] {background:#d1fae5;color:#065f46;box-shadow:0 0 0 2px var(--exito)}
-.btn-tipo.active[data-tipo="gasto"] {background:#fee2e2;color:#991b1b;box-shadow:0 0 0 2px var(--peligro)}
-.icono-tipo {font-size:1.2rem;margin-right:6px}
-.campo-form {width:100%;padding:14px 16px;margin-bottom:12px;border:2px solid var(--borde);border-radius:12px;font-size:1rem;outline:none;transition:border-color 0.2s}
-.campo-form:focus {border-color:var(--primario)}
-.fila-form {display:flex;gap:10px;align-items:center;margin-bottom:12px}
-.etiqueta-form {display:block;font-weight:600;margin-bottom:8px}
-.lista-categorias {display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.categoria {display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8fafc;border-radius:10px;border-left:3px solid var(--primario)}
-.categoria strong {display:block}
-.categoria small {color:var(--texto-claro);font-size:0.8rem}
-.icono {font-size:1.2rem}
-.acciones {display:flex;gap:6px;margin-left:auto}
-.btn-accion {background:transparent;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;transition:background 0.2s}
-.btn-accion:hover {background:#e2e8f0}
-.movimiento {display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--borde)}
-.info-mov {flex:1}
-.fecha {font-size:0.8rem;color:var(--texto-claro)}
-.descripcion {font-weight:600}
-.categoria-pequeña {font-size:0.85rem;color:var(--texto-claro)}
-.valor-botones {text-align:right}
-.valor {font-weight:700;font-size:1.05rem}
-.positivo {color:var(--exito)}
-.negativo {color:var(--peligro)}
-.datos-ahorro {margin: 16px 0}
-.datos-ahorro .fila-dato {display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9}
-.exito {color: #10b981; font-weight: 700}
-.porcentaje-ahorro {font-size: 1.1rem; font-weight: 600; margin-top: 8px}
-.alerta {padding:14px 16px;border-radius:12px;text-align:center;font-weight:600;margin-top:12px}
-.alerta.exito {background:#d1fae5; color:#065f46}
-.barra-fondo {height:12px;background:#e2e8f0;border-radius:6px;margin:14px 0;overflow:hidden}
-.barra-progreso {height:100%;border-radius:6px;transition:all 0.3s}
-.barra-progreso.verde {background:linear-gradient(to right, #10b981, #34d399)}
-.morado {background:linear-gradient(to right, #7c3aed, #a78bfa)}
-.modal {position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
-.modal-contenido {background:white;padding:24px;border-radius:20px;width:100%;max-width:400px}
-.modal-contenido h3 {margin-bottom:18px;text-align:center}
-.botones-modal {display:flex;gap:10px;margin-top:8px}
-.botones-modal button {flex:1}
-.texto-centrado {text-align:center;color:var(--texto-claro);padding:20px 0}
-.dias-habito {display:flex;gap:6px;margin-top:12px}
-.dia-habito {flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 6px;background:#f1f5f9;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s}
-.dia-habito.hecho {background:var(--exito);color:white}
-.dia-habito.hoy {box-shadow:0 0 0 2px var(--primario)}
-.dia-nombre {font-size:0.7rem;font-weight:600}
-.dia-num {font-size:1rem;font-weight:700}
-.habito-tarjeta {margin-bottom:14px}
-.cabecera-habito {display:flex;justify-content:space-between;align-items:center}
-.numero-grande {font-size:2rem;font-weight:700;text-align:center;color:white;margin:10px 0}
-
-@media(max-width:480px){
-    .contenedor {padding:12px}
-    .titulo-principal {font-size:1.3rem}
-    .tarjeta p {font-size:1.25rem}
-    .grafico-contenedor {height:200px}
-    .fondo-barra {height:120px}
-    .pestaña {font-size:0.75rem;padding:8px 4px}
-}
-</style>
+<!-- Código de la App -->
+<script src="app.js"></script>
+</body>
+</html>
