@@ -130,7 +130,7 @@
 
 <script>
 // ==============================================
-// TU CONFIGURACIÓN DE FIREBASE — COMPLETA
+// TU CONFIGURACIÓN DE FIREBASE
 // ==============================================
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
@@ -148,7 +148,7 @@ const auth = firebase.auth();
 let usuarioActual = null;
 
 // ==============================================
-// SIN REDIRECCIÓN — NO BUSCA PÁGINAS QUE NO EXISTEN
+// GESTIÓN DE SESIÓN — SIN REDIRECCIÓN
 // ==============================================
 auth.onAuthStateChanged(usuario => {
     if (usuario) {
@@ -156,9 +156,10 @@ auth.onAuthStateChanged(usuario => {
         document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
         cargarDatos();
     } else {
-        // ✅ NO redirige a ningún lado — Se queda en la página
-        document.getElementById('nombreUsuario').textContent = '👋 Sin sesión';
-        console.log('Esperando inicio de sesión...');
+        // ✅ Sin sesión: muestra mensaje y limpia todo
+        usuarioActual = null;
+        document.getElementById('nombreUsuario').textContent = '👋 Inicia sesión';
+        limpiarDatos();
     }
 });
 
@@ -179,10 +180,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Cerrar sesión — SIN redirección
+    // ==============================================
+    // CERRAR SESIÓN — FUNCIONA PARA CAMBIAR DE USUARIO
+    // ==============================================
     document.querySelector('.btn-cerrar').addEventListener('click', function() {
-        if (confirm('¿Cerrar sesión?')) {
-            auth.signOut().then(() => location.reload());
+        if (confirm('¿Cerrar sesión? Podrás entrar con otro usuario.')) {
+            auth.signOut()
+                .then(() => {
+                    alert('Sesión cerrada ✅ Ahora puedes ingresar con otro usuario');
+                    // Limpia la página y deja lista para nuevo inicio
+                    limpiarDatos();
+                })
+                .catch(err => {
+                    alert('Error al cerrar sesión: ' + err.message);
+                });
         }
     });
 
@@ -243,8 +254,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ==============================================
-// FUNCIONES DE CARGA DE DATOS
+// FUNCIONES
 // ==============================================
+function limpiarDatos() {
+    document.getElementById('totalIngresos').textContent = '$ 0';
+    document.getElementById('totalGastos').textContent = '$ 0';
+    document.getElementById('saldoTotal').textContent = '$ 0';
+    document.getElementById('listaMovimientos').innerHTML = '<p class="texto-centrado">Inicia sesión para ver tus datos</p>';
+    document.getElementById('listaCategorias').innerHTML = '';
+    document.getElementById('montoPresupuesto').textContent = '$ 0';
+    document.getElementById('montoGastado').textContent = '$ 0';
+    document.getElementById('montoDisponible').textContent = '$ 0';
+    document.getElementById('barraPresupuesto').style.width = '0%';
+}
+
 async function cargarDatos() {
     if (!usuarioActual) return;
     await Promise.all([cargarMovimientos(), cargarPresupuesto(), cargarCategorias()]);
@@ -265,26 +288,25 @@ async function cargarMovimientos() {
 
     if (snap.empty) {
         lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
-        return;
+    } else {
+        snap.forEach(doc => {
+            const m = doc.data();
+            if (m.monto >= 0) ingresos += m.monto;
+            else gastos += Math.abs(m.monto);
+            const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
+            lista.innerHTML += `
+                <div class="movimiento">
+                    <div>
+                        <div class="fecha">${fecha.toLocaleDateString()}</div>
+                        <div class="descripcion">${m.descripcion}</div>
+                    </div>
+                    <div class="valor ${m.monto >= 0 ? 'positivo' : 'negativo'}">
+                        ${m.monto >= 0 ? '+' : ''}$ ${m.monto.toLocaleString()}
+                    </div>
+                </div>
+            `;
+        });
     }
-
-    snap.forEach(doc => {
-        const m = doc.data();
-        if (m.monto >= 0) ingresos += m.monto;
-        else gastos += Math.abs(m.monto);
-        const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
-        lista.innerHTML += `
-            <div class="movimiento">
-                <div>
-                    <div class="fecha">${fecha.toLocaleDateString()}</div>
-                    <div class="descripcion">${m.descripcion}</div>
-                </div>
-                <div class="valor ${m.monto >= 0 ? 'positivo' : 'negativo'}">
-                    ${m.monto >= 0 ? '+' : ''}$ ${m.monto.toLocaleString()}
-                </div>
-            </div>
-        `;
-    });
 
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
