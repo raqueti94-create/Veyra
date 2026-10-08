@@ -1,9 +1,9 @@
-/* ========== BASE ========== */
+/* ========== BASE — SOLO MÓVIL ========== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 :root {
@@ -11,12 +11,12 @@
     --exito: #10b981;
     --advertencia: #f59e0b;
     --peligro: #ef4444;
-    --fondo: #f8fafc;
+    --fondo: #eef2ff;
     --texto: #1e293b;
     --texto-claro: #64748b;
     --borde: #e2e8f0;
     --blanco: #ffffff;
-    --sombra: 0 4px 12px rgba(0,0,0,0.08);
+    --sombra: 0 2px 10px rgba(0,0,0,0.08);
     --radio: 16px;
     --espacio: 16px;
 }
@@ -25,21 +25,86 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: var(--texto);
-    padding-bottom: 40px;
+    padding-bottom: 30px;
 }
 
 .oculto { display: none !important; }
 
-/* ========== CONTENEDOR PRINCIPAL ========== */
+/* ========== BARRA DE USUARIO ========== */
+.barra-usuario {
+    background: rgba(255,255,255,0.95);
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.btn-cerrar {
+    background: transparent;
+    border: none;
+    color: var(--primario);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* ========== PESTAÑAS DE NAVEGACIÓN ========== */
+.pestañas {
+    display: flex;
+    background: rgba(255,255,255,0.9);
+    padding: 10px 12px;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pestaña {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--texto-claro);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.pestaña.activa {
+    background: var(--primario);
+    color: white;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
+}
+
+/* ========== CONTENEDOR ========== */
 .contenedor {
-    max-width: 500px;
+    max-width: 520px;
     margin: 0 auto;
     padding: var(--espacio);
 }
 
-h1, h2, h3, h4 {
+.titulo-principal {
+    text-align: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 10px 0 24px;
+    font-weight: 700;
+}
+
+.subtitulo {
+    font-size: 1.1rem;
+    margin-bottom: 14px;
     color: var(--texto);
-    margin-bottom: 12px;
+}
+
+.introduccion {
+    text-align: center;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 20px;
 }
 
 /* ========== TARJETAS DE RESUMEN ========== */
@@ -52,28 +117,29 @@ h1, h2, h3, h4 {
 
 .tarjeta {
     background: var(--blanco);
-    padding: 20px;
+    padding: 18px 20px;
     border-radius: var(--radio);
     box-shadow: var(--sombra);
 }
 
 .tarjeta h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--texto-claro);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
+    font-weight: 500;
 }
 
 .tarjeta p {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
-.tarjeta.ingresos p { color: var(--exito); }
-.tarjeta.gastos p { color: var(--peligro); }
-.tarjeta.saldo p { color: var(--primario); }
+.ingresos p { color: var(--exito); }
+.gastos p { color: var(--peligro); }
+.saldo p { color: var(--primario); }
 
-/* ========== FILTRO DE MES ========== */
-.filtro-mes {
+/* ========== SELECTOR DE MES ========== */
+.selector-mes {
     background: var(--blanco);
     padding: 16px 20px;
     border-radius: var(--radio);
@@ -83,59 +149,122 @@ h1, h2, h3, h4 {
     gap: 12px;
 }
 
-.filtro-mes label {
+.selector-mes label {
     font-weight: 600;
     color: var(--texto);
 }
 
-.filtro-mes select {
+.selector-mes select {
     flex: 1;
     padding: 10px 14px;
     border: 2px solid var(--borde);
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     background: white;
 }
 
-/* ========== PRESUPUESTO ========== */
-.contenedor-presupuesto {
+/* ========== BLOQUES GENERALES ========== */
+.bloque {
     background: var(--blanco);
     padding: 20px;
     border-radius: var(--radio);
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     box-shadow: var(--sombra);
 }
 
-.contenedor-presupuesto h3 {
-    font-size: 1.15rem;
-    margin-bottom: 16px;
+.cabecera-bloque {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    margin-bottom: 16px;
 }
 
-.entrada-presupuesto {
+.cabecera-bloque h3 {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-nueva {
+    padding: 8px 16px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* ========== CATEGORÍAS ========== */
+.lista-categorias {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 18px;
 }
 
-.entrada-presupuesto label {
-    font-weight: 600;
-    color: var(--texto-claro);
-    align-self: flex-start;
-}
-
-.entrada-presupuesto input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--borde);
+.categoria {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #f8fafc;
     border-radius: 10px;
-    font-size: 1rem;
+    border-left: 3px solid var(--primario);
 }
 
-.btn-guardar-presupuesto {
+.categoria .icono {
+    font-size: 1.2rem;
+}
+
+.categoria strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.categoria small {
+    color: var(--texto-claro);
+    font-size: 0.8rem;
+}
+
+/* ========== GRÁFICAS ========== */
+.grafica-titulo {
+    text-align: center;
+    color: var(--texto-claro);
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+}
+
+.grafica-placeholder {
+    background: #f8fafc;
+    padding: 40px 20px;
+    border-radius: 10px;
+    text-align: center;
+    color: var(--texto-claro);
+    margin-bottom: 20px;
+}
+
+/* ========== BOTONES ========== */
+.btn-principal {
+    width: 100%;
+    padding: 14px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.btn-principal:active {
+    transform: scale(0.98);
+}
+
+.btn-guardar {
     width: 100%;
     padding: 12px;
     background: var(--primario);
@@ -145,289 +274,123 @@ h1, h2, h3, h4 {
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
+    margin-top: 10px;
+}
+
+/* ========== FORMULARIO PRESUPUESTO ========== */
+.etiqueta-form {
+    display: block;
+    font-weight: 600;
+    color: var(--texto-claro);
+    margin-bottom: 8px;
+}
+
+.campo-texto {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    outline: none;
 }
 
 .datos-presupuesto {
-    margin-top: 16px;
+    margin-top: 20px;
 }
 
-.fila-datos {
+.fila-dato {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
+    padding: 8px 0;
     font-size: 0.95rem;
 }
 
-.barra-fondo.presupuesto {
+.fila-dato strong {
+    font-weight: 700;
+}
+
+.rojo { color: var(--peligro); }
+.azul { color: var(--primario); }
+.morado { background: var(--primario); }
+.naranja { background: var(--advertencia); }
+
+.barra-fondo {
     height: 12px;
-    margin: 12px 0;
-    border-radius: 6px;
     background: #e2e8f0;
+    border-radius: 6px;
+    margin: 14px 0;
     overflow: hidden;
 }
 
-.barra-progreso.presupuesto {
+.barra-progreso {
     height: 100%;
     border-radius: 6px;
     transition: width 0.5s ease;
 }
 
-.mensaje-presupuesto {
-    padding: 10px 14px;
+.alerta {
+    padding: 12px 16px;
     border-radius: 10px;
     font-weight: 500;
-    margin-top: 8px;
-    font-size: 0.9rem;
     text-align: center;
-}
-
-.mensaje-presupuesto.ok { background: #d1fae5; color: #065f46; }
-.mensaje-presupuesto.casi { background: #fef3c7; color: #92400e; }
-.mensaje-presupuesto.excedido { background: #fee2e2; color: #991b1b; }
-
-/* ========== CATEGORÍAS ========== */
-.contenedor-categorias {
-    background: var(--blanco);
-    padding: 20px;
-    border-radius: var(--radio);
-    margin-bottom: 24px;
-    box-shadow: var(--sombra);
-}
-
-.cabecera-categorias {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.cabecera-categorias h3 {
-    font-size: 1.15rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 0;
-}
-
-.btn-agregar-categoria {
-    padding: 10px 18px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
+    margin-top: 10px;
     font-size: 0.9rem;
 }
 
-.lista-categorias {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.tarjeta-categoria {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px;
-    border-left: 4px solid;
-    background: #f8fafc;
-    border-radius: 10px;
-}
-
-.info-categoria {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.info-categoria h4 {
-    font-size: 1rem;
-    margin-bottom: 2px;
-}
-
-.info-categoria small {
-    color: var(--texto-claro);
-    font-size: 0.8rem;
-}
-
-.acciones-categoria {
-    display: flex;
-    gap: 6px;
-}
-
-.btn-icono {
-    background: transparent;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
-}
-
-/* ========== GRÁFICAS ========== */
-.contenedor-graficas {
-    background: var(--blanco);
-    padding: 20px;
-    border-radius: var(--radio);
-    margin-bottom: 24px;
-    box-shadow: var(--sombra);
-}
-
-.contenedor-graficas h3 {
-    font-size: 1.15rem;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.graficas-fila {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-}
-
-.tarjeta-grafica {
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: 12px;
-}
-
-.tarjeta-grafica h4 {
-    font-size: 0.95rem;
-    color: var(--texto-claro);
-    margin-bottom: 12px;
-    text-align: center;
-}
-
-/* ========== BOTÓN NUEVO MOVIMIENTO ========== */
-.btn-agregar {
-    width: 100%;
-    padding: 14px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 24px;
-}
+.amarilla { background: #fef3c7; color: #92400e; }
 
 /* ========== MOVIMIENTOS ========== */
-.contenedor-lista {
-    background: var(--blanco);
-    padding: 20px;
-    border-radius: var(--radio);
-    box-shadow: var(--sombra);
-    margin-bottom: 24px;
-}
-
-.contenedor-lista h3 {
-    font-size: 1.15rem;
-    margin-bottom: 16px;
-}
-
 .movimiento {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
+    align-items: flex-start;
+    padding: 14px 0;
     border-bottom: 1px solid var(--borde);
 }
 
 .movimiento:last-child { border-bottom: none; }
 
-.movimiento.ingreso .valor { color: var(--exito); font-weight: 700; }
-.movimiento.gasto .valor { color: var(--peligro); font-weight: 700; }
-
-.info-mov {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+.fecha {
+    font-size: 0.8rem;
+    color: var(--texto-claro);
+    margin-bottom: 2px;
 }
 
-.fecha { font-size: 0.8rem; color: var(--texto-claro); }
-.descripcion { font-weight: 600; font-size: 0.95rem; }
-.categoria { font-size: 0.85rem; color: var(--texto-claro); }
-
-.valor {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
+.descripcion {
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
-.btn-eliminar {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 4px;
-}
-
-/* ========== BARRA LATERAL DE NAVEGACIÓN ========== */
-.barra-navegacion {
-    position: fixed;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: rgba(255,255,255,0.95);
-    padding: 12px 8px;
-    border-radius: 16px;
-    box-shadow: var(--sombra);
-    z-index: 50;
-}
-
-.btn-navegacion {
-    background: transparent;
-    border: none;
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
+.etiqueta {
     font-size: 0.85rem;
     color: var(--texto-claro);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    margin-top: 2px;
 }
 
-.btn-navegacion.activo {
-    background: var(--primario);
-    color: white;
+.valor {
+    font-weight: 700;
+    font-size: 1rem;
 }
 
-/* ========== AJUSTES PARA MÓVIL ========== */
-@media (max-width: 600px) {
-    .contenedor {
-        padding: 16px;
-        padding-left: 80px;
-    }
-    
-    .barra-navegacion {
-        left: 8px;
-    }
-    
-    .filtro-mes {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .filtro-mes select {
-        width: 100%;
-    }
-    
-    .movimiento {
-        flex-wrap: wrap;
-    }
-    
-    .valor {
-        width: 100%;
-        justify-content: space-between;
-        margin-top: 4px;
-    }
+.positivo { color: var(--exito); }
+.negativo { color: var(--peligro); }
+
+/* ========== LOGROS ========== */
+.numero-grande {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.texto-centrado {
+    text-align: center;
+    color: var(--texto-claro);
+    padding: 10px;
+}
+
+.vacio {
+    text-align: center;
+    color: var(--texto-claro);
+    padding: 30px 20px;
 }
