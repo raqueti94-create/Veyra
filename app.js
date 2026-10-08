@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') ingresar();
     });
     
-    // Actualizar select de categorías al cambiar tipo de movimiento
     const selectTipo = document.getElementById('tipoMovimiento');
     if (selectTipo) {
         selectTipo.addEventListener('change', actualizarSelectCategorias);
@@ -163,7 +162,7 @@ function abrirModalCategoria(id = null) {
     document.getElementById('tituloModalCat').textContent = 'Nueva Categoría';
 
     if (id) {
-        editarCategoria(id);
+        setTimeout(() => editarCategoria(id), 0);
     }
 }
 
@@ -199,14 +198,12 @@ async function guardarCategoria() {
     let categorias = await obtenerCategorias();
 
     if (idEditar) {
-        // Editar existente
         categorias = categorias.map(cat => 
             cat.id === idEditar 
                 ? { ...cat, nombre, tipo, color }
                 : cat
         );
     } else {
-        // Nueva categoría
         const idNuevo = nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-áéíóúñ]/g, '');
         const icono = prompt('¿Qué emoji quieres usar? (ej: 🎓, 🛒, 💎)') || '🏷️';
         categorias.push({ id: idNuevo, nombre, tipo, color, icono });
@@ -219,7 +216,7 @@ async function guardarCategoria() {
 }
 
 async function eliminarCategoria(id) {
-    if (!confirm('¿Eliminar esta categoría? Los movimientos no se borrarán, quedarán sin categoría asignada.')) return;
+    if (!confirm('¿Eliminar esta categoría? Los movimientos no se borrarán.')) return;
     
     const categorias = await obtenerCategorias();
     const filtradas = categorias.filter(cat => cat.id !== id);
@@ -272,7 +269,9 @@ async function cargarMovimientos() {
     const todos = snapshot.docs.filter(doc => {
         const f = doc.data().fecha;
         return f >= inicio && f <= fin;
-    }).sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
+    });
+
+    todos.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
 
     let ingresos = 0, gastos = 0;
     const lista = document.getElementById('listaMovimientos');
@@ -657,3 +656,25 @@ function mostrarNotificacion(hito) {
 function cerrarNotificacion() {
     document.getElementById('notificacionLogro').classList.add('oculto');
 }
+
+// ========== EXPOSICIÓN PARA HTML — SOLUCIÓN DEL ERROR ==========
+window.ingresar = ingresar;
+window.cerrarSesion = cerrarSesion;
+window.cambiarSeccion = cambiarSeccion;
+window.abrirFormularioContable = abrirFormularioContable;
+window.cerrarModalContable = cerrarModalContable;
+window.guardarMovimiento = guardarMovimiento;
+window.eliminarMovimiento = eliminarMovimiento;
+window.abrirModalCategoria = abrirModalCategoria;
+window.cerrarModalCategoria = cerrarModalCategoria;
+window.guardarCategoria = guardarCategoria;
+window.editarCategoria = editarCategoria;
+window.eliminarCategoria = eliminarCategoria;
+window.abrirFormularioHabito = abrirFormularioHabito;
+window.cerrarModalHabito = cerrarModalHabito;
+window.guardarHabito = guardarHabito;
+window.marcarDia = marcarDia;
+window.reiniciarHabito = reiniciarHabito;
+window.eliminarHabito = eliminarHabito;
+window.cerrarNotificacion = cerrarNotificacion;
+window.cargarMovimientos = cargarMovimientos;
