@@ -23,6 +23,10 @@ const HITOS = [
     {dias: 30, nombre: "Maestro", icono: "👑", descripcion: "30 días completados"}
 ];
 
+// ========== GRÁFICAS — INSTANCIAS ==========
+let graficaCategoriasInst = null;
+let graficaComparativaInst = null;
+
 // ========== INICIO ==========
 document.addEventListener('DOMContentLoaded', () => {
     if (usuarioActivo) {
@@ -31,6 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('username').addEventListener('keypress', e => {
         if (e.key === 'Enter') ingresar();
     });
+    
+    // Actualizar gráficas al cambiar de mes
+    const selector = document.getElementById('selectorMesContable');
+    if (selector) {
+        selector.addEventListener('change', () => {
+            cargarMovimientos();
+        });
+    }
 });
 
 // ========== SISTEMA DE USUARIOS ==========
@@ -81,7 +93,7 @@ function cambiarSeccion(nombre) {
 async function cargarSelectorMesesContable() {
     const snapshot = await db.collection('movimientos')
         .where('usuario', '==', usuarioActivo)
-        .orderBy('fecha', 'desc').get();
+        .get();
     
     const meses = new Set();
     meses.add(mesSeleccionado);
@@ -103,7 +115,6 @@ async function cargarMovimientos() {
 
     const snapshot = await db.collection('movimientos')
         .where('usuario', '==', usuarioActivo)
-        .orderBy('fecha', 'desc')
         .get();
 
     const todos = snapshot.docs.filter(doc => {
@@ -118,7 +129,7 @@ async function cargarMovimientos() {
     if (todos.length === 0) {
         lista.innerHTML = '<p class="sin-registros">Sin movimientos este mes</p>';
     } else {
-        todos.forEach(doc => {
+        todos.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha)).forEach(doc => {
             const m = doc.data();
             const fecha = new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-ES');
             
@@ -144,6 +155,9 @@ async function cargarMovimientos() {
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString('es-CO')}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString('es-CO')}`;
     document.getElementById('saldo').textContent = `$ ${(ingresos - gastos).toLocaleString('es-CO')}`;
+
+    // Cargar gráficas después de los datos
+    cargarGraficas();
 }
 
 function iconoCategoria(cat) {
@@ -197,6 +211,103 @@ async function eliminarMovimiento(id) {
     }
 }
 
+// ========== GRÁFICAS DE FINANZAS ==========
+async function cargarGraficas() {
+    mesSeleccionado = document.getElementById('selectorMesContable').value;
+    const inicio = mesSeleccionado + '-01';
+    const fin = mesSeleccionado + '-31';
+
+    const snapshot = await db.collection('movimientos')
+        .where('usuario', '==', usuarioActivo)
+        .get();
+
+    const movsMes = snapshot.docs
+        .map(doc => doc.data())
+        .filter(m => m.fecha >= inicio && m.fecha <= fin);
+
+    const porCategoria = {};
+    let totalIngresos = 0, totalGastos = 0;
+
+    movsMes.forEach(m => {
+        if (m.tipo === 'ingreso') {
+            totalIngresos += m.monto;
+        } else {
+            totalGastos += m.monto;
+            porCategoria[m.categoria] = (porCategoria[m.categoria] || 0) + m.monto;
+        }
+    });
+
+    const coloresCategorias = {
+        trabajo: '#3b82f6',
+        casa: '#f59e0b',
+        comida: '#ef4444',
+        transporte: '#8b5cf6',
+        servicios: '#10b981',
+        otros: '#6b7280'
+    };
+
+    const etiquetas = Object.keys(porCategoria);
+    const valores = etiquetas.map(cat => porCategoria[cat]);
+    const colores = etiquetas.map(cat => coloresCategorias[cat] || '#9ca3af');
+
+    if (graficaCategoriasInst) graficaCategoriasInst.destroy();
+    if (graficaComparativaInst) graficaComparativaInst.destroy();
+
+    const ctxCat = document.getElementById('graficaCategorias').getContext('2d');
+    graficaCategoriasInst = new Chart(ctxCat, {
+        type: 'doughnut',
+        data: {
+            labels: etiquetas.map(cat => iconoCategoria(cat)),
+            datasets: [{
+                data: valores,
+                backgroundColor: colores,
+                borderWidth: 0,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
+                    }
+                }
+            }
+        }
+    });
+
+    const ctxComp = document.getElementById('graficaComparativa').getContext('2d');
+    graficaComparativaInst = new Chart(ctxComp, {
+        type: 'bar',
+        data: {
+            labels: ['Ingresos', 'Gastos'],
+            datasets: [{
+                label: 'Monto',
+                data: [totalIngresos, totalGastos],
+                backgroundColor: ['#10b981', '#ef4444'],
+                borderRadius: 10,
+                barThickness: 60
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { ticks: { callback: v => `$ ${v.toLocaleString('es-CO')}` } }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `$ ${ctx.raw.toLocaleString('es-CO')}`
+                    }
+                }
+            }
+        }
+    });
+}
+
 // ========== HÁBITOS ==========
 function abrirFormularioHabito() {
     document.getElementById('modalHabito').classList.remove('oculto');
@@ -225,7 +336,8 @@ async function guardarHabito() {
 
 async function cargarHabitos() {
     const snapshot = await db.collection('habitos')
-        .where('usuario', '==', usuarioActivo).get();
+        .where('usuario', '==', usuarioActivo)
+        .get();
 
     const lista = document.getElementById('listaHabitos');
     lista.innerHTML = '';
@@ -359,7 +471,7 @@ async function cargarLogros() {
 
     const snapshot = await db.collection('logros')
         .where('usuario', '==', usuarioActivo)
-        .orderBy('fecha', 'desc').get();
+        .get();
 
     const lista = document.getElementById('listaLogros');
     lista.innerHTML = '';
@@ -369,7 +481,7 @@ async function cargarLogros() {
         return;
     }
 
-    snapshot.forEach(doc => {
+    snapshot.docs.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha)).forEach(doc => {
         const l = doc.data();
         lista.innerHTML += `
             <div class="tarjeta-logro">
