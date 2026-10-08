@@ -110,12 +110,10 @@
             <h3 class="subtitulo">📈 Análisis del Mes</h3>
             <div class="grafica-contenedor">
                 <p class="grafica-titulo">Distribución por Categoría</p>
-                <!-- Aquí va tu gráfica circular -->
                 <div class="grafica-placeholder">Gráfica Circular</div>
             </div>
             <div class="grafica-contenedor">
                 <p class="grafica-titulo">Ingresos vs Gastos</p>
-                <!-- Aquí va tu gráfica de barras -->
                 <div class="grafica-placeholder">Gráfica de Barras</div>
             </div>
         </div>
@@ -227,78 +225,50 @@
 
 </main>
 
-    <script>
-// ===== NAVEGACIÓN ENTRE PESTAÑAS =====
-const botonesPestañas = document.querySelectorAll('.pestaña');
-const paginas = document.querySelectorAll('.pagina');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ App cargada');
 
-botonesPestañas.forEach(boton => {
-    boton.addEventListener('click', () => {
-        // Quitar estado activo de todos
-        botonesPestañas.forEach(b => b.classList.remove('activa'));
-        paginas.forEach(p => p.classList.add('oculto'));
-        
-        // Activar la pestaña seleccionada
-        boton.classList.add('activa');
-        const paginaId = boton.getAttribute('data-pagina');
-        const paginaMostrar = document.getElementById(paginaId);
-        if (paginaMostrar) {
-            paginaMostrar.classList.remove('oculto');
-        }
+    // ===== NAVEGACIÓN ENTRE PESTAÑAS =====
+    const botonesPestañas = document.querySelectorAll('.pestaña');
+    const paginas = document.querySelectorAll('.pagina');
+
+    botonesPestañas.forEach(boton => {
+        boton.addEventListener('click', function() {
+            botonesPestañas.forEach(b => b.classList.remove('activa'));
+            paginas.forEach(p => p.classList.add('oculto'));
+            
+            this.classList.add('activa');
+            const idPagina = this.getAttribute('data-pagina');
+            const pagina = document.getElementById(idPagina);
+            if (pagina) {
+                pagina.classList.remove('oculto');
+                console.log('📄 Pestaña abierta:', idPagina);
+            }
+        });
     });
+
+    // ===== CONECTAR BOTONES =====
+    function conectarBoton(selector, nombre) {
+        const boton = document.querySelector(selector);
+        if (boton) {
+            boton.addEventListener('click', function() {
+                console.log('🔘 Presionado:', nombre);
+                alert('Botón: ' + nombre + ' ✅');
+            });
+            console.log('✅ Conectado:', nombre);
+        } else {
+            console.log('❌ No encontrado:', nombre);
+        }
+    }
+
+    conectarBoton('.btn-nueva', 'Nueva Categoría');
+    conectarBoton('#contable .btn-principal', 'Nuevo Movimiento');
+    conectarBoton('.btn-guardar', 'Guardar Presupuesto');
+    conectarBoton('#habitos .btn-principal', 'Nuevo Hábito');
+    conectarBoton('.btn-cerrar', 'Cerrar Sesión');
 });
-
-// ===== BOTONES QUE NO FUNCIONABAN =====
-// Botón Nueva Categoría
-const btnNuevaCategoria = document.querySelector('.btn-nueva');
-if (btnNuevaCategoria) {
-    btnNuevaCategoria.addEventListener('click', () => {
-        alert('Aquí se abre el formulario de Nueva Categoría ✅');
-        // Aquí va tu código original para agregar categorías
-    });
-}
-
-// Botón Nuevo Movimiento
-const btnNuevoMovimiento = document.querySelector('.btn-principal');
-if (btnNuevoMovimiento) {
-    btnNuevoMovimiento.addEventListener('click', () => {
-        alert('Aquí se abre el formulario de Nuevo Movimiento ✅');
-        // Aquí va tu código original para movimientos
-    });
-}
-
-// Botón Guardar Presupuesto
-const btnGuardarPresupuesto = document.querySelector('.btn-guardar');
-if (btnGuardarPresupuesto) {
-    btnGuardarPresupuesto.addEventListener('click', () => {
-        alert('Presupuesto guardado correctamente ✅');
-        // Aquí va tu código original para guardar presupuesto
-    });
-}
-
-// Botón Nuevo Hábito
-const btnNuevoHabito = document.querySelector('#habitos .btn-principal');
-if (btnNuevoHabito) {
-    btnNuevoHabito.addEventListener('click', () => {
-        alert('Aquí se abre el formulario de Nuevo Hábito ✅');
-        // Aquí va tu código original para hábitos
-    });
-}
-
-// Botón Cerrar Sesión
-const btnCerrarSesion = document.querySelector('.btn-cerrar');
-if (btnCerrarSesion) {
-    btnCerrarSesion.addEventListener('click', () => {
-        if (confirm('¿Cerrar sesión?')) {
-            // Aquí va tu código de Firebase para cerrar sesión
-            window.location.reload();
-        }
-    });
-}
-
-console.log('✅ App cargada y botones conectados');
 </script>
 
 </body>
 </html>
-
