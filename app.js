@@ -145,16 +145,34 @@ async function cargarListaCategorias() {
 }
 
 async function actualizarSelectCategorias() {
-    const categorias = await obtenerCategorias();
-    const select = document.getElementById('categoria');
-    const tipoSeleccionado = document.getElementById('tipoMovimiento')?.value || 'gasto';
+    if (!usuarioActual) return;
+    const select = document.getElementById('categoriaMov');
+    if (!select) return; // Evita error si el elemento no existe aún
     
-    select.innerHTML = '';
-    categorias
-        .filter(cat => cat.tipo === 'ambos' || cat.tipo === tipoSeleccionado)
-        .forEach(cat => {
-            select.innerHTML += `<option value="${cat.id}">${cat.icono || '🏷️'} ${cat.nombre}</option>`;
+    const valorActual = select.value;
+    select.innerHTML = '<option value="">Seleccionar categoría</option>';
+    
+    try {
+        const snap = await db.collection('categorias')
+            .where('userId', '==', usuarioActual.uid)
+            .orderBy('nombre')
+            .get();
+        
+        if (snap.empty) {
+            select.innerHTML += '<option value="" disabled>No hay categorías creadas</option>';
+            return;
+        }
+        
+        snap.forEach(doc => {
+            const c = doc.data();
+            select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
         });
+        
+        if (valorActual) select.value = valorActual;
+    } catch (e) {
+        console.error('Error cargando categorías:', e);
+        select.innerHTML = '<option value="">Error al cargar</option>';
+    }
 }
 
 function abrirModalCategorias(id = null) {
