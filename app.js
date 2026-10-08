@@ -115,20 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
         
         if (tipoMovimiento === 'gasto') {
-            try {
-                const docSnap = await db.collection('usuarios').doc(usuarioActual.uid).get();
-                const presupuesto = docSnap.exists ? (docSnap.data()?.presupuestoMensual || 0) : 0;
-                if (presupuesto > 0) {
-                    const mes = document.getElementById('mesSeleccionado').value;
-                    const snapMov = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
-                    let gastado = 0;
-                    snapMov.forEach(d => { if (d.data().monto < 0) gastado += Math.abs(d.data().monto); });
-                    if (gastado + monto > presupuesto) {
-                        return alert('🚫 NO PUEDES AGREGAR ESTE GASTO — HAS LLEGADO AL LÍMITE');
-                    }
-                }
-            } catch (e) {}
-        }
+    try {
+        // Ya no hay límite de presupuesto mensual — se cambió por Ahorro Programado
+        // Se eliminó la validación anterior para evitar conflictos
+    } catch (e) {
+        console.log('Validación de límite desactivada:', e.message);
+    }
+}
 
         try {
             await db.collection('movimientos').add({
