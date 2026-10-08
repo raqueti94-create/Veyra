@@ -7,7 +7,6 @@ const firebaseConfig = {
     messagingSenderId: "100478048311",
     appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -122,7 +121,6 @@ async function cargarListaCategorias() {
     const categorias = await obtenerCategorias();
     const lista = document.getElementById('listaCategorias');
     lista.innerHTML = '';
-
     categorias.forEach(cat => {
         lista.innerHTML += `
             <div class="tarjeta-categoria" style="border-left-color:${cat.color}">
@@ -140,32 +138,32 @@ async function cargarListaCategorias() {
             </div>
         `;
     });
-
     await actualizarSelectCategorias();
 }
 
+// ✅ FUNCIÓN CORREGIDA
 async function actualizarSelectCategorias() {
-    if (!usuarioActual) return;
+    if (!usuarioActivo) return;
     const select = document.getElementById('categoriaMov');
-    if (!select) return; // Evita error si el elemento no existe aún
+    if (!select) return;
     
     const valorActual = select.value;
     select.innerHTML = '<option value="">Seleccionar categoría</option>';
     
     try {
-        const snap = await db.collection('categorias')
-            .where('userId', '==', usuarioActual.uid)
-            .orderBy('nombre')
-            .get();
+        const categorias = await obtenerCategorias();
         
-        if (snap.empty) {
-            select.innerHTML += '<option value="" disabled>No hay categorías creadas</option>';
+        if (!categorias || categorias.length === 0) {
+            select.innerHTML += '<option value="" disabled>No hay categorías aún</option>';
             return;
         }
         
-        snap.forEach(doc => {
-            const c = doc.data();
-            select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
+        const tipoSeleccionado = document.getElementById('tipoMovimiento')?.value || 'ambos';
+        
+        categorias.forEach(cat => {
+            if (cat.tipo === 'ambos' || cat.tipo === tipoSeleccionado) {
+                select.innerHTML += `<option value="${cat.id}">${cat.icono || '📁'} ${cat.nombre}</option>`;
+            }
         });
         
         if (valorActual) select.value = valorActual;
@@ -182,7 +180,6 @@ function abrirModalCategorias(id = null) {
     document.getElementById('idCategoriaEditar').value = '';
     document.querySelector('input[name="tipoCat"][value="gasto"]').checked = true;
     document.getElementById('tituloModalCat').textContent = 'Nueva Categoría';
-
     if (id) {
         setTimeout(() => editarCategoria(id), 0);
     }
@@ -196,7 +193,6 @@ async function editarCategoria(id) {
     const categorias = await obtenerCategorias();
     const cat = categorias.find(c => c.id === id);
     if (!cat) return;
-
     document.getElementById('nombreCategoria').value = cat.nombre;
     document.getElementById('colorCategoria').value = cat.color;
     document.getElementById('idCategoriaEditar').value = id;
@@ -211,14 +207,11 @@ async function guardarCategoria() {
     const tipo = document.querySelector('input[name="tipoCat"]:checked')?.value || 'gasto';
     const color = document.getElementById('colorCategoria').value;
     const idEditar = document.getElementById('idCategoriaEditar').value;
-
     if (!nombre) {
         alert('Escribe el nombre de la categoría');
         return;
     }
-
     let categorias = await obtenerCategorias();
-
     if (idEditar) {
         categorias = categorias.map(cat => 
             cat.id === idEditar 
@@ -230,7 +223,6 @@ async function guardarCategoria() {
         const icono = prompt('¿Qué emoji quieres usar? (ej: 🎓, 🛒, 💎)') || '🏷️';
         categorias.push({ id: idNuevo, nombre, tipo, color, icono });
     }
-
     await guardarCategorias(categorias);
     cerrarModalCategorias();
     await cargarListaCategorias();
@@ -284,22 +276,17 @@ async function cargarMovimientos() {
     mesSeleccionado = document.getElementById('selectorMesContable').value;
     const inicio = mesSeleccionado + '-01';
     const fin = mesSeleccionado + '-31';
-
     const snapshot = await db.collection('movimientos')
         .where('usuario', '==', usuarioActivo)
         .get();
-
     const todos = snapshot.docs.filter(doc => {
         const f = doc.data().fecha;
         return f >= inicio && f <= fin;
     });
-
     todos.sort((a, b) => b.data().fecha.localeCompare(a.data().fecha));
-
     let ingresos = 0, gastos = 0;
     const lista = document.getElementById('listaMovimientos');
     lista.innerHTML = '';
-
     if (todos.length === 0) {
         lista.innerHTML = '<p class="sin-registros">Sin movimientos este mes</p>';
     } else {
@@ -309,7 +296,6 @@ async function cargarMovimientos() {
             
             if (m.tipo === 'ingreso') ingresos += m.monto;
             else gastos += m.monto;
-
             const etiquetaCat = await obtenerNombreCategoria(m.categoria);
             
             lista.innerHTML += `
@@ -327,11 +313,9 @@ async function cargarMovimientos() {
             `;
         }
     }
-
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString('es-CO')}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString('es-CO')}`;
     document.getElementById('saldo').textContent = `$ ${(ingresos - gastos).toLocaleString('es-CO')}`;
-
     await cargarGraficas();
     await cargarPresupuesto();
 }
@@ -349,14 +333,12 @@ async function guardarMovimiento() {
     const tipo = document.getElementById('tipoMovimiento').value;
     const fecha = document.getElementById('fechaMovimiento').value;
     const desc = document.getElementById('descripcion').value.trim();
-    const cat = document.getElementById('categoria').value;
+    const cat = document.getElementById('categoriaMov').value;
     const monto = parseFloat(document.getElementById('monto').value);
-
-    if (!desc || !monto) {
+    if (!desc || !monto || !cat) {
         alert('Completa todos los campos');
         return;
     }
-
     await db.collection('movimientos').add({
         usuario: usuarioActivo,
         tipo,
@@ -366,7 +348,6 @@ async function guardarMovimiento() {
         monto,
         creado: new Date()
     });
-
     cerrarModalContable();
     document.getElementById('descripcion').value = '';
     document.getElementById('monto').value = '';
@@ -387,14 +368,12 @@ async function guardarPresupuesto() {
         alert('Escribe un monto válido para tu presupuesto 💡');
         return;
     }
-
     await db.collection('presupuestos').doc(`${usuarioActivo}-${mesSeleccionado}`).set({
         usuario: usuarioActivo,
         mes: mesSeleccionado,
         monto: valor,
         fechaActualizacion: new Date()
     });
-
     await cargarPresupuesto();
     document.getElementById('valorPresupuesto').value = '';
 }
@@ -414,16 +393,13 @@ async function cargarPresupuesto() {
         .map(d => d.data())
         .filter(m => m.tipo === 'gasto' && m.fecha >= inicio && m.fecha <= fin)
         .reduce((sum, m) => sum + m.monto, 0);
-
     if (!doc.exists || !doc.data()?.monto) {
         document.getElementById('visualPresupuesto').style.display = 'none';
         return;
     }
-
     const presupuesto = doc.data().monto;
     const disponible = presupuesto - gastosMes;
     const porcentaje = Math.min(100, (gastosMes / presupuesto) * 100);
-
     document.getElementById('visualPresupuesto').style.display = 'block';
     document.getElementById('montoPresupuesto').textContent = `$ ${presupuesto.toLocaleString('es-CO')}`;
     document.getElementById('montoGastadoPresupuesto').textContent = `$ ${gastosMes.toLocaleString('es-CO')}`;
@@ -459,21 +435,16 @@ async function cargarGraficas() {
     const categorias = await obtenerCategorias();
     const mapaColores = {};
     categorias.forEach(c => mapaColores[c.id] = c.color);
-
     const inicio = mesSeleccionado + '-01';
     const fin = mesSeleccionado + '-31';
-
     const snapshot = await db.collection('movimientos')
         .where('usuario', '==', usuarioActivo)
         .get();
-
     const movsMes = snapshot.docs
         .map(d => d.data())
         .filter(m => m.fecha >= inicio && m.fecha <= fin);
-
     const porCategoria = {};
     let totalIngresos = 0, totalGastos = 0;
-
     movsMes.forEach(m => {
         if (m.tipo === 'ingreso') {
             totalIngresos += m.monto;
@@ -482,7 +453,6 @@ async function cargarGraficas() {
             porCategoria[m.categoria] = (porCategoria[m.categoria] || 0) + m.monto;
         }
     });
-
     const etiquetasIds = Object.keys(porCategoria);
     const valores = etiquetasIds.map(id => porCategoria[id]);
     const colores = etiquetasIds.map(id => mapaColores[id] || '#9ca3af');
@@ -491,10 +461,8 @@ async function cargarGraficas() {
     for (const id of etiquetasIds) {
         etiquetasNombres.push(await obtenerNombreCategoria(id));
     }
-
     if (graficaCategoriasInst) graficaCategoriasInst.destroy();
     if (graficaComparativaInst) graficaComparativaInst.destroy();
-
     const ctxCat = document.getElementById('graficaCategorias')?.getContext('2d');
     if (ctxCat) {
         graficaCategoriasInst = new Chart(ctxCat, {
@@ -521,7 +489,6 @@ async function cargarGraficas() {
             }
         });
     }
-
     const ctxComp = document.getElementById('graficaComparativa')?.getContext('2d');
     if (ctxComp) {
         graficaComparativaInst = new Chart(ctxComp, {
@@ -570,7 +537,6 @@ async function guardarHabito() {
         alert('Escribe el nombre del hábito');
         return;
     }
-
     await db.collection('habitos').add({
         usuario: usuarioActivo,
         nombre,
@@ -579,7 +545,6 @@ async function guardarHabito() {
         ultimaFecha: null,
         creado: new Date()
     });
-
     cerrarModalHabito();
     await cargarHabitos();
 }
@@ -588,21 +553,17 @@ async function cargarHabitos() {
     const snapshot = await db.collection('habitos')
         .where('usuario', '==', usuarioActivo)
         .get();
-
     const lista = document.getElementById('listaHabitos');
     lista.innerHTML = '';
-
     if (snapshot.empty) {
         lista.innerHTML = '<p class="sin-registros">Crea tu primer hábito y empieza hoy 💪</p>';
         return;
     }
-
     snapshot.forEach(doc => {
         const h = doc.data();
         const id = doc.id;
         const porcentaje = Math.min(100, (h.diasCompletados / DIAS_META) * 100);
         const { color, cara } = estiloPorPorcentaje(porcentaje);
-
         lista.innerHTML += `
             <div class="tarjeta-habito">
                 <div class="cabecera-habito">
@@ -638,20 +599,16 @@ async function marcarDia(id) {
     const ref = db.collection('habitos').doc(id);
     const doc = await ref.get();
     const h = doc.data();
-
     if (h.ultimaFecha === hoy) {
         alert('Ya marcaste este hábito hoy ✅');
         return;
     }
-
     const nuevaRacha = h.ultimaFecha === ayer ? h.rachaActual + 1 : 1;
-
     await ref.update({
         diasCompletados: h.diasCompletados + 1,
         rachaActual: nuevaRacha,
         ultimaFecha: hoy
     });
-
     await verificarLogros(nuevaRacha, h.nombre);
     await actualizarRachaGeneral(nuevaRacha);
     await cargarHabitos();
@@ -682,7 +639,6 @@ async function verificarLogros(dias, nombreHabito) {
     
     const codigos = new Set();
     logros.forEach(d => codigos.add(d.data().codigo));
-
     for (const hito of HITOS) {
         if (dias === hito.dias) {
             const codigo = `${usuarioActivo}-${nombreHabito}-${hito.dias}`;
@@ -717,20 +673,16 @@ async function cargarLogros() {
     const porcentaje = Math.min(100, (rachaGeneral / DIAS_META) * 100);
     document.getElementById('barraGeneral').style.width = `${porcentaje}%`;
     document.getElementById('diasGenerales').textContent = `${rachaGeneral} días activo`;
-
     const snapshot = await db.collection('logros')
         .where('usuario', '==', usuarioActivo)
         .orderBy('fecha', 'desc')
         .get();
-
     const lista = document.getElementById('listaLogros');
     lista.innerHTML = '';
-
     if (snapshot.empty) {
         lista.innerHTML = '<p class="sin-registros">Aún no tienes logros. ¡Empieza hoy! 💪</p>';
         return;
     }
-
     snapshot.forEach(doc => {
         const l = doc.data();
         lista.innerHTML += `
