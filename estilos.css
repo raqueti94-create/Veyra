@@ -1,4 +1,4 @@
-/* ========== RESET Y BASE ========== */
+/* ========== BASE ========== */
 * {
     margin: 0;
     padding: 0;
@@ -8,7 +8,6 @@
 
 :root {
     --primario: #7c3aed;
-    --primario-oscuro: #6d28d9;
     --exito: #10b981;
     --advertencia: #f59e0b;
     --peligro: #ef4444;
@@ -17,49 +16,55 @@
     --texto-claro: #64748b;
     --borde: #e2e8f0;
     --blanco: #ffffff;
-    --sombra: 0 4px 20px rgba(0,0,0,0.08);
-    --radio-tarjeta: 16px;
-    --espacio: 20px;
+    --sombra: 0 4px 12px rgba(0,0,0,0.08);
+    --radio: 16px;
+    --espacio: 16px;
 }
 
 body {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: var(--texto);
+    padding-bottom: 40px;
 }
 
 .oculto { display: none !important; }
 
 /* ========== CONTENEDOR PRINCIPAL ========== */
 .contenedor {
-    max-width: 1200px;
+    max-width: 500px;
     margin: 0 auto;
-    padding: var(--espacio) 16px;
+    padding: var(--espacio);
+}
+
+h1, h2, h3, h4 {
+    color: var(--texto);
+    margin-bottom: 12px;
 }
 
 /* ========== TARJETAS DE RESUMEN ========== */
 .tarjetas-resumen {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: var(--espacio);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 .tarjeta {
-    background: white;
+    background: var(--blanco);
     padding: 20px;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio);
     box-shadow: var(--sombra);
 }
 
 .tarjeta h3 {
     font-size: 1rem;
     color: var(--texto-claro);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .tarjeta p {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
 }
 
@@ -69,72 +74,81 @@ body {
 
 /* ========== FILTRO DE MES ========== */
 .filtro-mes {
-    background: white;
-    padding: 18px;
-    border-radius: var(--radio-tarjeta);
-    margin-bottom: var(--espacio);
+    background: var(--blanco);
+    padding: 16px 20px;
+    border-radius: var(--radio);
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+}
+
+.filtro-mes label {
+    font-weight: 600;
+    color: var(--texto);
 }
 
 .filtro-mes select {
     flex: 1;
-    min-width: 180px;
     padding: 10px 14px;
     border: 2px solid var(--borde);
     border-radius: 10px;
     font-size: 1rem;
+    background: white;
 }
 
-/* ========== PRESUPUESTO MENSUAL — ESTABLE ========== */
+/* ========== PRESUPUESTO ========== */
 .contenedor-presupuesto {
-    background: white;
+    background: var(--blanco);
     padding: 20px;
-    border-radius: var(--radio-tarjeta);
-    margin-bottom: var(--espacio);
+    border-radius: var(--radio);
+    margin-bottom: 24px;
     box-shadow: var(--sombra);
 }
 
 .contenedor-presupuesto h3 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin-bottom: 16px;
-    color: var(--texto);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .entrada-presupuesto {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: center;
     margin-bottom: 18px;
-    flex-wrap: wrap;
 }
 
 .entrada-presupuesto label {
     font-weight: 600;
     color: var(--texto-claro);
-    white-space: nowrap;
+    align-self: flex-start;
 }
 
 .entrada-presupuesto input {
-    flex: 1;
-    min-width: 140px;
-    padding: 10px 14px;
+    width: 100%;
+    padding: 12px 16px;
     border: 2px solid var(--borde);
     border-radius: 10px;
     font-size: 1rem;
 }
 
 .btn-guardar-presupuesto {
-    padding: 10px 20px;
+    width: 100%;
+    padding: 12px;
     background: var(--primario);
     color: white;
     border: none;
     border-radius: 10px;
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
-    white-space: nowrap;
+}
+
+.datos-presupuesto {
+    margin-top: 16px;
 }
 
 .fila-datos {
@@ -145,16 +159,16 @@ body {
 }
 
 .barra-fondo.presupuesto {
-    height: 14px;
+    height: 12px;
     margin: 12px 0;
-    border-radius: 7px;
+    border-radius: 6px;
     background: #e2e8f0;
     overflow: hidden;
 }
 
 .barra-progreso.presupuesto {
     height: 100%;
-    border-radius: 7px;
+    border-radius: 6px;
     transition: width 0.5s ease;
 }
 
@@ -162,8 +176,9 @@ body {
     padding: 10px 14px;
     border-radius: 10px;
     font-weight: 500;
-    margin-top: 10px;
+    margin-top: 8px;
     font-size: 0.9rem;
+    text-align: center;
 }
 
 .mensaje-presupuesto.ok { background: #d1fae5; color: #065f46; }
@@ -172,10 +187,10 @@ body {
 
 /* ========== CATEGORÍAS ========== */
 .contenedor-categorias {
-    background: white;
+    background: var(--blanco);
     padding: 20px;
-    border-radius: var(--radio-tarjeta);
-    margin-bottom: var(--espacio);
+    border-radius: var(--radio);
+    margin-bottom: 24px;
     box-shadow: var(--sombra);
 }
 
@@ -184,11 +199,15 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
-.cabecera-categorias h3 { font-size: 1.2rem; }
+.cabecera-categorias h3 {
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+}
 
 .btn-agregar-categoria {
     padding: 10px 18px;
@@ -198,9 +217,14 @@ body {
     border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
+    font-size: 0.9rem;
 }
 
-.lista-categorias { display: grid; gap: 10px; }
+.lista-categorias {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
 .tarjeta-categoria {
     display: flex;
@@ -212,115 +236,198 @@ body {
     border-radius: 10px;
 }
 
-.info-categoria { display: flex; align-items: center; gap: 12px; }
-.acciones-categoria { display: flex; gap: 6px; }
-.btn-icono { background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; }
+.info-categoria {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-categoria h4 {
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.info-categoria small {
+    color: var(--texto-claro);
+    font-size: 0.8rem;
+}
+
+.acciones-categoria {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-icono {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+/* ========== GRÁFICAS ========== */
+.contenedor-graficas {
+    background: var(--blanco);
+    padding: 20px;
+    border-radius: var(--radio);
+    margin-bottom: 24px;
+    box-shadow: var(--sombra);
+}
+
+.contenedor-graficas h3 {
+    font-size: 1.15rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.graficas-fila {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.tarjeta-grafica {
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.tarjeta-grafica h4 {
+    font-size: 0.95rem;
+    color: var(--texto-claro);
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* ========== BOTÓN NUEVO MOVIMIENTO ========== */
+.btn-agregar {
+    width: 100%;
+    padding: 14px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 24px;
+}
 
 /* ========== MOVIMIENTOS ========== */
 .contenedor-lista {
-    background: white;
+    background: var(--blanco);
     padding: 20px;
-    border-radius: var(--radio-tarjeta);
+    border-radius: var(--radio);
     box-shadow: var(--sombra);
+    margin-bottom: 24px;
+}
+
+.contenedor-lista h3 {
+    font-size: 1.15rem;
+    margin-bottom: 16px;
 }
 
 .movimiento {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
+    padding: 12px 0;
     border-bottom: 1px solid var(--borde);
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
 .movimiento:last-child { border-bottom: none; }
+
 .movimiento.ingreso .valor { color: var(--exito); font-weight: 700; }
 .movimiento.gasto .valor { color: var(--peligro); font-weight: 700; }
 
-/* ========== NAVEGACIÓN Y BARRA ========== */
-.barra-usuario {
-    background: rgba(255,255,255,0.95);
-    padding: 14px 20px;
+.info-mov {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.fecha { font-size: 0.8rem; color: var(--texto-claro); }
+.descripcion { font-weight: 600; font-size: 0.95rem; }
+.categoria { font-size: 0.85rem; color: var(--texto-claro); }
+
+.valor {
+    display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.navegacion {
-    display: flex;
-    background: rgba(255,255,255,0.9);
-    padding: 10px;
     gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
+    font-size: 1rem;
 }
 
-.tab {
-    padding: 10px 18px;
+.btn-eliminar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+}
+
+/* ========== BARRA LATERAL DE NAVEGACIÓN ========== */
+.barra-navegacion {
+    position: fixed;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255,255,255,0.95);
+    padding: 12px 8px;
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+    z-index: 50;
+}
+
+.btn-navegacion {
     background: transparent;
     border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    color: var(--texto-claro);
+    padding: 10px 12px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--texto-claro);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }
 
-.tab.activa { background: var(--primario); color: white; }
-
-/* ========== GRÁFICAS ========== */
-.contenedor-graficas {
-    background: white;
-    padding: 20px;
-    border-radius: var(--radio-tarjeta);
-    margin-bottom: var(--espacio);
+.btn-navegacion.activo {
+    background: var(--primario);
+    color: white;
 }
 
-.graficas-fila {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.tarjeta-grafica {
-    padding: 18px;
-    background: #f8fafc;
-    border-radius: 12px;
-}
-
-/* ========== RESPONSIVO — PRIORIDAD ALTA ✅ ========== */
-@media (max-width: 768px) {
-    .contenedor { padding: 14px 12px; }
+/* ========== AJUSTES PARA MÓVIL ========== */
+@media (max-width: 600px) {
+    .contenedor {
+        padding: 16px;
+        padding-left: 80px;
+    }
     
-    .tarjetas-resumen { grid-template-columns: 1fr; }
+    .barra-navegacion {
+        left: 8px;
+    }
     
     .filtro-mes {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    .filtro-mes select { width: 100%; }
-    
-    /* PRESUPUESTO EN MÓVIL — FIJO Y SÓLIDO */
-    .entrada-presupuesto {
-        flex-direction: column;
-        align-items: stretch;
+    .filtro-mes select {
         width: 100%;
     }
     
-    .entrada-presupuesto label { margin-bottom: 6px; }
-    .entrada-presupuesto input { width: 100%; }
-    .btn-guardar-presupuesto { width: 100%; }
+    .movimiento {
+        flex-wrap: wrap;
+    }
     
-    .fila-datos { font-size: 0.9rem; }
-    
-    .cabecera-categorias { flex-direction: column; align-items: stretch; }
-    .btn-agregar-categoria { width: 100%; text-align: center; }
-    
-    .movimiento { flex-direction: column; align-items: flex-start; }
-    .valor { width: 100%; justify-content: space-between; }
-    
-    .graficas-fila { grid-template-columns: 1fr; }
+    .valor {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
 }
