@@ -79,6 +79,34 @@
                     <select id="selectorMesContable" onchange="cargarMovimientos()"></select>
                 </div>
 
+                <!-- PRESUPUESTO MENSUAL -->
+                <div class="contenedor-presupuesto">
+                    <h3>💰 Presupuesto Mensual</h3>
+                    <div class="entrada-presupuesto">
+                        <label>Mi presupuesto:</label>
+                        <input type="number" id="valorPresupuesto" placeholder="Ej: 2000000" onkeypress="if(event.key==='Enter')guardarPresupuesto()">
+                        <button class="btn-guardar-presupuesto" onclick="guardarPresupuesto()">Guardar</button>
+                    </div>
+                    <div class="visualizacion-presupuesto" id="visualPresupuesto" style="display:none;">
+                        <div class="fila-datos">
+                            <span>Presupuesto:</span>
+                            <strong id="montoPresupuesto">$ 0</strong>
+                        </div>
+                        <div class="fila-datos">
+                            <span>Gastado:</span>
+                            <strong id="montoGastadoPresupuesto">$ 0</strong>
+                        </div>
+                        <div class="fila-datos">
+                            <span>Disponible:</span>
+                            <strong id="montoDisponible">$ 0</strong>
+                        </div>
+                        <div class="barra-fondo presupuesto">
+                            <div id="barraPresupuesto" class="barra-progreso presupuesto"></div>
+                        </div>
+                        <p id="mensajePresupuesto" class="mensaje-presupuesto"></p>
+                    </div>
+                </div>
+
                 <!-- GESTIÓN DE CATEGORÍAS -->
                 <div class="contenedor-categorias">
                     <div class="cabecera-categorias">
