@@ -8,12 +8,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <link rel="stylesheet" href="estilos.css">
+    <link rel="icon" href="data:;base64,=">
 </head>
 <body>
 
 <!-- ==============================================
-    PANTALLA DE INICIO DE SESIÓN — APARECE PRIMERO
+    PANTALLA DE INICIO DE SESIÓN
     ============================================== -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
@@ -30,7 +30,7 @@
 </div>
 
 <!-- ==============================================
-    PANTALLA PRINCIPAL — SOLO APARECE SI ESTÁS LOGUEADO
+    PANTALLA PRINCIPAL
     ============================================== -->
 <div id="pantallaPrincipal" class="oculto">
     <!-- Barra de Usuario -->
@@ -78,10 +78,26 @@
                 </select>
             </div>
 
+            <!-- FORMULARIO NUEVO MOVIMIENTO -->
+            <div class="bloque">
+                <h3 class="subtitulo">➕ Nuevo Movimiento</h3>
+                <div class="form-fila">
+                    <input type="text" id="descripcionMov" class="campo-texto" placeholder="Descripción (ej: Salario)">
+                </div>
+                <div class="form-fila">
+                    <input type="number" id="montoMov" class="campo-texto" placeholder="Monto (+ ingreso, - gasto)">
+                </div>
+                <button id="btnGuardarMov" class="btn-principal">💾 Guardar Movimiento</button>
+            </div>
+
             <div class="bloque">
                 <div class="cabecera-bloque">
                     <h3>🏷️ Mis Categorías</h3>
-                    <button class="btn-nueva">+ Nueva</button>
+                    <button id="btnAbrirCat" class="btn-nueva">+ Nueva</button>
+                </div>
+                <div id="formCat" class="oculto form-fila">
+                    <input type="text" id="nombreCat" class="campo-texto" placeholder="Nombre de la categoría">
+                    <button id="btnGuardarCat" class="btn-principal">Guardar</button>
                 </div>
                 <div class="lista-categorias" id="listaCategorias"></div>
             </div>
@@ -98,8 +114,6 @@
                 </div>
             </div>
 
-            <button class="btn-principal" id="btnNuevoMovimiento">+ Nuevo Movimiento</button>
-
             <div class="bloque">
                 <h3 class="subtitulo">📋 Movimientos</h3>
                 <div id="listaMovimientos">
@@ -113,8 +127,8 @@
             <h1 class="titulo-principal">📊 Presupuesto Mensual</h1>
             <div class="bloque">
                 <label class="etiqueta-form">Mi presupuesto:</label>
-                <input type="text" class="campo-texto" id="inputPresupuesto" placeholder="Ej: 2000000">
-                <button class="btn-guardar">Guardar</button>
+                <input type="number" class="campo-texto" id="inputPresupuesto" placeholder="Ej: 2000000">
+                <button id="btnGuardarPres" class="btn-guardar">Guardar</button>
                 <div class="datos-presupuesto">
                     <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
                     <div class="fila-dato"><span>Gastado:</span><strong class="rojo" id="montoGastado">$ 0</strong></div>
@@ -129,7 +143,10 @@
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
             <p class="introduccion">Marca cada día tu progreso 💪</p>
-            <button class="btn-principal" id="btnNuevoHabito">+ Nuevo Hábito</button>
+            <div class="bloque">
+                <input type="text" id="nombreHabito" class="campo-texto" placeholder="Nombre del hábito">
+                <button id="btnNuevoHabito" class="btn-principal">✅ Crear Hábito</button>
+            </div>
             <div class="bloque vacio" id="listaHabitos">Crea tu primer hábito 💪</div>
         </section>
 
@@ -152,7 +169,7 @@
 
 <script>
 // ==============================================
-// TU CONFIGURACIÓN DE FIREBASE
+// CONFIGURACIÓN DE FIREBASE
 // ==============================================
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
@@ -170,7 +187,7 @@ const auth = firebase.auth();
 let usuarioActual = null;
 
 // ==============================================
-// MOSTRAR / OCULTAR PANTALLAS
+// CAMBIAR PANTALLAS
 // ==============================================
 function mostrarPantallaPrincipal() {
     document.getElementById('pantallaLogin').classList.add('oculto');
@@ -201,48 +218,38 @@ auth.onAuthStateChanged(usuario => {
 });
 
 // ==============================================
-// INICIO DE SESIÓN Y REGISTRO
+// EVENTOS DE BOTONES
 // ==============================================
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Botón Ingresar
+    // Iniciar sesión
     document.getElementById('btnIngresar').addEventListener('click', function() {
         const correo = document.getElementById('correoLogin').value.trim();
         const clave = document.getElementById('claveLogin').value;
-        
         if (!correo || !clave) {
             document.getElementById('mensajeError').textContent = 'Escribe tu correo y contraseña';
             return;
         }
-        
         auth.signInWithEmailAndPassword(correo, clave)
-            .then(() => {
-                console.log('✅ Sesión iniciada');
-            })
             .catch(error => {
                 document.getElementById('mensajeError').textContent = 'Error: ' + error.message;
             });
     });
     
-    // Botón Registrarse
+    // Registrarse
     document.getElementById('btnRegistrar').addEventListener('click', function() {
         const correo = document.getElementById('correoLogin').value.trim();
         const clave = document.getElementById('claveLogin').value;
-        
         if (!correo || !clave) {
             document.getElementById('mensajeError').textContent = 'Escribe correo y contraseña primero';
             return;
         }
-        
         if (clave.length < 6) {
             document.getElementById('mensajeError').textContent = 'La contraseña debe tener al menos 6 caracteres';
             return;
         }
-        
         auth.createUserWithEmailAndPassword(correo, clave)
-            .then(() => {
-                alert('✅ Cuenta creada y sesión iniciada');
-            })
+            .then(() => alert('✅ Cuenta creada con éxito'))
             .catch(error => {
                 document.getElementById('mensajeError').textContent = 'Error: ' + error.message;
             });
@@ -251,11 +258,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cerrar sesión
     document.querySelector('.btn-cerrar').addEventListener('click', function() {
         if (confirm('¿Cerrar sesión? Podrás entrar con otro usuario.')) {
-            auth.signOut()
-                .then(() => {
-                    usuarioActual = null;
-                    mostrarPantallaLogin();
-                });
+            auth.signOut().then(() => {
+                usuarioActual = null;
+                mostrarPantallaLogin();
+            });
         }
     });
 
@@ -271,57 +277,85 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Resto de botones
-    document.querySelector('.btn-guardar').addEventListener('click', async function() {
+    // Guardar movimiento
+    document.getElementById('btnGuardarMov').addEventListener('click', async function() {
         if (!usuarioActual) return;
-        const valor = document.getElementById('inputPresupuesto').value;
-        if (!valor) { alert('Escribe un monto'); return; }
+        const desc = document.getElementById('descripcionMov').value.trim();
+        const monto = parseInt(document.getElementById('montoMov').value);
+        if (!desc || isNaN(monto)) {
+            alert('Escribe descripción y monto válido');
+            return;
+        }
+        try {
+            await db.collection('movimientos').add({
+                userId: usuarioActual.uid,
+                descripcion: desc,
+                monto: monto,
+                fecha: new Date(),
+                mes: document.getElementById('mesSeleccionado').value
+            });
+            alert('✅ Guardado correctamente');
+            document.getElementById('descripcionMov').value = '';
+            document.getElementById('montoMov').value = '';
+            cargarMovimientos();
+        } catch (e) {
+            alert('❌ Error: ' + e.message);
+        }
+    });
+
+    // Mostrar/ocultar formulario categoría
+    document.getElementById('btnAbrirCat').addEventListener('click', function() {
+        document.getElementById('formCat').classList.toggle('oculto');
+    });
+
+    // Guardar categoría
+    document.getElementById('btnGuardarCat').addEventListener('click', async function() {
+        if (!usuarioActual) return;
+        const nombre = document.getElementById('nombreCat').value.trim();
+        if (!nombre) { alert('Escribe un nombre'); return; }
+        await db.collection('categorias').add({
+            userId: usuarioActual.uid,
+            nombre: nombre
+        });
+        alert('✅ Categoría guardada');
+        document.getElementById('nombreCat').value = '';
+        document.getElementById('formCat').classList.add('oculto');
+        cargarCategorias();
+    });
+
+    // Guardar presupuesto
+    document.getElementById('btnGuardarPres').addEventListener('click', async function() {
+        if (!usuarioActual) return;
+        const valor = parseInt(document.getElementById('inputPresupuesto').value);
+        if (isNaN(valor)) { alert('Escribe un monto válido'); return; }
         await db.collection('usuarios').doc(usuarioActual.uid).set(
-            { presupuestoMensual: parseInt(valor.replace(/\./g, '')) },
+            { presupuestoMensual: valor },
             { merge: true }
         );
-        alert('✅ Guardado');
+        alert('✅ Presupuesto guardado');
         cargarPresupuesto();
     });
 
-    document.getElementById('btnNuevoMovimiento').addEventListener('click', function() {
+    // Nuevo hábito
+    document.getElementById('btnNuevoHabito').addEventListener('click', async function() {
         if (!usuarioActual) return;
-        const desc = prompt('Descripción:');
-        const monto = prompt('Monto (+ ingreso, - gasto):');
-        if (!desc || !monto) return;
-        db.collection('movimientos').add({
-            userId: usuarioActual.uid,
-            descripcion: desc,
-            monto: parseInt(monto),
-            fecha: new Date(),
-            mes: document.getElementById('mesSeleccionado').value
-        }).then(() => { alert('✅ Guardado'); cargarMovimientos(); });
-    });
-
-    document.querySelector('.btn-nueva').addEventListener('click', function() {
-        if (!usuarioActual) return;
-        const nombre = prompt('Nombre categoría:');
-        if (!nombre) return;
-        db.collection('categorias').add({ userId: usuarioActual.uid, nombre: nombre })
-            .then(() => { alert('✅ Creada'); cargarCategorias(); });
-    });
-
-    document.getElementById('btnNuevoHabito').addEventListener('click', function() {
-        if (!usuarioActual) return;
-        const nombre = prompt('Nombre hábito:');
-        if (!nombre) return;
-        db.collection('habitos').add({
+        const nombre = document.getElementById('nombreHabito').value.trim();
+        if (!nombre) { alert('Escribe un nombre'); return; }
+        await db.collection('habitos').add({
             userId: usuarioActual.uid,
             nombre: nombre,
             fechaCreacion: new Date()
-        }).then(() => alert('✅ Creado'));
+        });
+        alert('✅ Hábito creado');
+        document.getElementById('nombreHabito').value = '';
     });
 
+    // Cambiar mes
     document.getElementById('mesSeleccionado').addEventListener('change', cargarDatos);
 });
 
 // ==============================================
-// FUNCIONES DE CARGA DE DATOS
+// FUNCIONES DE CARGA
 // ==============================================
 async function cargarDatos() {
     if (!usuarioActual) return;
@@ -419,69 +453,7 @@ async function cargarCategorias() {
 </script>
 
 <style>
-/* ========== ESTILOS DE LA PANTALLA DE LOGIN ========== */
-.pantalla-login {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
-}
-
-.caja-login {
-    background: white;
-    padding: 30px 25px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    width: 100%;
-    max-width: 400px;
-}
-
-.titulo-login {
-    text-align: center;
-    color: #1e293b;
-    margin-bottom: 25px;
-    font-size: 1.4rem;
-}
-
-.campo-login {
-    width: 100%;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.campo-login:focus {
-    border-color: #7c3aed;
-}
-
-.btn-secundario {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    color: #7c3aed;
-    border: none;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.mensaje-error {
-    color: #ef4444;
-    text-align: center;
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
-
-.oculto { display: none !important; }
-
-/* ========== EL RESTO DE ESTILOS ========== */
+/* ========== ESTILOS GENERALES ========== */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
 :root {
     --primario: #7c3aed;
@@ -502,6 +474,82 @@ body {
     min-height: 100vh;
 }
 
+.oculto { display: none !important; }
+
+/* ========== PANTALLA LOGIN ========== */
+.pantalla-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.caja-login {
+    background: white;
+    padding: 30px 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 420px;
+}
+
+.titulo-login {
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 25px;
+    font-size: 1.4rem;
+}
+
+.campo-login {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.campo-login:focus { border-color: #7c3aed; }
+
+.btn-principal {
+    width: 100%;
+    padding: 14px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.1s;
+}
+
+.btn-principal:active { transform: scale(0.98); }
+
+.btn-secundario {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: #7c3aed;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.mensaje-error {
+    color: #ef4444;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+/* ========== BARRA DE USUARIO ========== */
 .barra-usuario {
     background: rgba(255,255,255,0.95);
     padding: 14px 20px;
@@ -519,6 +567,7 @@ body {
     cursor: pointer;
 }
 
+/* ========== PESTAÑAS ========== */
 .pestañas {
     display: flex;
     background: rgba(255,255,255,0.9);
@@ -547,6 +596,7 @@ body {
     box-shadow: 0 2px 6px rgba(124,58,237,0.3);
 }
 
+/* ========== CONTENEDOR PRINCIPAL ========== */
 .contenedor {
     max-width: 520px;
     margin: 0 auto;
@@ -571,6 +621,7 @@ body {
     margin-bottom: 20px;
 }
 
+/* ========== TARJETAS RESUMEN ========== */
 .tarjetas-resumen {
     display: flex;
     flex-direction: column;
@@ -600,6 +651,7 @@ body {
 .gastos p { color: var(--peligro); }
 .saldo p { color: var(--primario); }
 
+/* ========== SELECTOR DE MES ========== */
 .selector-mes {
     background: white;
     padding: 16px 20px;
@@ -618,6 +670,7 @@ body {
     font-size: 0.95rem;
 }
 
+/* ========== BLOQUES Y FORMULARIOS ========== */
 .bloque {
     background: white;
     padding: 20px;
@@ -625,6 +678,22 @@ body {
     margin-bottom: 20px;
     box-shadow: var(--sombra);
 }
+
+.form-fila {
+    margin-bottom: 12px;
+}
+
+.campo-texto {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.campo-texto:focus { border-color: var(--primario); }
 
 .cabecera-bloque {
     display: flex;
@@ -643,10 +712,24 @@ body {
     cursor: pointer;
 }
 
+.btn-guardar {
+    width: 100%;
+    padding: 12px;
+    background: var(--primario);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+/* ========== LISTAS ========== */
 .lista-categorias {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 12px;
 }
 
 .categoria {
@@ -663,6 +746,7 @@ body {
 .categoria strong { display: block; }
 .categoria small { color: var(--texto-claro); font-size: 0.8rem; }
 
+/* ========== GRÁFICAS ========== */
 .grafica-titulo { text-align: center; color: var(--texto-claro); margin-bottom: 12px; }
 .grafica-placeholder {
     background: #f8fafc;
@@ -673,40 +757,8 @@ body {
     margin-bottom: 20px;
 }
 
-.btn-principal {
-    width: 100%;
-    padding: 14px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
+/* ========== DATOS PRESUPUESTO ========== */
 .etiqueta-form { display: block; font-weight: 600; margin-bottom: 8px; }
-.campo-texto {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 1rem;
-    margin-bottom: 10px;
-}
-
-.btn-guardar {
-    width: 100%;
-    padding: 12px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
 .fila-dato {
     display: flex;
     justify-content: space-between;
@@ -736,6 +788,7 @@ body {
 }
 .amarilla { background: #fef3c7; color: #92400e; }
 
+/* ========== MOVIMIENTOS ========== */
 .movimiento {
     display: flex;
     justify-content: space-between;
@@ -749,6 +802,7 @@ body {
 .positivo { color: var(--exito); }
 .negativo { color: var(--peligro); }
 
+/* ========== OTROS ========== */
 .numero-grande {
     font-size: 1.8rem;
     font-weight: 700;
