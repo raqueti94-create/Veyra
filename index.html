@@ -2,263 +2,249 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Veyra</title>
-    
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7c3aed">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Veyra">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
-    <!-- Gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    
-    <!-- Estilos -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Resumen Financiero</title>
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO -->
-    <div id="pantallaAcceso" class="pantalla">
-        <div class="caja-acceso">
-            <h1>✨ Veyra</h1>
-            <p>Control de finanzas, hábitos y metas</p>
-            <input type="text" id="username" placeholder="Escribe tu nombre" autocomplete="off">
-            <button class="btn-principal" onclick="ingresar()">Ingresar</button>
-            <p class="ayuda">Tu progreso se guarda automáticamente 💜</p>
-        </div>
-    </div>
+<!-- Barra de Usuario -->
+<div class="barra-usuario">
+    <span class="saludo">👋 Hola, Orieh3k</span>
+    <button class="btn-cerrar">Cerrar sesión</button>
+</div>
 
-    <!-- PANTALLA PRINCIPAL -->
-    <div id="pantallaPrincipal" class="pantalla oculto">
+<!-- Pestañas de Navegación -->
+<nav class="pestañas">
+    <button class="pestaña activa" data-pagina="contable">💰 Contable</button>
+    <button class="pestaña" data-pagina="presupuesto">📊 Presupuesto</button>
+    <button class="pestaña" data-pagina="habitos">🎯 Hábitos</button>
+    <button class="pestaña" data-pagina="logros">🏆 Logros</button>
+</nav>
+
+<!-- Contenido Principal -->
+<main class="contenedor">
+
+    <!-- ===== PÁGINA 1: CONTABLE ===== -->
+    <section id="contable" class="pagina">
+        <h1 class="titulo-principal">💰 Resumen Financiero</h1>
+
+        <!-- Tarjetas de Resumen -->
+        <div class="tarjetas-resumen">
+            <div class="tarjeta ingresos">
+                <h3>Ingresos</h3>
+                <p>$ 1.500.000</p>
+            </div>
+            <div class="tarjeta gastos">
+                <h3>Gastos</h3>
+                <p>$ 1.000.000</p>
+            </div>
+            <div class="tarjeta saldo">
+                <h3>Saldo</h3>
+                <p>$ 500.000</p>
+            </div>
+        </div>
+
+        <!-- Selector de Mes -->
+        <div class="selector-mes">
+            <label>Mes:</label>
+            <select id="mesSeleccionado">
+                <option>octubre de 2026</option>
+            </select>
+        </div>
+
+        <!-- Categorías -->
+        <div class="bloque">
+            <div class="cabecera-bloque">
+                <h3>🏷️ Mis Categorías</h3>
+                <button class="btn-nueva">+ Nueva</button>
+            </div>
+            <div class="lista-categorias">
+                <div class="categoria">
+                    <span class="icono">💼</span>
+                    <div>
+                        <strong>Trabajo</strong>
+                        <small>Ingreso y Gasto</small>
+                    </div>
+                </div>
+                <div class="categoria">
+                    <span class="icono">🏠</span>
+                    <div>
+                        <strong>Casa</strong>
+                        <small>Solo Gasto</small>
+                    </div>
+                </div>
+                <div class="categoria">
+                    <span class="icono">🍽️</span>
+                    <div>
+                        <strong>Comida</strong>
+                        <small>Solo Gasto</small>
+                    </div>
+                </div>
+                <div class="categoria">
+                    <span class="icono">🚗</span>
+                    <div>
+                        <strong>Transporte</strong>
+                        <small>Solo Gasto</small>
+                    </div>
+                </div>
+                <div class="categoria">
+                    <span class="icono">💡</span>
+                    <div>
+                        <strong>Servicios</strong>
+                        <small>Solo Gasto</small>
+                    </div>
+                </div>
+                <div class="categoria">
+                    <span class="icono">📦</span>
+                    <div>
+                        <strong>Otros</strong>
+                        <small>Ingreso y Gasto</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análisis / Gráficas -->
+        <div class="bloque">
+            <h3 class="subtitulo">📈 Análisis del Mes</h3>
+            <div class="grafica-contenedor">
+                <p class="grafica-titulo">Distribución por Categoría</p>
+                <!-- Aquí va tu gráfica circular -->
+                <div class="grafica-placeholder">Gráfica Circular</div>
+            </div>
+            <div class="grafica-contenedor">
+                <p class="grafica-titulo">Ingresos vs Gastos</p>
+                <!-- Aquí va tu gráfica de barras -->
+                <div class="grafica-placeholder">Gráfica de Barras</div>
+            </div>
+        </div>
+
+        <!-- Botón Agregar -->
+        <button class="btn-principal">+ Nuevo Movimiento</button>
+
+        <!-- Lista de Movimientos -->
+        <div class="bloque">
+            <h3 class="subtitulo">📋 Movimientos</h3>
+            <div class="movimiento">
+                <div>
+                    <div class="fecha">8/10/2026</div>
+                    <div class="descripcion">Mercado</div>
+                    <div class="etiqueta">🍽️ Comida</div>
+                </div>
+                <div class="valor negativo">- $ 500.000</div>
+            </div>
+            <div class="movimiento">
+                <div>
+                    <div class="fecha">8/10/2026</div>
+                    <div class="descripcion">Salario</div>
+                    <div class="etiqueta">💼 Trabajo</div>
+                </div>
+                <div class="valor positivo">+ $ 1.000.000</div>
+            </div>
+            <div class="movimiento">
+                <div>
+                    <div class="fecha">8/10/2026</div>
+                    <div class="descripcion">Redes</div>
+                    <div class="etiqueta">📦 Otros</div>
+                </div>
+                <div class="valor negativo">- $ 500.000</div>
+            </div>
+            <div class="movimiento">
+                <div>
+                    <div class="fecha">6/10/2026</div>
+                    <div class="descripcion">Redes</div>
+                    <div class="etiqueta">💼 Trabajo</div>
+                </div>
+                <div class="valor positivo">+ $ 500.000</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PÁGINA 2: PRESUPUESTO ===== -->
+    <section id="presupuesto" class="pagina oculto">
+        <h1 class="titulo-principal">📊 Presupuesto Mensual</h1>
+
+        <div class="bloque">
+            <label class="etiqueta-form">Mi presupuesto:</label>
+            <input type="text" class="campo-texto" placeholder="Ej: 2000000">
+            <button class="btn-guardar">Guardar</button>
+
+            <div class="datos-presupuesto">
+                <div class="fila-dato">
+                    <span>Presupuesto:</span>
+                    <strong>$ 200.000</strong>
+                </div>
+                <div class="fila-dato">
+                    <span>Gastado:</span>
+                    <strong class="rojo">$ 1.000.000</strong>
+                </div>
+                <div class="fila-dato">
+                    <span>Disponible:</span>
+                    <strong class="azul">$ 0</strong>
+                </div>
+            </div>
+
+            <div class="barra-fondo">
+                <div class="barra-progreso naranja" style="width: 100%"></div>
+            </div>
+
+            <div class="alerta amarilla">
+                ⚠️ ¡Casi al límite! Solo te queda un margen pequeño
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== PÁGINA 3: HÁBITOS ===== -->
+    <section id="habitos" class="pagina oculto">
+        <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
+        <p class="introduccion">Marca cada día tu progreso y construye constancia 💪</p>
         
-        <!-- Barra de usuario -->
-        <div class="barra-usuario">
-            <span>👋 Hola, <strong id="nombreUsuarioActivo"></strong></span>
-            <button class="btn-salir" onclick="cerrarSesion()">Cerrar sesión</button>
+        <button class="btn-principal">+ Nuevo Hábito</button>
+        
+        <div class="bloque vacio">
+            Crea tu primer hábito y empieza hoy 💪
         </div>
+    </section>
 
-        <!-- Navegación -->
-        <nav class="navegacion">
-            <button class="tab activa" data-seccion="contable" onclick="cambiarSeccion('contable')">💰 Contable</button>
-            <button class="tab" data-seccion="habitos" onclick="cambiarSeccion('habitos')">🎯 Hábitos</button>
-            <button class="tab" data-seccion="logros" onclick="cambiarSeccion('logros')">🏆 Logros</button>
-        </nav>
-
-        <div class="contenedor">
-            
-            <!-- SECCIÓN: CONTABLE -->
-            <section id="contable" class="seccion activa">
-                <h2>💰 Resumen Financiero</h2>
-                
-                <!-- Tarjetas de resumen -->
-                <div class="tarjetas-resumen">
-                    <div class="tarjeta ingresos">
-                        <h3>Ingresos</h3>
-                        <p id="totalIngresos">$ 0</p>
-                    </div>
-                    <div class="tarjeta gastos">
-                        <h3>Gastos</h3>
-                        <p id="totalGastos">$ 0</p>
-                    </div>
-                    <div class="tarjeta saldo">
-                        <h3>Saldo</h3>
-                        <p id="saldo">$ 0</p>
-                    </div>
-                </div>
-
-                <!-- Selector de mes -->
-                <div class="filtro-mes">
-                    <label>Mes:</label>
-                    <select id="selectorMesContable" onchange="cargarMovimientos()"></select>
-                </div>
-
-                <!-- PRESUPUESTO MENSUAL -->
-                <div class="contenedor-presupuesto">
-                    <h3>💰 Presupuesto Mensual</h3>
-                    <div class="entrada-presupuesto">
-                        <label>Mi presupuesto:</label>
-                        <input type="number" id="valorPresupuesto" placeholder="Ej: 2000000" onkeypress="if(event.key==='Enter')guardarPresupuesto()">
-                        <button class="btn-guardar-presupuesto" onclick="guardarPresupuesto()">Guardar</button>
-                    </div>
-                    <div class="visualizacion-presupuesto" id="visualPresupuesto" style="display:none;">
-                        <div class="fila-datos">
-                            <span>Presupuesto:</span>
-                            <strong id="montoPresupuesto">$ 0</strong>
-                        </div>
-                        <div class="fila-datos">
-                            <span>Gastado:</span>
-                            <strong id="montoGastadoPresupuesto">$ 0</strong>
-                        </div>
-                        <div class="fila-datos">
-                            <span>Disponible:</span>
-                            <strong id="montoDisponible">$ 0</strong>
-                        </div>
-                        <div class="barra-fondo presupuesto">
-                            <div id="barraPresupuesto" class="barra-progreso presupuesto"></div>
-                        </div>
-                        <p id="mensajePresupuesto" class="mensaje-presupuesto"></p>
-                    </div>
-                </div>
-
-                <!-- GESTIÓN DE CATEGORÍAS -->
-                <div class="contenedor-categorias">
-                    <div class="cabecera-categorias">
-                        <h3>🏷️ Mis Categorías</h3>
-                        <button class="btn-agregar-categoria" onclick="abrirModalCategorias()">+ Nueva</button>
-                    </div>
-                    <div id="listaCategorias" class="lista-categorias"></div>
-                </div>
-
-                <!-- GRÁFICAS DE FINANZAS -->
-                <div class="contenedor-graficas">
-                    <h3>📈 Análisis del Mes</h3>
-                    <div class="graficas-fila">
-                        <div class="tarjeta-grafica">
-                            <h4>Distribución por Categoría</h4>
-                            <canvas id="graficaCategorias"></canvas>
-                        </div>
-                        <div class="tarjeta-grafica">
-                            <h4>Ingresos vs Gastos</h4>
-                            <canvas id="graficaComparativa"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botón agregar -->
-                <button class="btn-agregar" onclick="abrirFormularioContable()">+ Nuevo Movimiento</button>
-
-                <!-- Lista de movimientos -->
-                <div class="contenedor-lista">
-                    <h3>Movimientos</h3>
-                    <div id="listaMovimientos"></div>
-                </div>
-            </section>
-
-            <!-- SECCIÓN: HÁBITOS -->
-            <section id="habitos" class="seccion">
-                <h2>🎯 Mis Hábitos</h2>
-                <p class="subtitulo">Marca cada día tu progreso y construye constancia 💪</p>
-                
-                <button class="btn-agregar" onclick="abrirFormularioHabito()">+ Nuevo Hábito</button>
-                
-                <div id="listaHabitos"></div>
-            </section>
-
-            <!-- SECCIÓN: LOGROS -->
-            <section id="logros" class="seccion">
-                <h2>🏆 Mis Logros</h2>
-                
-                <div class="tarjeta-general">
-                    <h3>🔥 Racha General</h3>
-                    <p id="diasGenerales">0 días activo</p>
-                    <div class="progreso-general">
-                        <div id="barraGeneral"></div>
-                    </div>
-                </div>
-                
-                <h3>Logros Desbloqueados</h3>
-                <div id="listaLogros"></div>
-            </section>
-
-        </div>
-    </div>
-
-    <!-- MODAL: NUEVO MOVIMIENTO -->
-    <div id="modalContable" class="modal oculto">
-        <div class="modal-contenido">
-            <h3>Nuevo Movimiento</h3>
-            
-            <label>Tipo</label>
-            <select id="tipoMovimiento">
-                <option value="ingreso">💵 Ingreso</option>
-                <option value="gasto">💸 Gasto</option>
-            </select>
-            
-            <label>Fecha</label>
-            <input type="date" id="fechaMovimiento">
-            
-            <label>Descripción</label>
-            <input type="text" id="descripcion" placeholder="Ej: Salario, Mercado, Transporte...">
-            
-            <label>Categoría</label>
-            <select id="categoria">
-                <!-- Se llena dinámicamente -->
-            </select>
-            
-            <label>Monto $</label>
-            <input type="number" id="monto" placeholder="0" step="1">
-            
-            <div class="botones-modal">
-                <button class="btn-secundario" onclick="cerrarModalContable()">Cancelar</button>
-                <button class="btn-principal" onclick="guardarMovimiento()">Guardar</button>
+    <!-- ===== PÁGINA 4: LOGROS ===== -->
+    <section id="logros" class="pagina oculto">
+        <h1 class="titulo-principal">🏆 Mis Logros</h1>
+        
+        <div class="bloque">
+            <h3 class="subtitulo">🔥 Racha General</h3>
+            <p class="numero-grande">1 días activo</p>
+            <div class="barra-fondo">
+                <div class="barra-progreso morado" style="width: 10%"></div>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: CATEGORÍA -->
-    <div id="modalCategoria" class="modal oculto">
-        <div class="modal-contenido">
-            <h3 id="tituloModalCat">Nueva Categoría</h3>
-            
-            <label>Nombre</label>
-            <input type="text" id="nombreCategoria" placeholder="Ej: Alquiler, Cursos, Ventas...">
-            
-            <label>Tipo</label>
-            <div class="opcion-tipo">
-                <label>
-                    <input type="radio" name="tipoCat" value="ambos"> Ambos
-                </label>
-                <label>
-                    <input type="radio" name="tipoCat" value="ingreso"> 💵 Ingreso
-                </label>
-                <label>
-                    <input type="radio" name="tipoCat" value="gasto" checked> 💸 Gasto
-                </label>
-            </div>
-            
-            <label>Color</label>
-            <input type="color" id="colorCategoria" value="#7c3aed">
-            
-            <input type="hidden" id="idCategoriaEditar">
-            
-            <div class="botones-modal">
-                <button class="btn-secundario" onclick="cerrarModalCategoria()">Cancelar</button>
-                <button class="btn-principal" onclick="guardarCategoria()">Guardar</button>
-            </div>
+        <div class="bloque">
+            <h3 class="subtitulo">🏅 Logros Desbloqueados</h3>
+            <p class="texto-centrado">Aún no tienes logros. ¡Empieza hoy! 💪</p>
         </div>
-    </div>
+    </section>
 
-    <!-- MODAL: NUEVO HÁBITO -->
-    <div id="modalHabito" class="modal oculto">
-        <div class="modal-contenido">
-            <h3>Nuevo Hábito</h3>
-            
-            <label>Nombre del hábito</label>
-            <input type="text" id="nombreHabito" placeholder="Ej: Leer, Ejercicio, Ahorrar...">
-            
-            <div class="botones-modal">
-                <button class="btn-secundario" onclick="cerrarModalHabito()">Cancelar</button>
-                <button class="btn-principal" onclick="guardarHabito()">Crear</button>
-            </div>
-        </div>
-    </div>
+</main>
 
-    <!-- NOTIFICACIÓN DE LOGRO -->
-    <div id="notificacionLogro" class="notificacion oculto">
-        <div class="trofeo-animado">🏆</div>
-        <h3>¡Nuevo Logro Desbloqueado!</h3>
-        <p id="nombreLogro"></p>
-        <button onclick="cerrarNotificacion()">¡Lo logré! 🎉</button>
-    </div>
+<script>
+// Navegación entre pestañas
+const botones = document.querySelectorAll('.pestaña');
+const paginas = document.querySelectorAll('.pagina');
 
-    <!-- Lógica de la aplicación -->
-    <script src="app.js"></script>
+botones.forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Quitar activa de todas
+        botones.forEach(b => b.classList.remove('activa'));
+        paginas.forEach(p => p.classList.add('oculto'));
+        
+        // Activar seleccionada
+        btn.classList.add('activa');
+        const id = btn.getAttribute('data-pagina');
+        document.getElementById(id).classList.remove('oculto');
+    });
+});
+</script>
+
 </body>
 </html>
