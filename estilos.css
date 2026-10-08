@@ -580,7 +580,7 @@ body {
 
 /* Tarjetas de logros */
 .logro-tarjeta {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 14px;
     margin: 8px 0;
@@ -588,19 +588,41 @@ body {
     align-items: center;
     gap: 12px;
     transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .logro-tarjeta.desbloqueado {
-    background: rgba(255,215,0,0.25);
+    background: rgba(255, 215, 0, 0.35);
     border: 2px solid #ffd700;
-    box-shadow: 0 0 15px rgba(255,215,0,0.3);
+    box-shadow: 0 0 18px rgba(255, 215, 0, 0.45);
 }
 
 .logro-tarjeta.bloqueado {
-    opacity: 0.5;
-    filter: grayscale(60%);
+    background: rgba(245, 245, 245, 0.95);
+    opacity: 1;
+    filter: none;
 }
 
-.logro-emoji { font-size: 2rem; }
-.logro-info h4 { margin: 0; font-size: 1rem; color: #fff; }
-.logro-info p { margin: 2px 0 0; font-size: 0.85rem; color: #ddd; }
+.logro-emoji {
+    font-size: 2rem;
+}
+
+.logro-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #111;
+    font-weight: 700;
+}
+
+.logro-info p {
+    margin: 2px 0 0;
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* Candados en color que resalten */
+.logro-tarjeta.bloqueado .logro-emoji {
+    color: #ff9800;
+    text-shadow: 0 0 4px rgba(255, 152, 0, 0.35);
+}
