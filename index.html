@@ -14,7 +14,7 @@
 
 <!-- Barra de Usuario -->
 <div class="barra-usuario">
-    <span class="saludo" id="nombreUsuario">👋 Cargando...</span>
+    <span class="saludo" id="nombreUsuario">👋 Bienvenido</span>
     <button class="btn-cerrar">Cerrar sesión</button>
 </div>
 
@@ -33,7 +33,6 @@
     <section id="contable" class="pagina">
         <h1 class="titulo-principal">💰 Resumen Financiero</h1>
 
-        <!-- Tarjetas de Resumen -->
         <div class="tarjetas-resumen">
             <div class="tarjeta ingresos">
                 <h3>Ingresos</h3>
@@ -49,7 +48,6 @@
             </div>
         </div>
 
-        <!-- Selector de Mes -->
         <div class="selector-mes">
             <label>Mes:</label>
             <select id="mesSeleccionado">
@@ -59,18 +57,14 @@
             </select>
         </div>
 
-        <!-- Categorías -->
         <div class="bloque">
             <div class="cabecera-bloque">
                 <h3>🏷️ Mis Categorías</h3>
                 <button class="btn-nueva">+ Nueva</button>
             </div>
-            <div class="lista-categorias" id="listaCategorias">
-                <!-- Se cargan desde Firebase -->
-            </div>
+            <div class="lista-categorias" id="listaCategorias"></div>
         </div>
 
-        <!-- Análisis / Gráficas -->
         <div class="bloque">
             <h3 class="subtitulo">📈 Análisis del Mes</h3>
             <div class="grafica-contenedor">
@@ -83,14 +77,12 @@
             </div>
         </div>
 
-        <!-- Botón Agregar -->
         <button class="btn-principal" id="btnNuevoMovimiento">+ Nuevo Movimiento</button>
 
-        <!-- Lista de Movimientos -->
         <div class="bloque">
             <h3 class="subtitulo">📋 Movimientos</h3>
             <div id="listaMovimientos">
-                <p class="texto-centrado">Cargando...</p>
+                <p class="texto-centrado">Inicia sesión para ver tus datos</p>
             </div>
         </div>
     </section>
@@ -98,64 +90,39 @@
     <!-- ===== PÁGINA 2: PRESUPUESTO ===== -->
     <section id="presupuesto" class="pagina oculto">
         <h1 class="titulo-principal">📊 Presupuesto Mensual</h1>
-
         <div class="bloque">
             <label class="etiqueta-form">Mi presupuesto:</label>
             <input type="text" class="campo-texto" id="inputPresupuesto" placeholder="Ej: 2000000">
             <button class="btn-guardar">Guardar</button>
-
             <div class="datos-presupuesto">
-                <div class="fila-dato">
-                    <span>Presupuesto:</span>
-                    <strong id="montoPresupuesto">$ 0</strong>
-                </div>
-                <div class="fila-dato">
-                    <span>Gastado:</span>
-                    <strong class="rojo" id="montoGastado">$ 0</strong>
-                </div>
-                <div class="fila-dato">
-                    <span>Disponible:</span>
-                    <strong class="azul" id="montoDisponible">$ 0</strong>
-                </div>
+                <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
+                <div class="fila-dato"><span>Gastado:</span><strong class="rojo" id="montoGastado">$ 0</strong></div>
+                <div class="fila-dato"><span>Disponible:</span><strong class="azul" id="montoDisponible">$ 0</strong></div>
             </div>
-
-            <div class="barra-fondo">
-                <div class="barra-progreso naranja" id="barraPresupuesto" style="width: 0%"></div>
-            </div>
-
-            <div class="alerta amarilla" id="alertaPresupuesto" style="display:none">
-                ⚠️ ¡Casi al límite! Solo te queda un margen pequeño
-            </div>
+            <div class="barra-fondo"><div class="barra-progreso naranja" id="barraPresupuesto" style="width:0%"></div></div>
+            <div class="alerta amarilla" id="alertaPresupuesto" style="display:none">⚠️ ¡Casi al límite!</div>
         </div>
     </section>
 
     <!-- ===== PÁGINA 3: HÁBITOS ===== -->
     <section id="habitos" class="pagina oculto">
         <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
-        <p class="introduccion">Marca cada día tu progreso y construye constancia 💪</p>
-        
+        <p class="introduccion">Marca cada día tu progreso 💪</p>
         <button class="btn-principal" id="btnNuevoHabito">+ Nuevo Hábito</button>
-        
-        <div class="bloque vacio" id="listaHabitos">
-            Crea tu primer hábito y empieza hoy 💪
-        </div>
+        <div class="bloque vacio" id="listaHabitos">Crea tu primer hábito 💪</div>
     </section>
 
     <!-- ===== PÁGINA 4: LOGROS ===== -->
     <section id="logros" class="pagina oculto">
         <h1 class="titulo-principal">🏆 Mis Logros</h1>
-        
         <div class="bloque">
             <h3 class="subtitulo">🔥 Racha General</h3>
             <p class="numero-grande" id="diasActivos">0 días activo</p>
-            <div class="barra-fondo">
-                <div class="barra-progreso morado" id="barraRacha" style="width: 0%"></div>
-            </div>
+            <div class="barra-fondo"><div class="barra-progreso morado" id="barraRacha" style="width:0%"></div></div>
         </div>
-
         <div class="bloque">
             <h3 class="subtitulo">🏅 Logros Desbloqueados</h3>
-            <p class="texto-centrado" id="listaLogros">Aún no tienes logros. ¡Empieza hoy! 💪</p>
+            <p class="texto-centrado">Aún no tienes logros 💪</p>
         </div>
     </section>
 
@@ -163,7 +130,7 @@
 
 <script>
 // ==============================================
-// 🔧 CONFIGURACIÓN DE FIREBASE — TUS DATOS
+// TU CONFIGURACIÓN DE FIREBASE — COMPLETA
 // ==============================================
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
@@ -175,14 +142,13 @@ const firebaseConfig = {
     measurementId: "G-KW7ZE24BQ8"
 };
 
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 let usuarioActual = null;
 
 // ==============================================
-// 🔐 VERIFICAR SESIÓN
+// SIN REDIRECCIÓN — NO BUSCA PÁGINAS QUE NO EXISTEN
 // ==============================================
 auth.onAuthStateChanged(usuario => {
     if (usuario) {
@@ -190,13 +156,14 @@ auth.onAuthStateChanged(usuario => {
         document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
         cargarDatos();
     } else {
-        document.getElementById('nombreUsuario').textContent = '👋 Inicia sesión';
-        console.log('No hay sesión activa');
+        // ✅ NO redirige a ningún lado — Se queda en la página
+        document.getElementById('nombreUsuario').textContent = '👋 Sin sesión';
+        console.log('Esperando inicio de sesión...');
     }
 });
 
 // ==============================================
-// 📄 NAVEGACIÓN ENTRE PESTAÑAS
+// NAVEGACIÓN Y BOTONES
 // ==============================================
 document.addEventListener('DOMContentLoaded', function() {
     const botonesPestañas = document.querySelectorAll('.pestaña');
@@ -206,108 +173,81 @@ document.addEventListener('DOMContentLoaded', function() {
         boton.addEventListener('click', function() {
             botonesPestañas.forEach(b => b.classList.remove('activa'));
             paginas.forEach(p => p.classList.add('oculto'));
-            
             this.classList.add('activa');
-            const idPagina = this.getAttribute('data-pagina');
-            const pagina = document.getElementById(idPagina);
-            if (pagina) pagina.classList.remove('oculto');
+            const id = this.getAttribute('data-pagina');
+            document.getElementById(id)?.classList.remove('oculto');
         });
     });
 
-    // ==============================================
-    // 🔘 BOTONES
-    // ==============================================
-    
-    // Cerrar Sesión
+    // Cerrar sesión — SIN redirección
     document.querySelector('.btn-cerrar').addEventListener('click', function() {
         if (confirm('¿Cerrar sesión?')) {
-            auth.signOut().then(() => {
-                alert('Sesión cerrada ✅');
-                location.reload();
-            });
+            auth.signOut().then(() => location.reload());
         }
     });
 
-    // Guardar Presupuesto
+    // Guardar presupuesto
     document.querySelector('.btn-guardar').addEventListener('click', async function() {
         if (!usuarioActual) { alert('Inicia sesión primero'); return; }
         const valor = document.getElementById('inputPresupuesto').value;
-        if (!valor) { alert('Escribe un monto primero'); return; }
-        
+        if (!valor) { alert('Escribe un monto'); return; }
         try {
-            await db.collection('usuarios').doc(usuarioActual.uid).set({
-                presupuestoMensual: parseInt(valor.replace(/\./g, ''))
-            }, { merge: true });
-            alert('✅ Presupuesto guardado');
+            await db.collection('usuarios').doc(usuarioActual.uid).set(
+                { presupuestoMensual: parseInt(valor.replace(/\./g, '')) },
+                { merge: true }
+            );
+            alert('✅ Guardado');
             cargarPresupuesto();
-        } catch (e) {
-            alert('Error: ' + e.message);
-        }
+        } catch (e) { alert('Error: ' + e.message); }
     });
 
-    // Nuevo Movimiento
+    // Nuevo movimiento
     document.getElementById('btnNuevoMovimiento').addEventListener('click', function() {
         if (!usuarioActual) { alert('Inicia sesión primero'); return; }
-        const descripcion = prompt('Descripción del movimiento:');
-        const monto = prompt('Monto (positivo = ingreso, negativo = gasto. Ej: 50000 o -20000):');
-        if (!descripcion || !monto) return;
-
+        const desc = prompt('Descripción:');
+        const monto = prompt('Monto (+ ingreso, - gasto):');
+        if (!desc || !monto) return;
         db.collection('movimientos').add({
             userId: usuarioActual.uid,
-            descripcion: descripcion,
+            descripcion: desc,
             monto: parseInt(monto),
             fecha: new Date(),
             mes: document.getElementById('mesSeleccionado').value
-        }).then(() => {
-            alert('✅ Guardado');
-            cargarMovimientos();
-        });
+        }).then(() => { alert('✅ Guardado'); cargarMovimientos(); });
     });
 
-    // Nueva Categoría
+    // Nueva categoría
     document.querySelector('.btn-nueva').addEventListener('click', function() {
         if (!usuarioActual) { alert('Inicia sesión primero'); return; }
-        const nombre = prompt('Nombre de la categoría:');
+        const nombre = prompt('Nombre categoría:');
         if (!nombre) return;
-
         db.collection('categorias').add({
             userId: usuarioActual.uid,
             nombre: nombre
-        }).then(() => {
-            alert('✅ Categoría creada');
-            cargarCategorias();
-        });
+        }).then(() => { alert('✅ Creada'); cargarCategorias(); });
     });
 
-    // Nuevo Hábito
+    // Nuevo hábito
     document.getElementById('btnNuevoHabito').addEventListener('click', function() {
         if (!usuarioActual) { alert('Inicia sesión primero'); return; }
-        const nombre = prompt('Nombre del hábito:');
+        const nombre = prompt('Nombre hábito:');
         if (!nombre) return;
-
         db.collection('habitos').add({
             userId: usuarioActual.uid,
             nombre: nombre,
             fechaCreacion: new Date()
-        }).then(() => {
-            alert('✅ Hábito creado');
-        });
+        }).then(() => alert('✅ Creado'));
     });
 
-    // Cambio de mes
     document.getElementById('mesSeleccionado').addEventListener('change', cargarDatos);
 });
 
 // ==============================================
-// 📊 CARGAR DATOS DESDE FIREBASE
+// FUNCIONES DE CARGA DE DATOS
 // ==============================================
 async function cargarDatos() {
     if (!usuarioActual) return;
-    await Promise.all([
-        cargarMovimientos(),
-        cargarPresupuesto(),
-        cargarCategorias()
-    ]);
+    await Promise.all([cargarMovimientos(), cargarPresupuesto(), cargarCategorias()]);
 }
 
 async function cargarMovimientos() {
@@ -325,13 +265,13 @@ async function cargarMovimientos() {
 
     if (snap.empty) {
         lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
+        return;
     }
 
     snap.forEach(doc => {
         const m = doc.data();
         if (m.monto >= 0) ingresos += m.monto;
         else gastos += Math.abs(m.monto);
-
         const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
         lista.innerHTML += `
             <div class="movimiento">
@@ -354,8 +294,7 @@ async function cargarMovimientos() {
 async function cargarPresupuesto() {
     if (!usuarioActual) return;
     const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
-    const datos = doc.data() || {};
-    const presupuesto = datos.presupuestoMensual || 0;
+    const presupuesto = doc.data()?.presupuestoMensual || 0;
     
     const mes = document.getElementById('mesSeleccionado').value;
     const snap = await db.collection('movimientos')
@@ -378,48 +317,24 @@ async function cargarPresupuesto() {
 
 async function cargarCategorias() {
     if (!usuarioActual) return;
-    const snap = await db.collection('categorias')
-        .where('userId', '==', usuarioActual.uid)
-        .get();
-    
+    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
     const lista = document.getElementById('listaCategorias');
     lista.innerHTML = '';
-    
+
     if (snap.empty) {
         lista.innerHTML = `
-            <div class="categoria">
-                <span class="icono">💼</span>
-                <div><strong>Trabajo</strong><small>Ingreso y Gasto</small></div>
-            </div>
-            <div class="categoria">
-                <span class="icono">🏠</span>
-                <div><strong>Casa</strong><small>Solo Gasto</small></div>
-            </div>
-            <div class="categoria">
-                <span class="icono">🍽️</span>
-                <div><strong>Comida</strong><small>Solo Gasto</small></div>
-            </div>
-            <div class="categoria">
-                <span class="icono">🚗</span>
-                <div><strong>Transporte</strong><small>Solo Gasto</small></div>
-            </div>
-            <div class="categoria">
-                <span class="icono">💡</span>
-                <div><strong>Servicios</strong><small>Solo Gasto</small></div>
-            </div>
-            <div class="categoria">
-                <span class="icono">📦</span>
-                <div><strong>Otros</strong><small>Ingreso y Gasto</small></div>
-            </div>
+            <div class="categoria"><span class="icono">💼</span><div><strong>Trabajo</strong><small>Ingreso y Gasto</small></div></div>
+            <div class="categoria"><span class="icono">🏠</span><div><strong>Casa</strong><small>Solo Gasto</small></div></div>
+            <div class="categoria"><span class="icono">🍽️</span><div><strong>Comida</strong><small>Solo Gasto</small></div></div>
+            <div class="categoria"><span class="icono">🚗</span><div><strong>Transporte</strong><small>Solo Gasto</small></div></div>
+            <div class="categoria"><span class="icono">💡</span><div><strong>Servicios</strong><small>Solo Gasto</small></div></div>
+            <div class="categoria"><span class="icono">📦</span><div><strong>Otros</strong><small>Ingreso y Gasto</small></div></div>
         `;
     } else {
         snap.forEach(doc => {
             const c = doc.data();
             lista.innerHTML += `
-                <div class="categoria">
-                    <span class="icono">📁</span>
-                    <div><strong>${c.nombre}</strong><small>Personalizada</small></div>
-                </div>
+                <div class="categoria"><span class="icono">📁</span><div><strong>${c.nombre}</strong><small>Personalizada</small></div></div>
             `;
         });
     }
