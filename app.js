@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') ingresar();
     });
     
+    // Si el select existe, le ponemos el evento
     const selectTipo = document.getElementById('tipoMovimiento');
     if (selectTipo) {
         selectTipo.addEventListener('change', actualizarSelectCategorias);
@@ -323,6 +324,8 @@ async function cargarMovimientos() {
 function abrirFormularioContable() {
     document.getElementById('modalContable').classList.remove('oculto');
     document.getElementById('fechaMovimiento').valueAsDate = new Date();
+    // 👇 Esto carga las categorías cada vez que abres el formulario
+    actualizarSelectCategorias();
 }
 
 function cerrarModalContable() {
