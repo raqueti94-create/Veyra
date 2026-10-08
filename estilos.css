@@ -229,6 +229,112 @@ body{
     outline:none;
 }
 
+/* ===== CATEGORÍAS PERSONALIZADAS ===== */
+.contenedor-categorias {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px var(--sombra);
+}
+
+.cabecera-categorias {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.cabecera-categorias h3 {
+    color: var(--texto);
+    font-size: 1.2rem;
+}
+
+.btn-agregar-categoria {
+    padding: 8px 16px;
+    background: var(--secundario);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-agregar-categoria:hover {
+    opacity: 0.9;
+}
+
+.lista-categorias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.tarjeta-categoria {
+    padding: 14px;
+    border-radius: 10px;
+    border-left: 4px solid;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--fondo);
+    transition: transform 0.2s;
+}
+
+.tarjeta-categoria:hover {
+    transform: translateX(4px);
+}
+
+.info-categoria {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nombre-categoria {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.tipo-categoria {
+    font-size: 0.8rem;
+    color: var(--texto-claro);
+}
+
+.acciones-categoria {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-editar-cat, .btn-eliminar-cat {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.btn-editar-cat:hover, .btn-eliminar-cat:hover {
+    opacity: 1;
+}
+
+.opcion-tipo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.opcion-tipo label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
 /* ========== GRÁFICAS DE FINANZAS ========== */
 .contenedor-graficas {
     margin: 25px 0;
@@ -272,6 +378,7 @@ body{
 @media (max-width: 600px) {
     .graficas-fila { grid-template-columns: 1fr; }
     .contenedor-graficas { padding: 18px; }
+    .lista-categorias { grid-template-columns: 1fr; }
 }
 
 /* ========== BOTÓN AGREGAR ========== */
@@ -574,6 +681,12 @@ body{
 
 .modal-contenido input:focus, .modal-contenido select:focus{
     border-color:var(--secundario);
+}
+
+input[type="color"]{
+    height:50px;
+    cursor:pointer;
+    padding:4px;
 }
 
 .botones-modal{
