@@ -14,7 +14,7 @@
 
 <!-- Barra de Usuario -->
 <div class="barra-usuario">
-    <span class="saludo" id="nombreUsuario">👋 Hola...</span>
+    <span class="saludo" id="nombreUsuario">👋 Cargando...</span>
     <button class="btn-cerrar">Cerrar sesión</button>
 </div>
 
@@ -90,7 +90,6 @@
         <div class="bloque">
             <h3 class="subtitulo">📋 Movimientos</h3>
             <div id="listaMovimientos">
-                <!-- Se cargan desde Firebase -->
                 <p class="texto-centrado">Cargando...</p>
             </div>
         </div>
@@ -164,17 +163,16 @@
 
 <script>
 // ==============================================
-// 🔧 CONFIGURACIÓN DE FIREBASE
+// 🔧 CONFIGURACIÓN DE FIREBASE — TUS DATOS
 // ==============================================
-// PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE
-// (Si no la tienes, me la pides y te ayudo)
 const firebaseConfig = {
-    apiKey: "AIzaTuCodigoAquiFalta",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123def456"
+    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
+    authDomain: "veyra-faa0e.firebaseapp.com",
+    projectId: "veyra-faa0e",
+    storageBucket: "veyra-faa0e.firebasestorage.app",
+    messagingSenderId: "100478048311",
+    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
+    measurementId: "G-KW7ZE24BQ8"
 };
 
 // Inicializar Firebase
@@ -192,7 +190,8 @@ auth.onAuthStateChanged(usuario => {
         document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
         cargarDatos();
     } else {
-        window.location.href = '/login.html'; // Página de inicio
+        document.getElementById('nombreUsuario').textContent = '👋 Inicia sesión';
+        console.log('No hay sesión activa');
     }
 });
 
@@ -216,20 +215,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==============================================
-    // 🔘 BOTONES CON FIREBASE
+    // 🔘 BOTONES
     // ==============================================
     
     // Cerrar Sesión
     document.querySelector('.btn-cerrar').addEventListener('click', function() {
         if (confirm('¿Cerrar sesión?')) {
             auth.signOut().then(() => {
-                window.location.href = '/login.html';
+                alert('Sesión cerrada ✅');
+                location.reload();
             });
         }
     });
 
     // Guardar Presupuesto
     document.querySelector('.btn-guardar').addEventListener('click', async function() {
+        if (!usuarioActual) { alert('Inicia sesión primero'); return; }
         const valor = document.getElementById('inputPresupuesto').value;
         if (!valor) { alert('Escribe un monto primero'); return; }
         
@@ -246,8 +247,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nuevo Movimiento
     document.getElementById('btnNuevoMovimiento').addEventListener('click', function() {
+        if (!usuarioActual) { alert('Inicia sesión primero'); return; }
         const descripcion = prompt('Descripción del movimiento:');
-        const monto = prompt('Monto (con - si es gasto):');
+        const monto = prompt('Monto (positivo = ingreso, negativo = gasto. Ej: 50000 o -20000):');
         if (!descripcion || !monto) return;
 
         db.collection('movimientos').add({
@@ -264,6 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nueva Categoría
     document.querySelector('.btn-nueva').addEventListener('click', function() {
+        if (!usuarioActual) { alert('Inicia sesión primero'); return; }
         const nombre = prompt('Nombre de la categoría:');
         if (!nombre) return;
 
@@ -278,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nuevo Hábito
     document.getElementById('btnNuevoHabito').addEventListener('click', function() {
+        if (!usuarioActual) { alert('Inicia sesión primero'); return; }
         const nombre = prompt('Nombre del hábito:');
         if (!nombre) return;
 
@@ -307,6 +311,7 @@ async function cargarDatos() {
 }
 
 async function cargarMovimientos() {
+    if (!usuarioActual) return;
     const mes = document.getElementById('mesSeleccionado').value;
     const snap = await db.collection('movimientos')
         .where('userId', '==', usuarioActual.uid)
@@ -318,12 +323,16 @@ async function cargarMovimientos() {
     const lista = document.getElementById('listaMovimientos');
     lista.innerHTML = '';
 
+    if (snap.empty) {
+        lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
+    }
+
     snap.forEach(doc => {
         const m = doc.data();
         if (m.monto >= 0) ingresos += m.monto;
         else gastos += Math.abs(m.monto);
 
-        const fecha = new Date(m.fecha.seconds * 1000);
+        const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
         lista.innerHTML += `
             <div class="movimiento">
                 <div>
@@ -343,6 +352,7 @@ async function cargarMovimientos() {
 }
 
 async function cargarPresupuesto() {
+    if (!usuarioActual) return;
     const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
     const datos = doc.data() || {};
     const presupuesto = datos.presupuestoMensual || 0;
@@ -367,6 +377,7 @@ async function cargarPresupuesto() {
 }
 
 async function cargarCategorias() {
+    if (!usuarioActual) return;
     const snap = await db.collection('categorias')
         .where('userId', '==', usuarioActual.uid)
         .get();
