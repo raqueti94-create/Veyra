@@ -78,6 +78,24 @@ function cambiarSeccion(nombre) {
 }
 
 // ========== CONTABLE ==========
+async function cargarSelectorMesesContable() {
+    const snapshot = await db.collection('movimientos')
+        .where('usuario', '==', usuarioActivo)
+        .orderBy('fecha', 'desc').get();
+    
+    const meses = new Set();
+    meses.add(mesSeleccionado);
+    snapshot.forEach(doc => meses.add(doc.data().fecha.slice(0, 7)));
+    
+    const selector = document.getElementById('selectorMesContable');
+    selector.innerHTML = '';
+    [...meses].sort().reverse().forEach(m => {
+        const [anio, mes] = m.split('-');
+        const nombreMes = new Date(anio, mes - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        selector.innerHTML += `<option value="${m}" ${m === mesSeleccionado ? 'selected' : ''}>${nombreMes}</option>`;
+    });
+}
+
 async function cargarMovimientos() {
     mesSeleccionado = document.getElementById('selectorMesContable').value;
     const inicio = mesSeleccionado + '-01';
@@ -88,7 +106,6 @@ async function cargarMovimientos() {
         .orderBy('fecha', 'desc')
         .get();
 
-    // Filtramos por fecha aquí mismo para evitar problemas
     const todos = snapshot.docs.filter(doc => {
         const f = doc.data().fecha;
         return f >= inicio && f <= fin;
@@ -102,52 +119,6 @@ async function cargarMovimientos() {
         lista.innerHTML = '<p class="sin-registros">Sin movimientos este mes</p>';
     } else {
         todos.forEach(doc => {
-            const m = doc.data();
-            const fecha = new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-ES');
-            
-            if (m.tipo === 'ingreso') ingresos += m.monto;
-            else gastos += m.monto;
-
-            lista.innerHTML += `
-                <div class="movimiento ${m.tipo}">
-                    <div class="info">
-                        <span class="fecha">${fecha}</span>
-                        <span class="descripcion">${m.descripcion}</span>
-                        <span class="categoria">${iconoCategoria(m.categoria)}</span>
-                    </div>
-                    <div class="valor">
-                        ${m.tipo === 'ingreso' ? '+' : '-'} $${m.monto.toLocaleString('es-CO')}
-                        <button class="btn-eliminar" onclick="eliminarMovimiento('${doc.id}')">🗑️</button>
-                    </div>
-                </div>
-            `;
-        });
-    }
-
-    document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString('es-CO')}`;
-    document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString('es-CO')}`;
-    document.getElementById('saldo').textContent = `$ ${(ingresos - gastos).toLocaleString('es-CO')}`;
-}
-
-async function cargarMovimientos() {
-    mesSeleccionado = document.getElementById('selectorMesContable').value;
-    const inicio = mesSeleccionado + '-01';
-    const fin = mesSeleccionado + '-31';
-
-    const snapshot = await db.collection('movimientos')
-        .where('usuario', '==', usuarioActivo)
-        .where('fecha', '>=', inicio)
-        .where('fecha', '<=', fin)
-        .orderBy('fecha', 'desc').get();
-
-    let ingresos = 0, gastos = 0;
-    const lista = document.getElementById('listaMovimientos');
-    lista.innerHTML = '';
-
-    if (snapshot.empty) {
-        lista.innerHTML = '<p class="sin-registros">Sin movimientos este mes</p>';
-    } else {
-        snapshot.forEach(doc => {
             const m = doc.data();
             const fecha = new Date(m.fecha + 'T00:00:00').toLocaleDateString('es-ES');
             
@@ -370,7 +341,7 @@ async function actualizarRachaGeneral(racha) {
     const ref = db.collection('configuracion').doc(usuarioActivo);
     const doc = await ref.get();
     
-    if (!doc.exists || racha > (doc.data().rachaGeneral || 0)) {
+    if (!doc.exists || racha > (doc.data()?.rachaGeneral || 0)) {
         await ref.set({ 
             rachaGeneral: racha, 
             ultimaActualizacion: new Date() 
@@ -380,7 +351,7 @@ async function actualizarRachaGeneral(racha) {
 
 async function cargarLogros() {
     const confRef = await db.collection('configuracion').doc(usuarioActivo).get();
-    const rachaGeneral = confRef.exists ? confRef.data().rachaGeneral || 0 : 0;
+    const rachaGeneral = confRef.exists ? confRef.data()?.rachaGeneral || 0 : 0;
     
     const porcentajeGeneral = Math.min(100, (rachaGeneral / DIAS_META) * 100);
     document.getElementById('barraGeneral').style.width = `${porcentajeGeneral}%`;
