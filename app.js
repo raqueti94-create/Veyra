@@ -245,7 +245,7 @@ async function cargarCategorias() {
     });
 }
 
-// ------------------- AHORRO -------------------
+// ------------------- AHORRO PROGRAMADO -------------------
 async function cargarAhorro() {
     if (!usuarioActual) return;
     
@@ -277,8 +277,23 @@ async function cargarAhorro() {
                         <div class="fecha">${fecha.toLocaleDateString()}</div>
                         <div class="descripcion">${lugarTexto}</div>
                     </div>
-                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                    <div class="valor-botones">
+                        <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                        <div class="acciones">
+                            <button class="btn-accion eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                        </div>
+                    </div>
                 </div>`;
+        });
+
+        // Eliminar depósito
+        document.querySelectorAll('.eliminar-deposito').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (confirm('¿Eliminar este depósito?\nEsto restará el monto del total ahorrado.')) {
+                    await db.collection('ahorro_depositos').doc(btn.dataset.id).delete();
+                    await cargarAhorro();
+                }
+            });
         });
     }
 
@@ -311,7 +326,7 @@ async function cargarAhorro() {
 
 // ------------------- HÁBITOS -------------------
 function obtenerFechaHoy() {
-    return new Date().toISOString().split('T')[0]; // "2026-10-08"
+    return new Date().toISOString().split('T')[0];
 }
 
 function sumarDias(fechaStr, dias) {
@@ -349,7 +364,6 @@ async function cargarHabitos() {
         return;
     }
 
-    // Últimos 7 días
     const hoy = new Date();
     const diasSemana = [];
     for (let i = 6; i >= 0; i--) {
@@ -363,7 +377,6 @@ async function cargarHabitos() {
         });
     }
 
-    // Cargar marcas
     const fechas = diasSemana.map(d => d.fechaCod);
     const marcasSnap = await db.collection('seguimiento_habitos')
         .where('userId', '==', usuarioActual.uid)
@@ -401,7 +414,6 @@ async function cargarHabitos() {
             </div>`;
     });
 
-    // Eliminar hábito
     document.querySelectorAll('.eliminar-habito').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar este hábito?')) {
@@ -413,11 +425,10 @@ async function cargarHabitos() {
     });
 }
 
-// ------------------- CÁLCULO DE RACHA GENERAL -------------------
+// ------------------- CÁLCULO DE RACHA -------------------
 async function calcularRachaGeneral() {
     if (!usuarioActual) return;
     
-    // Obtener todos los hábitos del usuario
     const habitosSnap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
     const idsHabitos = habitosSnap.docs.map(d => d.id);
     
@@ -427,12 +438,10 @@ async function calcularRachaGeneral() {
         return;
     }
 
-    // Obtener todas las fechas marcadas
     const seguimientoSnap = await db.collection('seguimiento_habitos')
         .where('userId', '==', usuarioActual.uid)
         .get();
     
-    // Agrupar: { "2026-10-08": { hab1: true, hab2: true } }
     const porFecha = {};
     seguimientoSnap.forEach(doc => {
         const [hid, fecha] = doc.id.split('_');
@@ -440,7 +449,6 @@ async function calcularRachaGeneral() {
         porFecha[fecha][hid] = true;
     });
 
-    // Contar racha hacia atrás desde hoy
     let racha = 0;
     let fechaActual = obtenerFechaHoy();
     
@@ -454,7 +462,6 @@ async function calcularRachaGeneral() {
         fechaActual = sumarDias(fechaActual, -1);
     }
 
-    // Actualizar texto visible
     const elem = document.getElementById('diasActivos');
     if (elem) {
         elem.textContent = `${racha} ${racha === 1 ? 'día' : 'días'} en racha`;
@@ -565,15 +572,15 @@ document.addEventListener('DOMContentLoaded', () => {
             meta, lugar, nombreBanco
         }, { merge: true });
         
-        const montoDep = parseFloat(document.getElementById('montoDeposito')?.value);
+        const montoDep = parseFloat(document.getElementById('montoGuardar')?.value);
         if (!isNaN(montoDep) && montoDep > 0) {
             await db.collection('ahorro_depositos').add({
                 userId: usuarioActual.uid,
                 monto: montoDep,
-                lugar,
+                lugar: lugar,
                 fecha: new Date()
             });
-            document.getElementById('montoDeposito').value = '';
+            document.getElementById('montoGuardar').value = '';
         }
         
         await cargarAhorro();
