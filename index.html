@@ -79,6 +79,15 @@
                     <select id="selectorMesContable" onchange="cargarMovimientos()"></select>
                 </div>
 
+                <!-- GESTIÓN DE CATEGORÍAS -->
+                <div class="contenedor-categorias">
+                    <div class="cabecera-categorias">
+                        <h3>🏷️ Mis Categorías</h3>
+                        <button class="btn-agregar-categoria" onclick="abrirModalCategoria()">+ Nueva</button>
+                    </div>
+                    <div id="listaCategorias" class="lista-categorias"></div>
+                </div>
+
                 <!-- GRÁFICAS DE FINANZAS -->
                 <div class="contenedor-graficas">
                     <h3>📈 Análisis del Mes</h3>
@@ -152,12 +161,7 @@
             
             <label>Categoría</label>
             <select id="categoria">
-                <option value="trabajo">💼 Trabajo</option>
-                <option value="casa">🏠 Casa</option>
-                <option value="comida">🍽️ Comida</option>
-                <option value="transporte">🚗 Transporte</option>
-                <option value="servicios">💡 Servicios</option>
-                <option value="otros">📦 Otros</option>
+                <!-- Se llena dinámicamente -->
             </select>
             
             <label>Monto $</label>
@@ -166,6 +170,39 @@
             <div class="botones-modal">
                 <button class="btn-secundario" onclick="cerrarModalContable()">Cancelar</button>
                 <button class="btn-principal" onclick="guardarMovimiento()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CATEGORÍA -->
+    <div id="modalCategoria" class="modal oculto">
+        <div class="modal-contenido">
+            <h3 id="tituloModalCat">Nueva Categoría</h3>
+            
+            <label>Nombre</label>
+            <input type="text" id="nombreCategoria" placeholder="Ej: Alquiler, Cursos, Ventas...">
+            
+            <label>Tipo</label>
+            <div class="opcion-tipo">
+                <label>
+                    <input type="radio" name="tipoCat" value="ambos"> Ambos
+                </label>
+                <label>
+                    <input type="radio" name="tipoCat" value="ingreso"> 💵 Ingreso
+                </label>
+                <label>
+                    <input type="radio" name="tipoCat" value="gasto" checked> 💸 Gasto
+                </label>
+            </div>
+            
+            <label>Color</label>
+            <input type="color" id="colorCategoria" value="#7c3aed">
+            
+            <input type="hidden" id="idCategoriaEditar">
+            
+            <div class="botones-modal">
+                <button class="btn-secundario" onclick="cerrarModalCategoria()">Cancelar</button>
+                <button class="btn-principal" onclick="guardarCategoria()">Guardar</button>
             </div>
         </div>
     </div>
