@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Resumen Financiero</title>
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -12,34 +11,25 @@
 </head>
 <body>
 
-<!-- ==============================================
-    PANTALLA DE INICIO DE SESIÓN
-    ============================================== -->
+<!-- ========== PANTALLA DE INICIO DE SESIÓN ========== -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
         <h2 class="titulo-login">🔐 Iniciar Sesión</h2>
-        
         <input type="email" id="correoLogin" class="campo-login" placeholder="Correo electrónico">
         <input type="password" id="claveLogin" class="campo-login" placeholder="Contraseña">
-        
         <button id="btnIngresar" class="btn-principal">Ingresar</button>
         <button id="btnRegistrar" class="btn-secundario">¿No tienes cuenta? Registrarse</button>
-        
         <p id="mensajeError" class="mensaje-error"></p>
     </div>
 </div>
 
-<!-- ==============================================
-    PANTALLA PRINCIPAL
-    ============================================== -->
+<!-- ========== PANTALLA PRINCIPAL ========== -->
 <div id="pantallaPrincipal" class="oculto">
-    <!-- Barra de Usuario -->
     <div class="barra-usuario">
         <span class="saludo" id="nombreUsuario">👋 Bienvenido</span>
         <button class="btn-cerrar">Cerrar sesión</button>
     </div>
 
-    <!-- Pestañas de Navegación -->
     <nav class="pestañas">
         <button class="pestaña activa" data-pagina="contable">💰 Contable</button>
         <button class="pestaña" data-pagina="presupuesto">📊 Presupuesto</button>
@@ -47,10 +37,9 @@
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
     </nav>
 
-    <!-- Contenido Principal -->
     <main class="contenedor">
 
-        <!-- ===== PÁGINA 1: CONTABLE ===== -->
+        <!-- ===== PÁGINA CONTABLE ===== -->
         <section id="contable" class="pagina">
             <h1 class="titulo-principal">💰 Resumen Financiero</h1>
 
@@ -78,79 +67,84 @@
                 </select>
             </div>
 
-            <!-- FORMULARIO NUEVO MOVIMIENTO -->
+            <!-- FORMULARIO MOVIMIENTO CON ICONOS -->
             <div class="bloque">
                 <h3 class="subtitulo">➕ Nuevo Movimiento</h3>
-                <div class="form-fila">
-                    <input type="text" id="descripcionMov" class="campo-texto" placeholder="Descripción (ej: Salario)">
+                <div class="selector-tipo">
+                    <button type="button" class="btn-tipo active" data-tipo="ingreso">
+                        <span class="icono-tipo">⬆️</span> Ingreso
+                    </button>
+                    <button type="button" class="btn-tipo" data-tipo="gasto">
+                        <span class="icono-tipo">⬇️</span> Gasto
+                    </button>
                 </div>
-                <div class="form-fila">
-                    <input type="number" id="montoMov" class="campo-texto" placeholder="Monto (+ ingreso, - gasto)">
-                </div>
-                <button id="btnGuardarMov" class="btn-principal">💾 Guardar Movimiento</button>
+                <input type="text" id="descripcionMov" class="campo-form" placeholder="Descripción">
+                <input type="number" id="montoMov" class="campo-form" placeholder="Monto" min="1">
+                <select id="categoriaMov" class="campo-form">
+                    <option value="">Seleccionar categoría</option>
+                    <option value="Trabajo">💼 Trabajo</option>
+                    <option value="Casa">🏠 Casa</option>
+                    <option value="Comida">🍽️ Comida</option>
+                    <option value="Transporte">🚗 Transporte</option>
+                    <option value="Servicios">💡 Servicios</option>
+                    <option value="Otros">📦 Otros</option>
+                </select>
+                <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
             </div>
 
+            <!-- CATEGORÍAS -->
             <div class="bloque">
                 <div class="cabecera-bloque">
                     <h3>🏷️ Mis Categorías</h3>
                     <button id="btnAbrirCat" class="btn-nueva">+ Nueva</button>
                 </div>
-                <div id="formCat" class="oculto form-fila">
-                    <input type="text" id="nombreCat" class="campo-texto" placeholder="Nombre de la categoría">
+                <div id="formNuevaCat" class="oculto fila-form">
+                    <input type="text" id="nombreCat" class="campo-form" placeholder="Nombre categoría">
                     <button id="btnGuardarCat" class="btn-principal">Guardar</button>
                 </div>
-                <div class="lista-categorias" id="listaCategorias"></div>
+                <div id="listaCategorias" class="lista-categorias"></div>
             </div>
 
-            <div class="bloque">
-                <h3 class="subtitulo">📈 Análisis del Mes</h3>
-                <div class="grafica-contenedor">
-                    <p class="grafica-titulo">Distribución por Categoría</p>
-                    <div class="grafica-placeholder">Gráfica Circular</div>
-                </div>
-                <div class="grafica-contenedor">
-                    <p class="grafica-titulo">Ingresos vs Gastos</p>
-                    <div class="grafica-placeholder">Gráfica de Barras</div>
-                </div>
-            </div>
-
+            <!-- MOVIMIENTOS -->
             <div class="bloque">
                 <h3 class="subtitulo">📋 Movimientos</h3>
-                <div id="listaMovimientos">
-                    <p class="texto-centrado">Cargando...</p>
-                </div>
+                <div id="listaMovimientos"><p class="texto-centrado">Cargando...</p></div>
             </div>
         </section>
 
-        <!-- ===== PÁGINA 2: PRESUPUESTO ===== -->
+        <!-- ===== PÁGINA PRESUPUESTO ===== -->
         <section id="presupuesto" class="pagina oculto">
             <h1 class="titulo-principal">📊 Presupuesto Mensual</h1>
             <div class="bloque">
-                <label class="etiqueta-form">Mi presupuesto:</label>
-                <input type="number" class="campo-texto" id="inputPresupuesto" placeholder="Ej: 2000000">
-                <button id="btnGuardarPres" class="btn-guardar">Guardar</button>
+                <label class="etiqueta-form">Mi presupuesto mensual:</label>
+                <input type="number" class="campo-form" id="inputPresupuesto" placeholder="Ej: 2000000" min="0">
+                <button id="btnGuardarPres" class="btn-principal">💾 Guardar Presupuesto</button>
+                
                 <div class="datos-presupuesto">
                     <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
                     <div class="fila-dato"><span>Gastado:</span><strong class="rojo" id="montoGastado">$ 0</strong></div>
-                    <div class="fila-dato"><span>Disponible:</span><strong class="azul" id="montoDisponible">$ 0</strong></div>
+                    <div class="fila-dato"><span>Disponible:</span><strong id="montoDisponible">$ 0</strong></div>
                 </div>
-                <div class="barra-fondo"><div class="barra-progreso naranja" id="barraPresupuesto" style="width:0%"></div></div>
-                <div class="alerta amarilla" id="alertaPresupuesto" style="display:none">⚠️ ¡Casi al límite!</div>
+                
+                <div class="barra-fondo"><div class="barra-progreso" id="barraPresupuesto" style="width:0%"></div></div>
+                
+                <div id="alerta80" class="alerta amarilla" style="display:none">⚠️ Has usado el 80% del presupuesto</div>
+                <div id="alertaLimite" class="alerta roja" style="display:none">🚫 HAS LLEGADO AL LÍMITE — NO HAY MÁS DINERO DISPONIBLE</div>
             </div>
         </section>
 
-        <!-- ===== PÁGINA 3: HÁBITOS ===== -->
+        <!-- ===== PÁGINA HÁBITOS ===== -->
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
             <p class="introduccion">Marca cada día tu progreso 💪</p>
             <div class="bloque">
-                <input type="text" id="nombreHabito" class="campo-texto" placeholder="Nombre del hábito">
-                <button id="btnNuevoHabito" class="btn-principal">✅ Crear Hábito</button>
+                <input type="text" id="nombreHabito" class="campo-form" placeholder="Nombre del hábito">
+                <button id="btnCrearHabito" class="btn-principal">✅ Crear Hábito</button>
             </div>
-            <div class="bloque vacio" id="listaHabitos">Crea tu primer hábito 💪</div>
+            <div id="listaHabitos" class="bloque vacio">Crea tu primer hábito 💪</div>
         </section>
 
-        <!-- ===== PÁGINA 4: LOGROS ===== -->
+        <!-- ===== PÁGINA LOGROS ===== -->
         <section id="logros" class="pagina oculto">
             <h1 class="titulo-principal">🏆 Mis Logros</h1>
             <div class="bloque">
@@ -167,43 +161,62 @@
     </main>
 </div>
 
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal oculto">
+    <div class="modal-contenido">
+        <h3 id="tituloModal">Editar</h3>
+        <input type="text" id="inputEditar" class="campo-form">
+        <input type="number" id="inputEditarNumero" class="campo-form oculto">
+        <div class="botones-modal">
+            <button id="btnCancelarModal" class="btn-secundario">Cancelar</button>
+            <button id="btnConfirmarModal" class="btn-principal">Guardar</button>
+        </div>
+    </div>
+</div>
+
 <script>
-// ==============================================
-// CONFIGURACIÓN DE FIREBASE
-// ==============================================
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
     authDomain: "veyra-faa0e.firebaseapp.com",
     projectId: "veyra-faa0e",
     storageBucket: "veyra-faa0e.firebasestorage.app",
     messagingSenderId: "100478048311",
-    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
-    measurementId: "G-KW7ZE24BQ8"
+    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 let usuarioActual = null;
+let tipoMovimiento = 'ingreso';
+let estadoEdicion = { tipo: null, id: null, datos: {} };
+
+// Categorías predeterminadas
+const categoriasDefault = [
+    { nombre: 'Trabajo', icono: '💼' },
+    { nombre: 'Casa', icono: '🏠' },
+    { nombre: 'Comida', icono: '🍽️' },
+    { nombre: 'Transporte', icono: '🚗' },
+    { nombre: 'Servicios', icono: '💡' },
+    { nombre: 'Otros', icono: '📦' }
+];
 
 // ==============================================
-// CAMBIAR PANTALLAS
+// PANTALLAS
 // ==============================================
 function mostrarPantallaPrincipal() {
     document.getElementById('pantallaLogin').classList.add('oculto');
     document.getElementById('pantallaPrincipal').classList.remove('oculto');
+    inicializarCategoriasDefault();
 }
-
 function mostrarPantallaLogin() {
     document.getElementById('pantallaLogin').classList.remove('oculto');
     document.getElementById('pantallaPrincipal').classList.add('oculto');
     document.getElementById('mensajeError').textContent = '';
-    document.getElementById('correoLogin').value = '';
-    document.getElementById('claveLogin').value = '';
 }
 
 // ==============================================
-// VERIFICAR SESIÓN
+// AUTENTICACIÓN
 // ==============================================
 auth.onAuthStateChanged(usuario => {
     if (usuario) {
@@ -218,148 +231,168 @@ auth.onAuthStateChanged(usuario => {
 });
 
 // ==============================================
-// EVENTOS DE BOTONES
+// INICIALIZAR CATEGORÍAS PREDETERMINADAS
 // ==============================================
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Iniciar sesión
-    document.getElementById('btnIngresar').addEventListener('click', function() {
+async function inicializarCategoriasDefault() {
+    if (!usuarioActual) return;
+    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
+    if (snap.empty) {
+        for (const cat of categoriasDefault) {
+            await db.collection('categorias').add({
+                userId: usuarioActual.uid,
+                nombre: cat.nombre,
+                icono: cat.icono,
+                esDefault: true
+            });
+        }
+        cargarCategorias();
+    }
+}
+
+// ==============================================
+// EVENTOS
+// ==============================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Login
+    document.getElementById('btnIngresar').addEventListener('click', () => {
         const correo = document.getElementById('correoLogin').value.trim();
         const clave = document.getElementById('claveLogin').value;
-        if (!correo || !clave) {
-            document.getElementById('mensajeError').textContent = 'Escribe tu correo y contraseña';
-            return;
-        }
-        auth.signInWithEmailAndPassword(correo, clave)
-            .catch(error => {
-                document.getElementById('mensajeError').textContent = 'Error: ' + error.message;
-            });
+        if (!correo || !clave) return document.getElementById('mensajeError').textContent = 'Completa todos los campos';
+        auth.signInWithEmailAndPassword(correo, clave).catch(e => {
+            document.getElementById('mensajeError').textContent = 'Error: ' + e.message;
+        });
     });
-    
-    // Registrarse
-    document.getElementById('btnRegistrar').addEventListener('click', function() {
+    document.getElementById('btnRegistrar').addEventListener('click', () => {
         const correo = document.getElementById('correoLogin').value.trim();
         const clave = document.getElementById('claveLogin').value;
-        if (!correo || !clave) {
-            document.getElementById('mensajeError').textContent = 'Escribe correo y contraseña primero';
-            return;
-        }
-        if (clave.length < 6) {
-            document.getElementById('mensajeError').textContent = 'La contraseña debe tener al menos 6 caracteres';
-            return;
-        }
-        auth.createUserWithEmailAndPassword(correo, clave)
-            .then(() => alert('✅ Cuenta creada con éxito'))
-            .catch(error => {
-                document.getElementById('mensajeError').textContent = 'Error: ' + error.message;
-            });
+        if (!correo || clave.length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
+        auth.createUserWithEmailAndPassword(correo, clave).then(() => alert('✅ Cuenta creada')).catch(e => alert('Error: ' + e.message));
     });
-    
-    // Cerrar sesión
-    document.querySelector('.btn-cerrar').addEventListener('click', function() {
-        if (confirm('¿Cerrar sesión? Podrás entrar con otro usuario.')) {
-            auth.signOut().then(() => {
-                usuarioActual = null;
-                mostrarPantallaLogin();
-            });
-        }
+    document.querySelector('.btn-cerrar').addEventListener('click', () => {
+        if (confirm('¿Cerrar sesión?')) auth.signOut();
     });
 
-    // Navegación entre pestañas
-    const botonesPestañas = document.querySelectorAll('.pestaña');
-    const paginas = document.querySelectorAll('.pagina');
-    botonesPestañas.forEach(boton => {
-        boton.addEventListener('click', function() {
-            botonesPestañas.forEach(b => b.classList.remove('activa'));
-            paginas.forEach(p => p.classList.add('oculto'));
-            this.classList.add('activa');
-            document.getElementById(this.getAttribute('data-pagina')).classList.remove('oculto');
+    // Tipo de movimiento
+    document.querySelectorAll('.btn-tipo').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tipoMovimiento = btn.dataset.tipo;
         });
     });
 
     // Guardar movimiento
-    document.getElementById('btnGuardarMov').addEventListener('click', async function() {
+    document.getElementById('btnGuardarMov').addEventListener('click', async () => {
         if (!usuarioActual) return;
         const desc = document.getElementById('descripcionMov').value.trim();
         const monto = parseInt(document.getElementById('montoMov').value);
-        if (!desc || isNaN(monto)) {
-            alert('Escribe descripción y monto válido');
-            return;
-        }
-        try {
-            await db.collection('movimientos').add({
-                userId: usuarioActual.uid,
-                descripcion: desc,
-                monto: monto,
-                fecha: new Date(),
-                mes: document.getElementById('mesSeleccionado').value
-            });
-            alert('✅ Guardado correctamente');
-            document.getElementById('descripcionMov').value = '';
-            document.getElementById('montoMov').value = '';
-            cargarMovimientos();
-        } catch (e) {
-            alert('❌ Error: ' + e.message);
-        }
-    });
+        const cat = document.getElementById('categoriaMov').value;
+        if (!desc || !monto || !cat) return alert('Completa todos los campos');
 
-    // Mostrar/ocultar formulario categoría
-    document.getElementById('btnAbrirCat').addEventListener('click', function() {
-        document.getElementById('formCat').classList.toggle('oculto');
-    });
+        // Verificar límite de presupuesto
+        const docUser = await db.collection('usuarios').doc(usuarioActual.uid).get();
+        const presupuesto = docUser.data()?.presupuestoMensual || 0;
+        if (tipoMovimiento === 'gasto' && presupuesto > 0) {
+            const mes = document.getElementById('mesSeleccionado').value;
+            const snapMov = await db.collection('movimientos')
+                .where('userId', '==', usuarioActual.uid)
+                .where('mes', '==', mes)
+                .get();
+            let gastado = 0;
+            snapMov.forEach(d => { if (d.data().monto < 0) gastado += Math.abs(d.data().monto); });
+            if (gastado + monto > presupuesto) {
+                return alert('🚫 NO PUEDES AGREGAR ESTE GASTO — HAS LLEGADO AL LÍMITE DE TU PRESUPUESTO');
+            }
+        }
 
-    // Guardar categoría
-    document.getElementById('btnGuardarCat').addEventListener('click', async function() {
-        if (!usuarioActual) return;
-        const nombre = document.getElementById('nombreCat').value.trim();
-        if (!nombre) { alert('Escribe un nombre'); return; }
-        await db.collection('categorias').add({
+        await db.collection('movimientos').add({
             userId: usuarioActual.uid,
-            nombre: nombre
+            descripcion: desc,
+            categoria: cat,
+            monto: tipoMovimiento === 'ingreso' ? monto : -monto,
+            fecha: new Date(),
+            mes: document.getElementById('mesSeleccionado').value
         });
-        alert('✅ Categoría guardada');
+        document.getElementById('descripcionMov').value = '';
+        document.getElementById('montoMov').value = '';
+        cargarDatos();
+    });
+
+    // Categorías
+    document.getElementById('btnAbrirCat').addEventListener('click', () => {
+        document.getElementById('formNuevaCat').classList.toggle('oculto');
+    });
+    document.getElementById('btnGuardarCat').addEventListener('click', async () => {
+        const nombre = document.getElementById('nombreCat').value.trim();
+        if (!nombre) return;
+        await db.collection('categorias').add({ userId: usuarioActual.uid, nombre, icono: '📁', esDefault: false });
         document.getElementById('nombreCat').value = '';
-        document.getElementById('formCat').classList.add('oculto');
+        document.getElementById('formNuevaCat').classList.add('oculto');
         cargarCategorias();
     });
 
-    // Guardar presupuesto
-    document.getElementById('btnGuardarPres').addEventListener('click', async function() {
-        if (!usuarioActual) return;
+    // Presupuesto
+    document.getElementById('btnGuardarPres').addEventListener('click', async () => {
         const valor = parseInt(document.getElementById('inputPresupuesto').value);
-        if (isNaN(valor)) { alert('Escribe un monto válido'); return; }
+        if (isNaN(valor)) return alert('Escribe un monto válido');
         await db.collection('usuarios').doc(usuarioActual.uid).set(
-            { presupuestoMensual: valor },
-            { merge: true }
+            { presupuestoMensual: valor }, { merge: true }
         );
         alert('✅ Presupuesto guardado');
         cargarPresupuesto();
     });
 
-    // Nuevo hábito
-    document.getElementById('btnNuevoHabito').addEventListener('click', async function() {
-        if (!usuarioActual) return;
+    // Hábitos
+    document.getElementById('btnCrearHabito').addEventListener('click', async () => {
         const nombre = document.getElementById('nombreHabito').value.trim();
-        if (!nombre) { alert('Escribe un nombre'); return; }
+        if (!nombre) return;
         await db.collection('habitos').add({
-            userId: usuarioActual.uid,
-            nombre: nombre,
-            fechaCreacion: new Date()
+            userId: usuarioActual.uid, nombre, fechaCreacion: new Date(), dias: {}
         });
-        alert('✅ Hábito creado');
         document.getElementById('nombreHabito').value = '';
+        cargarHabitos();
     });
 
-    // Cambiar mes
+    // Navegación
+    document.querySelectorAll('.pestaña').forEach(boton => {
+        boton.addEventListener('click', () => {
+            document.querySelectorAll('.pestaña').forEach(b => b.classList.remove('activa'));
+            document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
+            boton.classList.add('activa');
+            document.getElementById(boton.dataset.pagina).classList.remove('oculto');
+        });
+    });
     document.getElementById('mesSeleccionado').addEventListener('change', cargarDatos);
+
+    // Modal
+    document.getElementById('btnCancelarModal').addEventListener('click', () => {
+        document.getElementById('modalEditar').classList.add('oculto');
+        estadoEdicion = { tipo: null, id: null, datos: {} };
+    });
+    document.getElementById('btnConfirmarModal').addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const ref = estadoEdicion.tipo === 'movimiento'
+            ? db.collection('movimientos').doc(estadoEdicion.id)
+            : db.collection('categorias').doc(estadoEdicion.id);
+        
+        if (estadoEdicion.tipo === 'movimiento') {
+            const desc = document.getElementById('inputEditar').value.trim();
+            const monto = parseInt(document.getElementById('inputEditarNumero').value);
+            await ref.update({ descripcion: desc, monto: estadoEdicion.esIngreso ? monto : -monto });
+        } else {
+            await ref.update({ nombre: document.getElementById('inputEditar').value.trim() });
+        }
+        document.getElementById('modalEditar').classList.add('oculto');
+        cargarDatos();
+    });
 });
 
 // ==============================================
-// FUNCIONES DE CARGA
+// CARGA DE DATOS
 // ==============================================
 async function cargarDatos() {
     if (!usuarioActual) return;
-    await Promise.all([cargarMovimientos(), cargarPresupuesto(), cargarCategorias()]);
+    await Promise.all([cargarMovimientos(), cargarCategorias(), cargarPresupuesto(), cargarHabitos()]);
 }
 
 async function cargarMovimientos() {
@@ -374,56 +407,55 @@ async function cargarMovimientos() {
     let ingresos = 0, gastos = 0;
     const lista = document.getElementById('listaMovimientos');
     lista.innerHTML = '';
-
     if (snap.empty) {
         lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
     } else {
         snap.forEach(doc => {
             const m = doc.data();
-            if (m.monto >= 0) ingresos += m.monto;
-            else gastos += Math.abs(m.monto);
+            if (m.monto >= 0) ingresos += m.monto; else gastos += Math.abs(m.monto);
             const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
+            const signo = m.monto >= 0 ? '+' : '-';
+            const clase = m.monto >= 0 ? 'positivo' : 'negativo';
             lista.innerHTML += `
                 <div class="movimiento">
-                    <div>
+                    <div class="info-mov">
                         <div class="fecha">${fecha.toLocaleDateString()}</div>
                         <div class="descripcion">${m.descripcion}</div>
+                        <div class="categoria-pequeña">${m.categoria || 'Sin categoría'}</div>
                     </div>
-                    <div class="valor ${m.monto >= 0 ? 'positivo' : 'negativo'}">
-                        ${m.monto >= 0 ? '+' : ''}$ ${m.monto.toLocaleString()}
+                    <div class="valor-botones">
+                        <div class="valor ${clase}">${signo}$ ${Math.abs(m.monto).toLocaleString()}</div>
+                        <div class="acciones">
+                            <button class="btn-accion editar" data-id="${doc.id}" data-tipo="movimiento" data-desc="${m.descripcion}" data-monto="${Math.abs(m.monto)}" data-ingreso="${m.monto >= 0}">✏️</button>
+                            <button class="btn-accion eliminar" data-id="${doc.id}" data-tipo="movimiento">🗑️</button>
+                        </div>
                     </div>
                 </div>
             `;
         });
+        // Eventos eliminar/editar
+        document.querySelectorAll('.btn-accion.eliminar').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (confirm('¿Eliminar registro?')) {
+                    await db.collection(btn.dataset.tipo === 'movimiento' ? 'movimientos' : 'categorias').doc(btn.dataset.id).delete();
+                    cargarDatos();
+                }
+            });
+        });
+        document.querySelectorAll('.btn-accion.editar').forEach(btn => {
+            btn.addEventListener('click', () => {
+                estadoEdicion = { tipo: 'movimiento', id: btn.dataset.id, esIngreso: btn.dataset.ingreso === 'true' };
+                document.getElementById('tituloModal').textContent = 'Editar Movimiento';
+                document.getElementById('inputEditar').value = btn.dataset.desc;
+                document.getElementById('inputEditarNumero').value = btn.dataset.monto;
+                document.getElementById('inputEditarNumero').classList.remove('oculto');
+                document.getElementById('modalEditar').classList.remove('oculto');
+            });
+        });
     }
-
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
     document.getElementById('saldoTotal').textContent = `$ ${(ingresos - gastos).toLocaleString()}`;
-}
-
-async function cargarPresupuesto() {
-    if (!usuarioActual) return;
-    const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
-    const presupuesto = doc.data()?.presupuestoMensual || 0;
-    
-    const mes = document.getElementById('mesSeleccionado').value;
-    const snap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mes)
-        .get();
-    
-    let gastado = 0;
-    snap.forEach(d => { if (d.data().monto < 0) gastado += Math.abs(d.data().monto); });
-
-    const disponible = presupuesto - gastado;
-    const porcentaje = presupuesto > 0 ? Math.min(100, (gastado / presupuesto) * 100) : 0;
-
-    document.getElementById('montoPresupuesto').textContent = `$ ${presupuesto.toLocaleString()}`;
-    document.getElementById('montoGastado').textContent = `$ ${gastado.toLocaleString()}`;
-    document.getElementById('montoDisponible').textContent = `$ ${disponible.toLocaleString()}`;
-    document.getElementById('barraPresupuesto').style.width = porcentaje + '%';
-    document.getElementById('alertaPresupuesto').style.display = porcentaje >= 80 ? 'block' : 'none';
 }
 
 async function cargarCategorias() {
@@ -431,29 +463,111 @@ async function cargarCategorias() {
     const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
     const lista = document.getElementById('listaCategorias');
     lista.innerHTML = '';
-
-    if (snap.empty) {
-        lista.innerHTML = `
-            <div class="categoria"><span class="icono">💼</span><div><strong>Trabajo</strong><small>Ingreso y Gasto</small></div></div>
-            <div class="categoria"><span class="icono">🏠</span><div><strong>Casa</strong><small>Solo Gasto</small></div></div>
-            <div class="categoria"><span class="icono">🍽️</span><div><strong>Comida</strong><small>Solo Gasto</small></div></div>
-            <div class="categoria"><span class="icono">🚗</span><div><strong>Transporte</strong><small>Solo Gasto</small></div></div>
-            <div class="categoria"><span class="icono">💡</span><div><strong>Servicios</strong><small>Solo Gasto</small></div></div>
-            <div class="categoria"><span class="icono">📦</span><div><strong>Otros</strong><small>Ingreso y Gasto</small></div></div>
+    snap.forEach(doc => {
+        const c = doc.data();
+        lista.innerHTML += `
+            <div class="categoria">
+                <span class="icono">${c.icono || '📁'}</span>
+                <div><strong>${c.nombre}</strong><small>${c.esDefault ? 'Predeterminada' : 'Personalizada'}</small></div>
+                <div class="acciones">
+                    ${!c.esDefault ? `
+                        <button class="btn-accion editar-cat" data-id="${doc.id}" data-nombre="${c.nombre}">✏️</button>
+                        <button class="btn-accion eliminar-cat" data-id="${doc.id}">🗑️</button>
+                    ` : ''}
+                </div>
+            </div>
         `;
+    });
+    // Editar categoría
+    document.querySelectorAll('.editar-cat').forEach(btn => {
+        btn.addEventListener('click', () => {
+            estadoEdicion = { tipo: 'categoria', id: btn.dataset.id };
+            document.getElementById('tituloModal').textContent = 'Editar Categoría';
+            document.getElementById('inputEditar').value = btn.dataset.nombre;
+            document.getElementById('inputEditarNumero').classList.add('oculto');
+            document.getElementById('modalEditar').classList.remove('oculto');
+        });
+    });
+    // Eliminar categoría
+    document.querySelectorAll('.eliminar-cat').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (confirm('¿Eliminar categoría?')) {
+                await db.collection('categorias').doc(btn.dataset.id).delete();
+                cargarCategorias();
+            }
+        });
+    });
+}
+
+async function cargarPresupuesto() {
+    if (!usuarioActual) return;
+    const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
+    const presupuesto = doc.data()?.presupuestoMensual || 0;
+    const mes = document.getElementById('mesSeleccionado').value;
+    const snap = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('mes', '==', mes)
+        .get();
+    let gastado = 0;
+    snap.forEach(d => { if (d.data().monto < 0) gastado += Math.abs(d.data().monto); });
+
+    const disponible = presupuesto - gastado;
+    const porcentaje = presupuesto > 0 ? (gastado / presupuesto) * 100 : 0;
+
+    document.getElementById('montoPresupuesto').textContent = `$ ${presupuesto.toLocaleString()}`;
+    document.getElementById('montoGastado').textContent = `$ ${gastado.toLocaleString()}`;
+    document.getElementById('montoDisponible').textContent = `$ ${disponible.toLocaleString()}`;
+    document.getElementById('barraPresupuesto').style.width = `${Math.min(100, porcentaje)}%`;
+    
+    // Colores y alertas
+    const barra = document.getElementById('barraPresupuesto');
+    barra.className = 'barra-progreso';
+    document.getElementById('alerta80').style.display = 'none';
+    document.getElementById('alertaLimite').style.display = 'none';
+    
+    if (porcentaje >= 100) {
+        barra.classList.add('rojo');
+        document.getElementById('alertaLimite').style.display = 'block';
+    } else if (porcentaje >= 80) {
+        barra.classList.add('naranja');
+        document.getElementById('alerta80').style.display = 'block';
+    } else {
+        barra.classList.add('verde');
+    }
+}
+
+async function cargarHabitos() {
+    if (!usuarioActual) return;
+    const snap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
+    const lista = document.getElementById('listaHabitos');
+    lista.innerHTML = '';
+    if (snap.empty) {
+        lista.innerHTML = '<p class="texto-centrado">Crea tu primer hábito 💪</p>';
     } else {
         snap.forEach(doc => {
-            const c = doc.data();
+            const h = doc.data();
             lista.innerHTML += `
-                <div class="categoria"><span class="icono">📁</span><div><strong>${c.nombre}</strong><small>Personalizada</small></div></div>
+                <div class="bloque">
+                    <h4>${h.nombre}</h4>
+                    <div class="acciones">
+                        <button class="btn-accion eliminar-habito" data-id="${doc.id}">🗑️ Eliminar</button>
+                    </div>
+                </div>
             `;
+        });
+        document.querySelectorAll('.eliminar-habito').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (confirm('¿Eliminar hábito?')) {
+                    await db.collection('habitos').doc(btn.dataset.id).delete();
+                    cargarHabitos();
+                }
+            });
         });
     }
 }
 </script>
 
 <style>
-/* ========== ESTILOS GENERALES ========== */
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
 :root {
     --primario: #7c3aed;
@@ -468,355 +582,110 @@ async function cargarCategorias() {
     --sombra: 0 2px 10px rgba(0,0,0,0.08);
     --radio: 16px;
 }
+body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:100vh}
+.oculto {display:none !important}
 
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-}
+/* PANTALLA LOGIN */
+.pantalla-login {min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.caja-login {background:white;padding:30px 25px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,0.15);width:100%;max-width:420px}
+.titulo-login {text-align:center;color:#1e293b;margin-bottom:25px;font-size:1.4rem}
+.campo-login {width:100%;padding:14px 16px;margin-bottom:14px;border:2px solid #e2e8f0;border-radius:12px;font-size:1rem;outline:none}
+.campo-login:focus {border-color:#7c3aed}
+.btn-principal {width:100%;padding:14px;background:var(--primario);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-secundario {width:100%;padding:12px;background:transparent;color:#7c3aed;border:none;font-size:0.95rem;font-weight:600;cursor:pointer;margin-top:10px}
+.mensaje-error {color:var(--peligro);text-align:center;margin-top:15px;font-size:0.9rem}
 
-.oculto { display: none !important; }
+/* BARRA USUARIO */
+.barra-usuario {background:rgba(255,255,255,0.95);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.btn-cerrar {background:transparent;border:none;color:var(--primario);font-weight:600;cursor:pointer}
 
-/* ========== PANTALLA LOGIN ========== */
-.pantalla-login {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
+/* PESTAÑAS */
+.pestañas {display:flex;background:rgba(255,255,255,0.9);padding:10px 12px;gap:6px;overflow-x:auto}
+.pestaña {flex:1;min-width:80px;padding:10px 8px;background:transparent;border:none;border-radius:10px;font-size:0.85rem;font-weight:600;color:var(--texto-claro);cursor:pointer;white-space:nowrap}
+.pestaña.activa {background:var(--primario);color:white;box-shadow:0 2px 6px rgba(124,58,237,0.3)}
 
-.caja-login {
-    background: white;
-    padding: 30px 25px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    width: 100%;
-    max-width: 420px;
-}
+/* CONTENEDOR */
+.contenedor {max-width:520px;margin:0 auto;padding:16px}
+.titulo-principal {text-align:center;color:white;font-size:1.5rem;margin:10px 0 24px}
+.subtitulo {font-size:1.1rem;margin-bottom:14px}
+.introduccion {text-align:center;color:rgba(255,255,255,0.9);margin-bottom:20px}
 
-.titulo-login {
-    text-align: center;
-    color: #1e293b;
-    margin-bottom: 25px;
-    font-size: 1.4rem;
-}
+/* TARJETAS RESUMEN */
+.tarjetas-resumen {display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.tarjeta {background:white;padding:18px 20px;border-radius:16px;box-shadow:var(--sombra)}
+.tarjeta h3 {font-size:0.95rem;color:var(--texto-claro);margin-bottom:4px}
+.tarjeta p {font-size:1.5rem;font-weight:700}
+.ingresos p {color:var(--exito)}
+.gastos p {color:var(--peligro)}
+.saldo p {color:var(--primario)}
 
-.campo-login {
-    width: 100%;
-    padding: 14px 16px;
-    margin-bottom: 14px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
+/* SELECTOR MES */
+.selector-mes {background:white;padding:16px 20px;border-radius:16px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.selector-mes select {flex:1;padding:10px 14px;border:2px solid var(--borde);border-radius:10px;font-size:0.95rem}
 
-.campo-login:focus { border-color: #7c3aed; }
+/* BLOQUES */
+.bloque {background:white;padding:20px;border-radius:16px;margin-bottom:20px;box-shadow:var(--sombra)}
+.cabecera-bloque {display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.btn-nueva {padding:8px 16px;background:var(--primario);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer}
 
-.btn-principal {
-    width: 100%;
-    padding: 14px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: transform 0.1s;
-}
+/* SELECTOR TIPO INGRESO/GASTO */
+.selector-tipo {display:flex;gap:10px;margin-bottom:14px}
+.btn-tipo {flex:1;padding:14px;background:#f1f5f9;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.btn-tipo.active.ingreso, .btn-tipo.active[data-tipo="ingreso"] {background:#d1fae5;color:#065f46;box-shadow:0 0 0 2px var(--exito)}
+.btn-tipo.active[data-tipo="gasto"] {background:#fee2e2;color:#991b1b;box-shadow:0 0 0 2px var(--peligro)}
+.icono-tipo {font-size:1.2rem;margin-right:6px}
 
-.btn-principal:active { transform: scale(0.98); }
+/* FORMULARIOS */
+.campo-form {width:100%;padding:14px 16px;margin-bottom:12px;border:2px solid var(--borde);border-radius:12px;font-size:1rem;outline:none;transition:border-color 0.2s}
+.campo-form:focus {border-color:var(--primario)}
+.fila-form {display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.etiqueta-form {display:block;font-weight:600;margin-bottom:8px}
 
-.btn-secundario {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    color: #7c3aed;
-    border: none;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-}
+/* CATEGORÍAS */
+.lista-categorias {display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.categoria {display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f8fafc;border-radius:10px;border-left:3px solid var(--primario)}
+.categoria strong {display:block}
+.categoria small {color:var(--texto-claro);font-size:0.8rem}
+.icono {font-size:1.2rem}
+.acciones {display:flex;gap:6px;margin-left:auto}
+.btn-accion {background:transparent;border:none;cursor:pointer;font-size:1rem;padding:4px 6px;border-radius:6px;transition:background 0.2s}
+.btn-accion:hover {background:#e2e8f0}
 
-.mensaje-error {
-    color: #ef4444;
-    text-align: center;
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
+/* MOVIMIENTOS */
+.movimiento {display:flex;justify-content:space-between;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--borde)}
+.info-mov {flex:1}
+.fecha {font-size:0.8rem;color:var(--texto-claro)}
+.descripcion {font-weight:600}
+.categoria-pequeña {font-size:0.85rem;color:var(--texto-claro)}
+.valor-botones {text-align:right}
+.valor {font-weight:700;font-size:1.05rem}
+.positivo {color:var(--exito)}
+.negativo {color:var(--peligro)}
 
-/* ========== BARRA DE USUARIO ========== */
-.barra-usuario {
-    background: rgba(255,255,255,0.95);
-    padding: 14px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
+/* PRESUPUESTO */
+.datos-presupuesto {margin:16px 0}
+.fila-dato {display:flex;justify-content:space-between;padding:8px 0}
+.rojo {color:var(--peligro);font-weight:700}
+.verde {color:var(--exito)}
+.naranja {background:var(--advertencia)}
+.barra-fondo {height:12px;background:#e2e8f0;border-radius:6px;margin:14px 0;overflow:hidden}
+.barra-progreso {height:100%;border-radius:6px;transition:all 0.3s}
+.alerta {padding:14px 16px;border-radius:12px;text-align:center;font-weight:600;margin-top:12px}
+.amarilla {background:#fef3c7;color:#92400e}
+.roja {background:#fee2e2;color:#991b1b}
 
-.btn-cerrar {
-    background: transparent;
-    border: none;
-    color: var(--primario);
-    font-weight: 600;
-    cursor: pointer;
-}
+/* MODAL */
+.modal {position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+.modal-contenido {background:white;padding:24px;border-radius:20px;width:100%;max-width:400px}
+.modal-contenido h3 {margin-bottom:16px;text-align:center}
+.botones-modal {display:flex;gap:10px;margin-top:10px}
+.botones-modal button {flex:1}
 
-/* ========== PESTAÑAS ========== */
-.pestañas {
-    display: flex;
-    background: rgba(255,255,255,0.9);
-    padding: 10px 12px;
-    gap: 6px;
-    overflow-x: auto;
-}
-
-.pestaña {
-    flex: 1;
-    min-width: 80px;
-    padding: 10px 8px;
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--texto-claro);
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.pestaña.activa {
-    background: var(--primario);
-    color: white;
-    box-shadow: 0 2px 6px rgba(124,58,237,0.3);
-}
-
-/* ========== CONTENEDOR PRINCIPAL ========== */
-.contenedor {
-    max-width: 520px;
-    margin: 0 auto;
-    padding: 16px;
-}
-
-.titulo-principal {
-    text-align: center;
-    color: white;
-    font-size: 1.5rem;
-    margin: 10px 0 24px;
-}
-
-.subtitulo {
-    font-size: 1.1rem;
-    margin-bottom: 14px;
-}
-
-.introduccion {
-    text-align: center;
-    color: rgba(255,255,255,0.9);
-    margin-bottom: 20px;
-}
-
-/* ========== TARJETAS RESUMEN ========== */
-.tarjetas-resumen {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.tarjeta {
-    background: white;
-    padding: 18px 20px;
-    border-radius: 16px;
-    box-shadow: var(--sombra);
-}
-
-.tarjeta h3 {
-    font-size: 0.95rem;
-    color: var(--texto-claro);
-    margin-bottom: 4px;
-}
-
-.tarjeta p {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.ingresos p { color: var(--exito); }
-.gastos p { color: var(--peligro); }
-.saldo p { color: var(--primario); }
-
-/* ========== SELECTOR DE MES ========== */
-.selector-mes {
-    background: white;
-    padding: 16px 20px;
-    border-radius: 16px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.selector-mes select {
-    flex: 1;
-    padding: 10px 14px;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 0.95rem;
-}
-
-/* ========== BLOQUES Y FORMULARIOS ========== */
-.bloque {
-    background: white;
-    padding: 20px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-    box-shadow: var(--sombra);
-}
-
-.form-fila {
-    margin-bottom: 12px;
-}
-
-.campo-texto {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.campo-texto:focus { border-color: var(--primario); }
-
-.cabecera-bloque {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.btn-nueva {
-    padding: 8px 16px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-guardar {
-    width: 100%;
-    padding: 12px;
-    background: var(--primario);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-}
-
-/* ========== LISTAS ========== */
-.lista-categorias {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-.categoria {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: #f8fafc;
-    border-radius: 10px;
-    border-left: 3px solid var(--primario);
-}
-
-.icono { font-size: 1.2rem; }
-.categoria strong { display: block; }
-.categoria small { color: var(--texto-claro); font-size: 0.8rem; }
-
-/* ========== GRÁFICAS ========== */
-.grafica-titulo { text-align: center; color: var(--texto-claro); margin-bottom: 12px; }
-.grafica-placeholder {
-    background: #f8fafc;
-    padding: 40px 20px;
-    border-radius: 10px;
-    text-align: center;
-    color: var(--texto-claro);
-    margin-bottom: 20px;
-}
-
-/* ========== DATOS PRESUPUESTO ========== */
-.etiqueta-form { display: block; font-weight: 600; margin-bottom: 8px; }
-.fila-dato {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-}
-
-.rojo { color: var(--peligro); font-weight: 700; }
-.azul { color: var(--primario); font-weight: 700; }
-
-.barra-fondo {
-    height: 12px;
-    background: #e2e8f0;
-    border-radius: 6px;
-    margin: 14px 0;
-    overflow: hidden;
-}
-
-.barra-progreso { height: 100%; border-radius: 6px; }
-.naranja { background: var(--advertencia); }
-.morado { background: var(--primario); }
-
-.alerta {
-    padding: 12px 16px;
-    border-radius: 10px;
-    text-align: center;
-    margin-top: 10px;
-}
-.amarilla { background: #fef3c7; color: #92400e; }
-
-/* ========== MOVIMIENTOS ========== */
-.movimiento {
-    display: flex;
-    justify-content: space-between;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--borde);
-}
-
-.fecha { font-size: 0.8rem; color: var(--texto-claro); }
-.descripcion { font-weight: 600; }
-.valor { font-weight: 700; }
-.positivo { color: var(--exito); }
-.negativo { color: var(--peligro); }
-
-/* ========== OTROS ========== */
-.numero-grande {
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-    margin: 10px 0;
-}
-
-.texto-centrado {
-    text-align: center;
-    color: var(--texto-claro);
-    padding: 10px;
-}
-
-.vacio { text-align: center; color: var(--texto-claro); padding: 30px 20px; }
+/* OTROS */
+.texto-centrado {text-align:center;color:var(--texto-claro);padding:10px}
+.vacio {text-align:center;color:var(--texto-claro);padding:30px 20px}
+.numero-grande {font-size:1.8rem;font-weight:700;text-align:center;margin:10px 0}
+.morado {background:var(--primario)}
 </style>
 
 </body>
