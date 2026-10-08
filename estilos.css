@@ -626,3 +626,86 @@ body {
     color: #ff9800;
     text-shadow: 0 0 4px rgba(255, 152, 0, 0.35);
 }
+/* ===== AHORRO — Gráfico Circular ===== */
+.fila-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.columna-meta {
+    flex: 1;
+    min-width: 260px;
+}
+
+.columna-grafico {
+    flex: 1;
+    min-width: 260px;
+    text-align: center;
+}
+
+.subtitulo-pequeño {
+    font-size: 0.95rem;
+    color: #2d3436;
+    margin-bottom: 15px;
+}
+
+.contenedor-grafico-circular {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 15px;
+}
+
+.grafico-circular {
+    width: 100%;
+    height: 100%;
+}
+
+.leyenda-grafico {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.item-leyenda {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #2d3436;
+}
+
+.item-leyenda strong {
+    color: #111;
+}
+
+.item-leyenda span {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.color-nequi { background: #6c5ce7; }
+.color-banco { background: #00b894; }
+.color-efectivo { background: #fdcb6e; }
+
+.barra-contenedor {
+    height: 14px;
+    background: #e9ecef;
+    border-radius: 7px;
+    margin: 10px 0;
+    overflow: hidden;
+}
+
+.barra-progreso {
+    height: 100%;
+    border-radius: 7px;
+    transition: width 0.4s ease;
+}
+
+.barra-progreso.verde {
+    background: linear-gradient(90deg, #00b894, #00ceaa);
+}
