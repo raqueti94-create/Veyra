@@ -554,3 +554,53 @@ body {
     .fondo-barra { height: 120px; }
     .pestaña { font-size: 0.75rem; padding: 8px 4px; }
 }
+/* ===== LLUVIA DE EMOJIS PARA LOGROS ===== */
+.lluvia-emojis {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.emoji-cayendo {
+    position: absolute;
+    top: -50px;
+    font-size: 2.5rem;
+    animation: caer 6s ease-in forwards;
+}
+
+@keyframes caer {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+/* Tarjetas de logros */
+.logro-tarjeta {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.logro-tarjeta.desbloqueado {
+    background: rgba(255,215,0,0.25);
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255,215,0,0.3);
+}
+
+.logro-tarjeta.bloqueado {
+    opacity: 0.5;
+    filter: grayscale(60%);
+}
+
+.logro-emoji { font-size: 2rem; }
+.logro-info h4 { margin: 0; font-size: 1rem; color: #fff; }
+.logro-info p { margin: 2px 0 0; font-size: 0.85rem; color: #ddd; }
