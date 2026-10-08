@@ -10,7 +10,6 @@
     <link rel="icon" href="data:;base64,=">
 </head>
 <body>
-
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
         <h2 class="titulo-login">🔐 Iniciar Sesión</h2>
@@ -21,20 +20,17 @@
         <p id="mensajeError" class="mensaje-error"></p>
     </div>
 </div>
-
 <div id="pantallaPrincipal" class="oculto">
     <div class="barra-usuario">
         <span class="saludo" id="nombreUsuario">👋 Bienvenido</span>
         <button class="btn-cerrar">Cerrar sesión</button>
     </div>
-
     <nav class="pestañas">
         <button class="pestaña activa" data-pagina="contable">💰 Contable</button>
         <button class="pestaña" data-pagina="presupuesto">🪙📅 Ahorro</button>
         <button class="pestaña" data-pagina="habitos">🎯 Hábitos</button>
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
     </nav>
-
     <main class="contenedor">
         <section id="contable" class="pagina">
             <h1 class="titulo-principal">💰 Resumen Financiero</h1>
@@ -59,7 +55,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="tarjetas-resumen">
                 <div class="tarjeta ingresos">
                     <h3>Ingresos</h3>
@@ -74,7 +69,6 @@
                     <p id="saldoTotal">$ 0</p>
                 </div>
             </div>
-
             <div class="selector-mes">
                 <label>Mes:</label>
                 <select id="mesSeleccionado">
@@ -83,7 +77,6 @@
                     <option value="2026-12">diciembre de 2026</option>
                 </select>
             </div>
-
             <div class="bloque">
                 <h3 class="subtitulo">➕ Nuevo Movimiento</h3>
                 <div class="selector-tipo">
@@ -101,7 +94,6 @@
                 </select>
                 <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
             </div>
-
             <div class="bloque">
                 <div class="cabecera-bloque">
                     <h3>🏷️ Mis Categorías</h3>
@@ -113,82 +105,75 @@
                 </div>
                 <div id="listaCategorias" class="lista-categorias"></div>
             </div>
-
             <div class="bloque">
                 <h3 class="subtitulo">📋 Movimientos</h3>
                 <div id="listaMovimientos"><p class="texto-centrado">Cargando...</p></div>
             </div>
         </section>
-
-       <section id="presupuesto" class="pagina oculto">
-    <h1 class="titulo-principal">🪙📅 Ahorro Programado</h1>
-    
-    <div class="bloque">
-        <label class="etiqueta-form">💰 Meta de ahorro:</label>
-        <input type="number" class="campo-form" id="metaAhorro" placeholder="Ej: 2.000.000" min="0">
-        
-        <label class="etiqueta-form">💵 Monto que vas a guardar ahora:</label>
-        <input type="number" class="campo-form" id="montoGuardar" placeholder="Ej: 100.000" min="0">
-        
-        <label class="etiqueta-form">📍 Guardado en:</label>
-        <select id="lugarAhorro" class="campo-form">
-            <option value="">Seleccionar dónde está</option>
-            <option value="nequi">Nequi</option>
-            <option value="banco">Cuenta Bancaria</option>
-            <option value="efectivo">Efectivo</option>
-        </select>
-        
-        <div id="campoBanco" class="oculto">
-            <label class="etiqueta-form">🏦 Nombre del banco:</label>
-            <input type="text" class="campo-form" id="nombreBanco" placeholder="Ej: Bancolombia, Davivienda...">
-        </div>
-        
-        <button id="btnGuardarAhorro" class="btn-principal">💾 Guardar Ahorro</button>
-    </div>
-
-    <div class="bloque">
-        <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
-        
-        <div class="datos-ahorro">
-            <div class="fila-dato">
-                <span>Meta:</span>
-                <strong id="metaTotal">$ 0</strong>
+        <section id="presupuesto" class="pagina oculto">
+            <h1 class="titulo-principal">🪙📅 Ahorro Programado</h1>
+            
+            <div class="bloque">
+                <label class="etiqueta-form">💰 Meta de ahorro:</label>
+                <input type="number" class="campo-form" id="metaAhorro" placeholder="Ej: 2.000.000" min="0">
+                
+                <label class="etiqueta-form">💵 Monto que vas a guardar ahora:</label>
+                <input type="number" class="campo-form" id="montoGuardar" placeholder="Ej: 100.000" min="0">
+                
+                <label class="etiqueta-form">📍 Guardado en:</label>
+                <select id="lugarAhorro" class="campo-form">
+                    <option value="">Seleccionar dónde está</option>
+                    <option value="nequi">Nequi</option>
+                    <option value="banco">Cuenta Bancaria</option>
+                    <option value="efectivo">Efectivo</option>
+                </select>
+                
+                <div id="campoBanco" class="oculto">
+                    <label class="etiqueta-form">🏦 Nombre del banco:</label>
+                    <input type="text" class="campo-form" id="nombreBanco" placeholder="Ej: Bancolombia, Davivienda...">
+                </div>
+                
+                <button id="btnGuardarAhorro" class="btn-principal">💾 Guardar Ahorro</button>
             </div>
-            <div class="fila-dato">
-                <span>Ahorrado:</span>
-                <strong class="exito" id="totalAhorrado">$ 0</strong>
+            <div class="bloque">
+                <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
+                
+                <div class="datos-ahorro">
+                    <div class="fila-dato">
+                        <span>Meta:</span>
+                        <strong id="metaTotal">$ 0</strong>
+                    </div>
+                    <div class="fila-dato">
+                        <span>Ahorrado:</span>
+                        <strong class="exito" id="totalAhorrado">$ 0</strong>
+                    </div>
+                    <div class="fila-dato">
+                        <span>Falta:</span>
+                        <strong id="faltaParaMeta">$ 0</strong>
+                    </div>
+                    <div class="fila-dato">
+                        <span>📍 Ubicación:</span>
+                        <strong id="ubicacionAhorro">—</strong>
+                    </div>
+                </div>
+                <div class="barra-fondo">
+                    <div class="barra-progreso verde" id="barraAhorro" style="width:0%"></div>
+                </div>
+                
+                <p class="texto-centrado porcentaje-ahorro">
+                    <span id="porcentajeAhorro">0%</span> completado
+                </p>
+                <div id="alertaMeta" class="alerta exito oculto">
+                    🎉 ¡Felicidades! Has alcanzado tu meta de ahorro ✅
+                </div>
             </div>
-            <div class="fila-dato">
-                <span>Falta:</span>
-                <strong id="faltaParaMeta">$ 0</strong>
+            <div class="bloque">
+                <h3 class="subtitulo">📋 Historial de Depósitos</h3>
+                <div id="listaDepositos">
+                    <p class="texto-centrado">Aún no has guardado nada 💪</p>
+                </div>
             </div>
-            <div class="fila-dato">
-                <span>📍 Ubicación:</span>
-                <strong id="ubicacionAhorro">—</strong>
-            </div>
-        </div>
-
-        <div class="barra-fondo">
-            <div class="barra-progreso verde" id="barraAhorro" style="width:0%"></div>
-        </div>
-        
-        <p class="texto-centrado porcentaje-ahorro">
-            <span id="porcentajeAhorro">0%</span> completado
-        </p>
-
-        <div id="alertaMeta" class="alerta exito oculto">
-            🎉 ¡Felicidades! Has alcanzado tu meta de ahorro ✅
-        </div>
-    </div>
-
-    <div class="bloque">
-        <h3 class="subtitulo">📋 Historial de Depósitos</h3>
-        <div id="listaDepositos">
-            <p class="texto-centrado">Aún no has guardado nada 💪</p>
-        </div>
-    </div>
-</section>
-
+        </section>
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
             <p class="introduccion">Marca cada día tu progreso 💪</p>
@@ -198,7 +183,6 @@
             </div>
             <div id="listaHabitos"></div>
         </section>
-
         <section id="logros" class="pagina oculto">
             <h1 class="titulo-principal">🏆 Mis Logros</h1>
             <div class="bloque">
@@ -213,7 +197,6 @@
         </section>
     </main>
 </div>
-
 <div id="modalEditar" class="modal oculto">
     <div class="modal-contenido">
         <h3 id="tituloModal">Editar</h3>
@@ -225,7 +208,6 @@
         </div>
     </div>
 </div>
-
 <script>
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
@@ -235,7 +217,6 @@ const firebaseConfig = {
     messagingSenderId: "100478048311",
     appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -256,6 +237,7 @@ function mostrarPantallaPrincipal() {
     document.getElementById('pantallaLogin').classList.add('oculto');
     document.getElementById('pantallaPrincipal').classList.remove('oculto');
 }
+
 function mostrarPantallaLogin() {
     document.getElementById('pantallaLogin').classList.remove('oculto');
     document.getElementById('pantallaPrincipal').classList.add('oculto');
@@ -343,22 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const cat = document.getElementById('categoriaMov').value;
         if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
 
-        if (tipoMovimiento === 'gasto') {
-            try {
-                const docSnap = await db.collection('usuarios').doc(usuarioActual.uid).get();
-                const presupuesto = docSnap.exists ? (docSnap.data()?.presupuestoMensual || 0) : 0;
-                if (presupuesto > 0) {
-                    const mes = document.getElementById('mesSeleccionado').value;
-                    const snapMov = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
-                    let gastado = 0;
-                    snapMov.forEach(d => { if (d.data().monto < 0) gastado += Math.abs(d.data().monto); });
-                    if (gastado + monto > presupuesto) {
-                        return alert('🚫 NO PUEDES AGREGAR ESTE GASTO — HAS LLEGADO AL LÍMITE');
-                    }
-                }
-            } catch (e) {}
-        }
-
         try {
             await db.collection('movimientos').add({
                 userId: usuarioActual.uid,
@@ -381,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnAbrirCat').addEventListener('click', () => {
         document.getElementById('formNuevaCat').classList.toggle('oculto');
     });
+
     document.getElementById('btnGuardarCat').addEventListener('click', async () => {
         const nombre = document.getElementById('nombreCat').value.trim();
         if (!nombre) return;
@@ -391,29 +358,61 @@ document.addEventListener('DOMContentLoaded', () => {
         await actualizarSelectCategorias();
     });
 
-    // ✅ CORREGIDO: ID coincide con el botón
-    document.getElementById('btnGuardarPresupuesto').addEventListener('click', async () => {
-        console.log('👉 Botón presionado - guardando presupuesto'); // Para depurar
+    document.getElementById('lugarAhorro').addEventListener('change', () => {
+        const valor = document.getElementById('lugarAhorro').value;
+        document.getElementById('campoBanco').classList.toggle('oculto', valor !== 'banco');
+    });
+
+    document.getElementById('btnGuardarAhorro').addEventListener('click', async () => {
         if (!usuarioActual) {
             alert('❌ No hay sesión activa');
             return;
         }
-        const valor = parseInt(document.getElementById('inputPresupuesto').value);
-        if (isNaN(valor) || valor <= 0) {
-            alert('⚠️ Escribe un monto válido mayor a 0');
+        const meta = parseInt(document.getElementById('metaAhorro').value);
+        const monto = parseInt(document.getElementById('montoGuardar').value);
+        const lugar = document.getElementById('lugarAhorro').value;
+        const banco = document.getElementById('nombreBanco').value.trim();
+
+        if (!meta || meta <= 0) {
+            alert('⚠️ Escribe tu meta de ahorro');
             return;
         }
-        
+        if (isNaN(monto) || monto < 0) {
+            alert('⚠️ Escribe un monto válido');
+            return;
+        }
+        if (!lugar) {
+            alert('⚠️ Selecciona dónde tienes guardado el dinero');
+            return;
+        }
+        if (lugar === 'banco' && !banco) {
+            alert('⚠️ Escribe el nombre del banco');
+            return;
+        }
+
         try {
-            await db.collection('usuarios').doc(usuarioActual.uid).set(
-                { presupuestoMensual: valor },
-                { merge: true }
-            );
-            alert('✅ Presupuesto guardado: $' + valor.toLocaleString());
-            document.getElementById('inputPresupuesto').value = '';
-            await cargarPresupuesto();
+            await db.collection('ahorro_config').doc(usuarioActual.uid).set({
+                meta: meta,
+                lugar: lugar,
+                nombreBanco: lugar === 'banco' ? banco : null,
+                fechaActualizacion: new Date()
+            }, { merge: true });
+
+            if (monto > 0) {
+                await db.collection('ahorro_depositos').add({
+                    userId: usuarioActual.uid,
+                    monto: monto,
+                    lugar: lugar,
+                    fecha: new Date()
+                });
+            }
+
+            alert('✅ Ahorro guardado correctamente');
+            document.getElementById('montoGuardar').value = '';
+            document.getElementById('nombreBanco').value = '';
+            await cargarAhorro();
         } catch (e) {
-            alert('❌ Error al guardar: ' + e.message);
+            alert('❌ Error: ' + e.message);
         }
     });
 
@@ -435,11 +434,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
             boton.classList.add('activa');
             document.getElementById(boton.dataset.pagina).classList.remove('oculto');
+            
             if (boton.dataset.pagina === 'contable') {
                 await actualizarSelectCategorias();
             }
             if (boton.dataset.pagina === 'presupuesto') {
-                await cargarPresupuesto(); // ✅ Carga al entrar
+                await cargarAhorro();
             }
         });
     });
@@ -485,7 +485,7 @@ async function cargarDatos() {
         cargarMovimientos(),
         cargarCategorias(),
         actualizarSelectCategorias(),
-        cargarPresupuesto(),
+        cargarAhorro(),
         cargarHabitos()
     ]);
 }
@@ -502,7 +502,6 @@ async function cargarMovimientos() {
     let ingresos = 0, gastos = 0;
     const lista = document.getElementById('listaMovimientos');
     lista.innerHTML = '';
-
     if (snap.empty) {
         lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
     } else {
@@ -534,7 +533,6 @@ async function cargarMovimientos() {
                     </div>
                 </div>`;
         });
-
         document.querySelectorAll('.eliminar-mov').forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (confirm('¿Eliminar este movimiento?')) {
@@ -543,7 +541,6 @@ async function cargarMovimientos() {
                 }
             });
         });
-
         document.querySelectorAll('.editar-mov').forEach(btn => {
             btn.addEventListener('click', () => {
                 estadoEdicion = {
@@ -559,17 +556,14 @@ async function cargarMovimientos() {
             });
         });
     }
-
     document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
     document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
     document.getElementById('saldoTotal').textContent = `$ ${(ingresos - gastos).toLocaleString()}`;
-
     const maximo = Math.max(ingresos, gastos, 1);
     const porcIngresos = (ingresos / maximo) * 100;
     const porcGastos = (gastos / maximo) * 100;
     const saldo = ingresos - gastos;
     const porcSaldo = (saldo / maximo) * 100;
-
     document.getElementById('barraIngresos').style.height = `${porcIngresos}%`;
     document.getElementById('barraGastos').style.height = `${porcGastos}%`;
     document.getElementById('barraSaldo').style.height = `${Math.max(0, porcSaldo)}%`;
@@ -589,7 +583,6 @@ async function cargarCategorias() {
         lista.innerHTML = '<p class="texto-centrado">Cargando categorías...</p>';
         return;
     }
-
     snap.forEach(doc => {
         const c = doc.data();
         lista.innerHTML += `
@@ -601,7 +594,6 @@ async function cargarCategorias() {
                 </div>
             </div>`;
     });
-
     document.querySelectorAll('.editar-cat').forEach(btn => {
         btn.addEventListener('click', () => {
             estadoEdicion = { tipo: 'categoria', id: btn.dataset.id };
@@ -611,7 +603,6 @@ async function cargarCategorias() {
             document.getElementById('modalEditar').classList.remove('oculto');
         });
     });
-
     document.querySelectorAll('.eliminar-cat').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar esta categoría?')) {
@@ -623,46 +614,88 @@ async function cargarCategorias() {
     });
 }
 
-async function cargarPresupuesto() {
+async function cargarAhorro() {
     if (!usuarioActual) return;
-    console.log('👉 Cargando presupuesto...'); // Para depurar
-    
-    let presupuesto = 0;
-    try {
-        const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
-        presupuesto = doc.exists ? (doc.data()?.presupuestoMensual || 0) : 0;
-        console.log('👉 Presupuesto guardado:', presupuesto);
-    } catch (e) {
-        console.log('Error leyendo presupuesto:', e);
+
+    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
+    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
+    const lugar = configDoc.exists ? (configDoc.data()?.lugar || '') : '';
+    const nombreBanco = configDoc.exists ? (configDoc.data()?.nombreBanco || '') : '';
+
+    const depSnap = await db.collection('ahorro_depositos')
+        .where('userId', '==', usuarioActual.uid)
+        .orderBy('fecha', 'desc')
+        .get();
+
+    let totalAhorrado = 0;
+    const listaDep = document.getElementById('listaDepositos');
+    listaDep.innerHTML = '';
+
+    if (depSnap.empty) {
+        listaDep.innerHTML = '<p class="texto-centrado">Aún no has guardado nada 💪</p>';
+    } else {
+        depSnap.forEach(doc => {
+            const d = doc.data();
+            totalAhorrado += d.monto;
+            const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
+            const lugarTexto = {
+                nequi: 'Nequi',
+                banco: 'Cuenta Bancaria',
+                efectivo: 'Efectivo'
+            }[d.lugar] || d.lugar;
+
+            listaDep.innerHTML += `
+                <div class="movimiento">
+                    <div class="info-mov">
+                        <div class="fecha">${fecha.toLocaleDateString()}</div>
+                        <div class="descripcion">${lugarTexto}</div>
+                    </div>
+                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                </div>`;
+        });
     }
 
-    const mes = document.getElementById('mesSeleccionado').value;
-    const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
-    let gastado = 0;
-    snap.forEach(d => {
-        const monto = Number(d.data().monto) || 0;
-        if (monto < 0) gastado += Math.abs(monto);
-    });
+    const falta = Math.max(0, meta - totalAhorrado);
+    const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
 
-    const disponible = presupuesto - gastado;
-    const porcentaje = presupuesto > 0 ? (gastado / presupuesto) * 100 : 0;
+    document.getElementById('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
+    document.getElementById('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
+    document.getElementById('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
+    document.getElementById('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
 
-    document.getElementById('montoPresupuesto').textContent = `$ ${presupuesto.toLocaleString()}`;
-    document.getElementById('montoGastado').textContent = `$ ${gastado.toLocaleString()}`;
-    document.getElementById('montoDisponible').textContent = `$ ${Math.max(0, disponible).toLocaleString()}`;
-    document.getElementById('barraPresupuesto').style.width = `${Math.min(100, porcentaje)}%`;
+    let ubicacionTexto = {
+        nequi: 'Nequi',
+        banco: `Cuenta Bancaria — ${nombreBanco}`,
+        efectivo: 'Efectivo'
+    }[lugar] || '—';
+    document.getElementById('ubicacionAhorro').textContent = ubicacionTexto;
 
-    const barra = document.getElementById('barraPresupuesto');
-    barra.className = 'barra-progreso verde';
-    document.getElementById('alerta80').style.display = 'none';
-    document.getElementById('alertaLimite').style.display = 'none';
-    
+    const barra = document.getElementById('barraAhorro');
+    barra.style.width = `${porcentaje}%`;
+    barra.className = 'barra-progreso';
     if (porcentaje >= 100) {
-        barra.className = 'barra-progreso rojo';
-        document.getElementById('alertaLimite').style.display = 'block';
-    } else if (porcentaje >= 80) {
-        barra.className = 'barra-progreso naranja';
-        document.getElementById('alerta80').style.display = 'block';
+        barra.classList.add('verde');
+        document.getElementById('alertaMeta').classList.remove('oculto');
+    } else if (porcentaje >= 75) {
+        barra.classList.add('verde');
+        document.getElementById('alertaMeta').classList.add('oculto');
+    } else if (porcentaje >= 50) {
+        barra.style.background = '#f59e0b';
+        document.getElementById('alertaMeta').classList.add('oculto');
+    } else {
+        barra.style.background = '#6366f1';
+        document.getElementById('alertaMeta').classList.add('oculto');
+    }
+
+    if (meta > 0) {
+        document.getElementById('metaAhorro').value = meta;
+    }
+    if (lugar) {
+        document.getElementById('lugarAhorro').value = lugar;
+        document.getElementById('campoBanco').classList.toggle('oculto', lugar !== 'banco');
+        if (nombreBanco) {
+            document.getElementById('nombreBanco').value = nombreBanco;
+        }
     }
 }
 
@@ -695,7 +728,6 @@ async function cargarHabitos() {
         lista.innerHTML = '<p class="texto-centrado">Crea tu primer hábito 💪</p>';
         return;
     }
-
     const hoy = new Date();
     const diasSemana = [];
     for (let i = 6; i >= 0; i--) {
@@ -708,7 +740,6 @@ async function cargarHabitos() {
             esHoy: i === 0
         });
     }
-
     const fechasConsultar = diasSemana.map(d => d.fechaCod);
     const seguimientoSnap = await db.collection('seguimiento_habitos')
         .where('userId', '==', usuarioActual.uid)
@@ -720,7 +751,6 @@ async function cargarHabitos() {
         const d = doc.data();
         completados[`${d.habitoId}_${d.fecha}`] = true;
     });
-
     snap.forEach(doc => {
         const h = doc.data();
         lista.innerHTML += `
@@ -743,13 +773,11 @@ async function cargarHabitos() {
                 </div>
             </div>`;
     });
-
     document.querySelectorAll('.dia-habito').forEach(boton => {
         boton.addEventListener('click', () => {
             alternarDiaHábito(boton.dataset.habito, boton.dataset.fecha);
         });
     });
-
     document.querySelectorAll('.eliminar-habito').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar este hábito?')) {
@@ -760,7 +788,6 @@ async function cargarHabitos() {
     });
 }
 </script>
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,Arial,sans-serif}
 :root {
@@ -787,7 +814,6 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .titulo-principal {text-align:center;color:white;font-size:1.5rem;margin:10px 0 24px}
 .subtitulo {font-size:1.1rem;margin-bottom:14px}
 .introduccion {text-align:center;color:rgba(255,255,255,0.9);margin-bottom:20px}
-
 .grafico-contenedor {display:flex;justify-content:space-around;align-items:flex-end;height:240px;margin-top:20px;padding:0 5px}
 .barra-grafica {display:flex;flex-direction:column;align-items:center;gap:8px;width:28%}
 .etiqueta-barra {font-size:0.8rem;font-weight:600;color:var(--texto-claro)}
@@ -797,7 +823,6 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .valor-gasto {background:linear-gradient(to top, #dc2626, #ef4444)}
 .valor-saldo {background:linear-gradient(to top, #7c3aed, #a78bfa)}
 .valor-barra {font-size:0.75rem;font-weight:600;color:var(--texto);margin-top:4px;text-align:center;word-break:break-all}
-
 .tarjetas-resumen {display:flex;flex-direction:column;gap:12px;margin-bottom:24px;margin-top:24px}
 .tarjeta {background:white;padding:18px 20px;border-radius:16px;box-shadow:var(--sombra)}
 .tarjeta h3 {font-size:0.95rem;color:var(--texto-claro);margin-bottom:4px}
@@ -836,38 +861,38 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .valor {font-weight:700;font-size:1.05rem}
 .positivo {color:var(--exito)}
 .negativo {color:var(--peligro)}
-.datos-presupuesto {margin:16px 0}
-.fila-dato {display:flex;justify-content:space-between;padding:8px 0}
-.rojo {color:var(--peligro);font-weight:700}
-.verde {color:var(--exito)}
-.naranja {background:var(--advertencia)}
+.datos-ahorro {margin: 16px 0}
+.datos-ahorro .fila-dato {display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.exito {color: #10b981; font-weight: 700}
+.porcentaje-ahorro {font-size: 1.1rem; font-weight: 600; margin-top: 8px}
+.alerta {padding:14px 16px;border-radius:12px;text-align:center;font-weight:600;margin-top:12px}
+.alerta.exito {background:#d1fae5; color:#065f46}
 .barra-fondo {height:12px;background:#e2e8f0;border-radius:6px;margin:14px 0;overflow:hidden}
 .barra-progreso {height:100%;border-radius:6px;transition:all 0.3s}
-.alerta {padding:14px 16px;border-radius:12px;text-align:center;font-weight:600;margin-top:12px}
-.amarilla {background:#fef3c7;color:#92400e}
-.roja {background:#fee2e2;color:#991b1b}
+.barra-progreso.verde {background:linear-gradient(to right, #10b981, #34d399)}
+.morado {background:linear-gradient(to right, #7c3aed, #a78bfa)}
 .modal {position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
 .modal-contenido {background:white;padding:24px;border-radius:20px;width:100%;max-width:400px}
-.modal-contenido h3 {margin-bottom:16px;text-align:center}
-.botones-modal {display:flex;gap:10px;margin-top:10px}
+.modal-contenido h3 {margin-bottom:18px;text-align:center}
+.botones-modal {display:flex;gap:10px;margin-top:8px}
 .botones-modal button {flex:1}
-.texto-centrado {text-align:center;color:var(--texto-claro);padding:10px}
-.vacio {text-align:center;color:var(--texto-claro);padding:30px 20px}
-.numero-grande {font-size:1.8rem;font-weight:700;text-align:center;margin:10px 0}
-.morado {background:var(--primario)}
-h4 {margin-bottom:8px}
+.texto-centrado {text-align:center;color:var(--texto-claro);padding:20px 0}
+.dias-habito {display:flex;gap:6px;margin-top:12px}
+.dia-habito {flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 6px;background:#f1f5f9;border:none;border-radius:10px;cursor:pointer;transition:all 0.2s}
+.dia-habito.hecho {background:var(--exito);color:white}
+.dia-habito.hoy {box-shadow:0 0 0 2px var(--primario)}
+.dia-nombre {font-size:0.7rem;font-weight:600}
+.dia-num {font-size:1rem;font-weight:700}
+.habito-tarjeta {margin-bottom:14px}
+.cabecera-habito {display:flex;justify-content:space-between;align-items:center}
+.numero-grande {font-size:2rem;font-weight:700;text-align:center;color:white;margin:10px 0}
 
-.habito-tarjeta {margin-bottom:16px}
-.cabecera-habito {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.cabecera-habito h4 {font-size:1rem}
-.dias-habito {display:grid;grid-template-columns:repeat(7, 1fr);gap:6px}
-.dia-habito {display:flex;flex-direction:column;align-items:center;padding:10px 6px;border-radius:10px;border:2px solid var(--borde);background:#f8fafc;cursor:pointer;transition:all 0.2s}
-.dia-habito:hover {transform:scale(1.05)}
-.dia-habito.hecho {background:#d1fae5;border-color:var(--exito)}
-.dia-habito.hecho .dia-num {color:#065f46;font-weight:700}
-.dia-habito.hoy {border-color:var(--primario);border-width:2px}
-.dia-nombre {font-size:0.7rem;color:var(--texto-claro);margin-bottom:4px;text-transform:uppercase}
-.dia-num {font-size:1rem;font-weight:600;color:var(--texto)}
+@media(max-width:480px){
+    .contenedor {padding:12px}
+    .titulo-principal {font-size:1.3rem}
+    .tarjeta p {font-size:1.25rem}
+    .grafico-contenedor {height:200px}
+    .fondo-barra {height:120px}
+    .pestaña {font-size:0.75rem;padding:8px 4px}
+}
 </style>
-</body>
-</html>
