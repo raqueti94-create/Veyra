@@ -97,7 +97,7 @@
                 <input type="text" id="descripcionMov" class="campo-form" placeholder="Descripción">
                 <input type="number" id="montoMov" class="campo-form" placeholder="Monto" min="1">
                 <select id="categoriaMov" class="campo-form">
-                    <option value="">Seleccionar categoría</option>
+                    <option value="">Seleccionar categoría...</option>
                 </select>
                 <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
             </div>
@@ -125,7 +125,6 @@
             <div class="bloque">
                 <label class="etiqueta-form">Mi presupuesto mensual:</label>
                 <input type="number" class="campo-form" id="inputPresupuesto" placeholder="Ej: 2000000" min="0">
-                <!-- ✅ BOTÓN CON ID CORRECTO -->
                 <button id="btnGuardarPresupuesto" class="btn-principal">💾 Guardar Presupuesto</button>
                 <div class="datos-presupuesto">
                     <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
@@ -135,12 +134,25 @@
                 <div class="barra-fondo"><div class="barra-progreso verde" id="barraPresupuesto" style="width:0%"></div></div>
                 <div id="alerta80" class="alerta amarilla" style="display:none">⚠️ Has usado el 80% del presupuesto</div>
                 <div id="alertaLimite" class="alerta roja" style="display:none">🚫 HAS LLEGADO AL LÍMITE — NO HAY MÁS DINERO DISPONIBLE</div>
+                <div style="margin-top:12px;padding:12px;background:#fff3cd;border-radius:10px;font-size:0.9rem">
+                    <strong>⚠️ Si te sale error de permisos:</strong><br>
+                    Ve a Firebase → Firestore → Reglas y pega esto:
+                    <pre style="margin-top:8px;font-size:0.8rem;white-space:pre-wrap">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+                </div>
             </div>
         </section>
 
         <section id="habitos" class="pagina oculto">
             <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
-            <p class="introduccion">Marca cada día tu progreso 💪</p>
+            <p class="introduccion">Toca un día para marcarlo como completado ✅ — cada toque cuenta para tu racha</p>
             <div class="bloque">
                 <input type="text" id="nombreHabito" class="campo-form" placeholder="Nombre del hábito">
                 <button id="btnCrearHabito" class="btn-principal">✅ Crear Hábito</button>
@@ -151,13 +163,19 @@
         <section id="logros" class="pagina oculto">
             <h1 class="titulo-principal">🏆 Mis Logros</h1>
             <div class="bloque">
-                <h3 class="subtitulo">🔥 Racha General</h3>
-                <p class="numero-grande" id="diasActivos">0 días activo</p>
-                <div class="barra-fondo"><div class="barra-progreso morado" id="barraRacha" style="width:0%"></div></div>
+                <h3 class="subtitulo">🔥 Racha actual</h3>
+                <p class="numero-grande" id="rachaActual">0 días seguidos</p>
+                <p class="texto-centrado" style="font-size:1.1rem;color:var(--exito);margin:8px 0">¡Sigue así! 💪</p>
+            </div>
+            <div class="bloque">
+                <h3 class="subtitulo">📊 Resumen</h3>
+                <div class="fila-dato"><span>Días completados este mes:</span><strong id="diasMes">0</strong></div>
+                <div class="fila-dato"><span>Total completados:</span><strong id="diasTotal">0</strong></div>
             </div>
             <div class="bloque">
                 <h3 class="subtitulo">🏅 Logros Desbloqueados</h3>
-                <p class="texto-centrado">Aún no tienes logros 💪</p>
+                <p class="texto-centrado" id="textoLogro">Completa tu primer día para obtener tu primer logro 🎯</p>
+                <div id="listaLogros"></div>
             </div>
         </section>
     </main>
@@ -217,6 +235,7 @@ auth.onAuthStateChanged(async usuario => {
         document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
         mostrarPantallaPrincipal();
         await inicializarCategoriasDefault();
+        await actualizarSelectCategorias();
         await cargarDatos();
     } else {
         usuarioActual = null;
@@ -245,7 +264,7 @@ async function actualizarSelectCategorias() {
     if (!usuarioActual) return;
     const select = document.getElementById('categoriaMov');
     const valorActual = select.value;
-    select.innerHTML = '<option value="">Seleccionar categoría</option>';
+    select.innerHTML = '<option value="">Seleccionar categoría...</option>';
     
     const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).orderBy('nombre').get();
     snap.forEach(doc => {
@@ -290,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const desc = document.getElementById('descripcionMov').value.trim();
         const monto = parseInt(document.getElementById('montoMov').value);
         const cat = document.getElementById('categoriaMov').value;
-        if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
+        if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos incluyendo la categoría');
 
         if (tipoMovimiento === 'gasto') {
             try {
@@ -338,11 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('formNuevaCat').classList.add('oculto');
         await cargarCategorias();
         await actualizarSelectCategorias();
+        alert('✅ Categoría creada y disponible para seleccionar');
     });
 
-    // ✅ CORREGIDO: ID coincide con el botón
     document.getElementById('btnGuardarPresupuesto').addEventListener('click', async () => {
-        console.log('👉 Botón presionado - guardando presupuesto'); // Para depurar
         if (!usuarioActual) {
             alert('❌ No hay sesión activa');
             return;
@@ -362,7 +380,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('inputPresupuesto').value = '';
             await cargarPresupuesto();
         } catch (e) {
-            alert('❌ Error al guardar: ' + e.message);
+            alert('❌ Error de permisos: Ve a Firebase → Reglas → cambia a "allow read, write: if request.auth != null;"');
+            console.error('Detalles:', e);
         }
     });
 
@@ -388,7 +407,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 await actualizarSelectCategorias();
             }
             if (boton.dataset.pagina === 'presupuesto') {
-                await cargarPresupuesto(); // ✅ Carga al entrar
+                await cargarPresupuesto();
+            }
+            if (boton.dataset.pagina === 'habitos' || boton.dataset.pagina === 'logros') {
+                await cargarHabitos();
             }
         });
     });
@@ -574,13 +596,10 @@ async function cargarCategorias() {
 
 async function cargarPresupuesto() {
     if (!usuarioActual) return;
-    console.log('👉 Cargando presupuesto...'); // Para depurar
-    
     let presupuesto = 0;
     try {
         const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
         presupuesto = doc.exists ? (doc.data()?.presupuestoMensual || 0) : 0;
-        console.log('👉 Presupuesto guardado:', presupuesto);
     } catch (e) {
         console.log('Error leyendo presupuesto:', e);
     }
@@ -642,10 +661,14 @@ async function cargarHabitos() {
     
     if (snap.empty) {
         lista.innerHTML = '<p class="texto-centrado">Crea tu primer hábito 💪</p>';
+        document.getElementById('rachaActual').textContent = '0 días seguidos';
+        document.getElementById('diasMes').textContent = '0';
+        document.getElementById('diasTotal').textContent = '0';
         return;
     }
 
     const hoy = new Date();
+    const mesActual = hoy.toISOString().slice(0, 7);
     const diasSemana = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date(hoy);
@@ -661,14 +684,41 @@ async function cargarHabitos() {
     const fechasConsultar = diasSemana.map(d => d.fechaCod);
     const seguimientoSnap = await db.collection('seguimiento_habitos')
         .where('userId', '==', usuarioActual.uid)
-        .where('fecha', 'in', fechasConsultar)
         .get();
     
     const completados = {};
+    const fechasOrdenadas = [];
     seguimientoSnap.forEach(doc => {
         const d = doc.data();
         completados[`${d.habitoId}_${d.fecha}`] = true;
+        fechasOrdenadas.push(d.fecha);
     });
+
+    // Calcular racha
+    let racha = 0;
+    let revisar = new Date(hoy);
+    while (true) {
+        const cod = revisar.toISOString().split('T')[0];
+        const tiene = Object.keys(completados).some(k => k.endsWith(`_${cod}`));
+        if (tiene) racha++;
+        else break;
+        revisar.setDate(revisar.getDate() - 1);
+    }
+    document.getElementById('rachaActual').textContent = `${racha} día${racha !== 1 ? 's' : ''} seguidos`;
+
+    // Contar días del mes y total
+    const diasMes = [...new Set(fechasOrdenadas.filter(f => f.startsWith(mesActual)))].length;
+    const diasTotal = [...new Set(fechasOrdenadas)].length;
+    document.getElementById('diasMes').textContent = diasMes;
+    document.getElementById('diasTotal').textContent = diasTotal;
+
+    // Actualizar logro
+    if (diasTotal >= 1) {
+        document.getElementById('textoLogro').innerHTML = '🎉 <strong>Primer paso dado</strong> — ¡sigue avanzando!';
+    }
+    if (racha >= 7) {
+        document.getElementById('textoLogro').innerHTML = '🏆 <strong>Semana completa</strong> — ¡impresionante disciplina!';
+    }
 
     snap.forEach(doc => {
         const h = doc.data();
@@ -810,13 +860,4 @@ h4 {margin-bottom:8px}
 .cabecera-habito {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .cabecera-habito h4 {font-size:1rem}
 .dias-habito {display:grid;grid-template-columns:repeat(7, 1fr);gap:6px}
-.dia-habito {display:flex;flex-direction:column;align-items:center;padding:10px 6px;border-radius:10px;border:2px solid var(--borde);background:#f8fafc;cursor:pointer;transition:all 0.2s}
-.dia-habito:hover {transform:scale(1.05)}
-.dia-habito.hecho {background:#d1fae5;border-color:var(--exito)}
-.dia-habito.hecho .dia-num {color:#065f46;font-weight:700}
-.dia-habito.hoy {border-color:var(--primario);border-width:2px}
-.dia-nombre {font-size:0.7rem;color:var(--texto-claro);margin-bottom:4px;text-transform:uppercase}
-.dia-num {font-size:1rem;font-weight:600;color:var(--texto)}
-</style>
-</body>
-</html>
+.dia-habito {display:flex;flex-direction:column;align
