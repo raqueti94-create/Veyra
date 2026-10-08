@@ -2,243 +2,248 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Resumen Financiero</title>
-    <!-- Firebase -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Control de Finanzas y Hábitos</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <!-- Estilos -->
     <link rel="stylesheet" href="estilos.css">
-    <link rel="icon" href="data:;base64,=">
 </head>
 <body>
 
-<!-- Pantalla de Login -->
-<div id="pantallaLogin" class="pantalla-login">
+<!-- PANTALLA DE LOGIN -->
+<div id="pantallaLogin" class="pantalla-entrada">
     <div class="caja-login">
-        <h2 class="titulo-login">🔐 Iniciar Sesión</h2>
-        <input type="email" id="correoLogin" class="campo-login" placeholder="Correo electrónico">
-        <input type="password" id="claveLogin" class="campo-login" placeholder="Contraseña">
-        <button id="btnIngresar" class="btn-principal">Ingresar</button>
-        <button id="btnRegistrar" class="btn-secundario">¿No tienes cuenta? Registrarse</button>
-        <p id="mensajeError" class="mensaje-error"></p>
+        <h1>💰 Mis Finanzas</h1>
+        <p class="subtitulo">Controla tus ahorros, gastos y metas</p>
+        
+        <input type="email" id="correoLogin" placeholder="Correo electrónico" class="entrada">
+        <input type="password" id="claveLogin" placeholder="Contraseña" class="entrada">
+        
+        <p id="mensajeError" class="error"></p>
+        
+        <div class="fila-botones">
+            <button id="btnIngresar" class="boton-principal">Ingresar</button>
+            <button id="btnRegistrar" class="boton-secundario">Crear cuenta</button>
+        </div>
     </div>
 </div>
 
-<!-- Pantalla Principal -->
+<!-- PANTALLA PRINCIPAL -->
 <div id="pantallaPrincipal" class="oculto">
-    <div class="barra-usuario">
-        <span class="saludo" id="nombreUsuario">👋 Bienvenido</span>
+    <header class="cabecera">
+        <h2 id="nombreUsuario">👋 Hola</h2>
         <button class="btn-cerrar">Cerrar sesión</button>
-    </div>
+    </header>
 
-    <nav class="pestañas">
-        <button class="pestaña activa" data-pagina="contable">💰 Contable</button>
-        <button class="pestaña" data-pagina="presupuesto">🪙📅 Ahorro</button>
-        <button class="pestaña" data-pagina="habitos">🎯 Hábitos</button>
+    <!-- Pestañas -->
+    <nav class="navegacion">
+        <button class="pestaña activa" data-pagina="contable">Contable</button>
+        <button class="pestaña" data-pagina="ahorro">💰 Ahorro</button>
+        <button class="pestaña" data-pagina="habitos">💪 Hábitos</button>
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
     </nav>
 
-    <main class="contenedor">
-        <!-- Sección Contable -->
-        <section id="contable" class="pagina">
-            <h1 class="titulo-principal">💰 Resumen Financiero</h1>
-            
-            <div class="bloque">
-                <h3 class="subtitulo">📊 Resumen del Mes</h3>
-                <div class="grafico-contenedor">
-                    <div class="barra-grafica">
-                        <div class="etiqueta-barra">Ingresos</div>
-                        <div class="fondo-barra"><div id="barraIngresos" class="barra valor-ingreso" style="height:0%"></div></div>
-                        <div class="valor-barra" id="valorBarraIngresos">$0</div>
+    <!-- Página Contable -->
+    <section id="contable" class="pagina">
+        <h1 class="titulo-principal">📊 Control de Gastos e Ingresos</h1>
+
+        <div class="bloque">
+            <h3 class="subtitulo">📅 Seleccionar Mes</h3>
+            <select id="mesSeleccionado" class="entrada">
+                <option value="2026-10" selected>Octubre 2026</option>
+                <option value="2026-11">Noviembre 2026</option>
+                <option value="2026-12">Diciembre 2026</option>
+                <option value="2027-01">Enero 2027</option>
+            </select>
+        </div>
+
+        <div class="bloque">
+            <h3 class="subtitulo">➕ Registrar Movimiento</h3>
+            <div class="selector-tipo">
+                <button class="btn-tipo activa" data-tipo="ingreso">💵 Ingreso</button>
+                <button class="btn-tipo" data-tipo="gasto">💸 Gasto</button>
+            </div>
+            <input type="text" id="descripcionMov" placeholder="Descripción" class="entrada">
+            <input type="number" id="montoMov" placeholder="Monto $" class="entrada">
+            <select id="categoriaMov" class="entrada">
+                <option value="">Seleccionar categoría</option>
+            </select>
+            <button id="btnGuardarMov" class="boton-principal">Guardar</button>
+        </div>
+
+        <div class="bloque">
+            <h3 class="subtitulo">📈 Resumen del Mes</h3>
+            <div class="resumen-horizontal">
+                <div class="tarjeta-resumen">
+                    <p class="etiqueta">Ingresos</p>
+                    <p class="valor positivo" id="totalIngresos">$ 0</p>
+                </div>
+                <div class="tarjeta-resumen">
+                    <p class="etiqueta">Gastos</p>
+                    <p class="valor negativo" id="totalGastos">$ 0</p>
+                </div>
+                <div class="tarjeta-resumen">
+                    <p class="etiqueta">Saldo</p>
+                    <p class="valor" id="saldoTotal">$ 0</p>
+                </div>
+            </div>
+
+            <div class="contenedor-barras">
+                <div class="barra-grupo">
+                    <span class="etiqueta-barra">Ingresos</span>
+                    <div class="contenedor-barra">
+                        <div id="barraIngresos" class="barra verde"></div>
+                        <span class="valor-barra" id="valorBarraIngresos"></span>
                     </div>
-                    <div class="barra-grafica">
-                        <div class="etiqueta-barra">Gastos</div>
-                        <div class="fondo-barra"><div id="barraGastos" class="barra valor-gasto" style="height:0%"></div></div>
-                        <div class="valor-barra" id="valorBarraGastos">$0</div>
-                    </div>
-                    <div class="barra-grafica">
-                        <div class="etiqueta-barra">Saldo</div>
-                        <div class="fondo-barra"><div id="barraSaldo" class="barra valor-saldo" style="height:0%"></div></div>
-                        <div class="valor-barra" id="valorBarraSaldo">$0</div>
+                </div>
+                <div class="barra-grupo">
+                    <span class="etiqueta-barra">Gastos</span>
+                    <div class="contenedor-barra">
+                        <div id="barraGastos" class="barra roja"></div>
+                        <span class="valor-barra" id="valorBarraGastos"></span>
                     </div>
                 </div>
-            </div>
-
-            <div class="tarjetas-resumen">
-                <div class="tarjeta ingresos">
-                    <h3>Ingresos</h3>
-                    <p id="totalIngresos">$ 0</p>
-                </div>
-                <div class="tarjeta gastos">
-                    <h3>Gastos</h3>
-                    <p id="totalGastos">$ 0</p>
-                </div>
-                <div class="tarjeta saldo">
-                    <h3>Saldo</h3>
-                    <p id="saldoTotal">$ 0</p>
-                </div>
-            </div>
-
-            <div class="selector-mes">
-                <label>Mes:</label>
-                <select id="mesSeleccionado">
-                    <option value="2026-10" selected>octubre de 2026</option>
-                    <option value="2026-11">noviembre de 2026</option>
-                    <option value="2026-12">diciembre de 2026</option>
-                </select>
-            </div>
-
-            <div class="bloque">
-                <h3 class="subtitulo">➕ Nuevo Movimiento</h3>
-                <div class="selector-tipo">
-                    <button type="button" class="btn-tipo active" data-tipo="ingreso">
-                        <span class="icono-tipo">⬆️</span> Ingreso
-                    </button>
-                    <button type="button" class="btn-tipo" data-tipo="gasto">
-                        <span class="icono-tipo">⬇️</span> Gasto
-                    </button>
-                </div>
-                <input type="text" id="descripcionMov" class="campo-form" placeholder="Descripción">
-                <input type="number" id="montoMov" class="campo-form" placeholder="Monto" min="1">
-                <select id="categoriaMov" class="campo-form">
-                    <option value="">Seleccionar categoría</option>
-                </select>
-                <button id="btnGuardarMov" class="btn-principal">💾 Guardar</button>
-            </div>
-
-            <div class="bloque">
-                <div class="cabecera-bloque">
-                    <h3>🏷️ Mis Categorías</h3>
-                    <button id="btnAbrirCat" class="btn-nueva">+ Nueva</button>
-                </div>
-                <div id="formNuevaCat" class="oculto fila-form">
-                    <input type="text" id="nombreCat" class="campo-form" placeholder="Nombre categoría">
-                    <button id="btnGuardarCat" class="btn-principal">Guardar</button>
-                </div>
-                <div id="listaCategorias" class="lista-categorias"></div>
-            </div>
-
-            <div class="bloque">
-                <h3 class="subtitulo">📋 Movimientos</h3>
-                <div id="listaMovimientos"><p class="texto-centrado">Cargando...</p></div>
-            </div>
-        </section>
-
-        <!-- Sección Ahorro -->
-        <section id="ahorro" class="pagina oculto">
-    <h1 class="titulo-principal">💰 Ahorro Programado</h1>
-
-    <div class="bloque">
-        <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
-        <div class="fila-meta">
-            <div class="columna-meta">
-                <p><strong>Meta:</strong> <span id="metaTotal">$ 0</span></p>
-                <p><strong>Ahorrado:</strong> <span id="totalAhorrado" class="positivo">$ 0</span></p>
-                <p><strong>Falta:</strong> <span id="faltaParaMeta">$ 0</span></p>
-                <div class="barra-contenedor">
-                    <div id="barraAhorro" class="barra-progreso verde"></div>
-                </div>
-                <p id="porcentajeAhorro" class="texto-centrado">0%</p>
-                <p id="alertaMeta" class="texto-centrado oculto">🎉 ¡Meta alcanzada!</p>
-            </div>
-
-            <!-- Gráfico Circular Distribución -->
-            <div class="columna-grafico">
-                <h4 class="subtitulo-pequeño">Distribución por cuenta</h4>
-                <div class="contenedor-grafico-circular">
-                    <svg viewBox="0 0 100 100" class="grafico-circular">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="#e0e0e0" stroke-width="12" />
-                        <circle id="arcNequi" cx="50" cy="50" r="40" fill="none" stroke="#6c5ce7" stroke-width="12" 
-                                stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
-                        <circle id="arcBanco" cx="50" cy="50" r="40" fill="none" stroke="#00b894" stroke-width="12" 
-                                stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
-                        <circle id="arcEfectivo" cx="50" cy="50" r="40" fill="none" stroke="#fdcb6e" stroke-width="12" 
-                                stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
-                    </svg>
-                </div>
-                <div class="leyenda-grafico">
-                    <div class="item-leyenda">
-                        <span class="color-nequi"></span> Nequi: <strong id="valorNequi">$ 0</strong>
-                    </div>
-                    <div class="item-leyenda">
-                        <span class="color-banco"></span> Banco: <strong id="valorBanco">$ 0</strong>
-                    </div>
-                    <div class="item-leyenda">
-                        <span class="color-efectivo"></span> Efectivo: <strong id="valorEfectivo">$ 0</strong>
+                <div class="barra-grupo">
+                    <span class="etiqueta-barra">Saldo</span>
+                    <div class="contenedor-barra">
+                        <div id="barraSaldo" class="barra azul"></div>
+                        <span class="valor-barra" id="valorBarraSaldo"></span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="bloque">
-        <h3 class="subtitulo">💾 Guardar Dinero</h3>
-        <input type="number" id="metaAhorro" placeholder="Meta total a alcanzar $" class="entrada">
-        <select id="lugarAhorro" class="entrada">
-            <option value="">Seleccionar medio</option>
-            <option value="nequi">Nequi</option>
-            <option value="banco">Cuenta Bancaria</option>
-            <option value="efectivo">Efectivo</option>
-        </select>
-        <div id="campoBanco" class="oculto">
-            <input type="text" id="nombreBanco" placeholder="Nombre del banco" class="entrada">
+        <div class="bloque">
+            <h3 class="subtitulo">📋 Movimientos</h3>
+            <div id="listaMovimientos"></div>
         </div>
-        <input type="number" id="montoGuardar" placeholder="Monto a depositar $" class="entrada">
-        <button id="btnGuardarAhorro" class="boton-principal">💾 Guardar</button>
-    </div>
 
-    <div class="bloque">
-        <h3 class="subtitulo">📋 Historial de Depósitos</h3>
-        <div id="listaDepositos"></div>
-    </div>
-</section>
-
-        <!-- Sección Hábitos -->
-        <section id="habitos" class="pagina oculto">
-            <h1 class="titulo-principal">🎯 Mis Hábitos</h1>
-            <p class="introduccion">Marca cada día tu progreso 💪</p>
-            <div class="bloque">
-                <input type="text" id="nombreHabito" class="campo-form" placeholder="Nombre del hábito">
-                <button id="btnCrearHabito" class="btn-principal">✅ Crear Hábito</button>
+        <div class="bloque">
+            <div class="cabecera-seccion">
+                <h3 class="subtitulo">📂 Categorías</h3>
+                <button id="btnAbrirCat" class="boton-icono">➕ Nueva</button>
             </div>
-            <div id="listaHabitos"></div>
-        </section>
+            <div id="formNuevaCat" class="oculto">
+                <input type="text" id="nombreCat" placeholder="Nombre de categoría" class="entrada">
+                <button id="btnGuardarCat" class="boton-principal">Guardar Categoría</button>
+            </div>
+            <div id="listaCategorias"></div>
+        </div>
+    </section>
 
-        <!-- Sección Logros -->
-      <section id="logros" class="pagina oculto">
-    <h1 class="titulo-principal">🏆 Mis Logros</h1>
-    <div class="bloque">
-        <h3 class="subtitulo">🔥 Racha General</h3>
-        <p class="numero-grande" id="diasActivos">0 días en racha</p>
-        <p style="margin-top: 12px; color: var(--texto-claro); font-size: 0.9rem; line-height: 1.5;">
-            ⚠️ Para mantener la racha activa, debes cumplir <strong>todos</strong> los hábitos creados cada día.
-            Si fallas uno solo, la racha se reinicia desde cero. 💪
-        </p>
-    </div>
-    <div class="bloque">
-        <h3 class="subtitulo">🏅 Logros Desbloqueados</h3>
-        <div id="lista-logros"></div>
-    </div>
-</section>
-    </main>
+    <!-- Ahorro Programado -->
+    <section id="ahorro" class="pagina oculto">
+        <h1 class="titulo-principal">💰 Ahorro Programado</h1>
+
+        <div class="bloque">
+            <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
+            <div class="fila-meta">
+                <div class="columna-meta">
+                    <p><strong>Meta:</strong> <span id="metaTotal">$ 0</span></p>
+                    <p><strong>Ahorrado:</strong> <span id="totalAhorrado" class="positivo">$ 0</span></p>
+                    <p><strong>Falta:</strong> <span id="faltaParaMeta">$ 0</span></p>
+                    <div class="barra-contenedor">
+                        <div id="barraAhorro" class="barra-progreso verde"></div>
+                    </div>
+                    <p id="porcentajeAhorro" class="texto-centrado">0.0%</p>
+                    <p id="alertaMeta" class="texto-centrado oculto">🎉 ¡Meta alcanzada!</p>
+                </div>
+
+                <div class="columna-grafico">
+                    <h4 class="subtitulo-pequeño">Distribución por cuenta</h4>
+                    <div class="contenedor-grafico-circular">
+                        <svg viewBox="0 0 100 100" class="grafico-circular">
+                            <circle cx="50" cy="50" r="40" fill="none" stroke="#e0e0e0" stroke-width="12" />
+                            <circle id="arcNequi" cx="50" cy="50" r="40" fill="none" stroke="#6c5ce7" stroke-width="12" 
+                                    stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
+                            <circle id="arcBanco" cx="50" cy="50" r="40" fill="none" stroke="#00b894" stroke-width="12" 
+                                    stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
+                            <circle id="arcEfectivo" cx="50" cy="50" r="40" fill="none" stroke="#fdcb6e" stroke-width="12" 
+                                    stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
+                        </svg>
+                    </div>
+                    <div class="leyenda-grafico">
+                        <div class="item-leyenda">
+                            <span class="color-nequi"></span> Nequi: <strong id="valorNequi">$ 0</strong>
+                        </div>
+                        <div class="item-leyenda">
+                            <span class="color-banco"></span> Banco: <strong id="valorBanco">$ 0</strong>
+                        </div>
+                        <div class="item-leyenda">
+                            <span class="color-efectivo"></span> Efectivo: <strong id="valorEfectivo">$ 0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bloque">
+            <h3 class="subtitulo">💾 Guardar Dinero</h3>
+            <input type="number" id="metaAhorro" placeholder="Meta total a alcanzar $" class="entrada">
+            <select id="lugarAhorro" class="entrada">
+                <option value="">Seleccionar medio</option>
+                <option value="nequi">Nequi</option>
+                <option value="banco">Cuenta Bancaria</option>
+                <option value="efectivo">Efectivo</option>
+            </select>
+            <div id="campoBanco" class="oculto">
+                <input type="text" id="nombreBanco" placeholder="Nombre del banco" class="entrada">
+            </div>
+            <input type="number" id="montoGuardar" placeholder="Monto a depositar $" class="entrada">
+            <button id="btnGuardarAhorro" class="boton-principal">💾 Guardar</button>
+        </div>
+
+        <div class="bloque">
+            <h3 class="subtitulo">📋 Historial de Depósitos</h3>
+            <div id="listaDepositos"></div>
+        </div>
+    </section>
+
+    <!-- Hábitos -->
+    <section id="habitos" class="pagina oculto">
+        <h1 class="titulo-principal">💪 Mis Hábitos</h1>
+
+        <div class="bloque">
+            <h3 class="subtitulo">➕ Nuevo Hábito</h3>
+            <input type="text" id="nombreHabito" placeholder="Nombre del hábito" class="entrada">
+            <button id="btnCrearHabito" class="boton-principal">Crear Hábito</button>
+        </div>
+
+        <div id="listaHabitos"></div>
+    </section>
+
+    <!-- Logros -->
+    <section id="logros" class="pagina oculto">
+        <h1 class="titulo-principal">🏆 Mis Logros</h1>
+        <div class="bloque">
+            <h3 class="subtitulo">🔥 Racha General</h3>
+            <p class="numero-grande" id="diasActivos">0 días en racha</p>
+            <p style="margin-top: 12px; color: var(--texto-claro); font-size: 0.9rem; line-height: 1.5;">
+                ⚠️ Para mantener la racha activa, debes cumplir <strong>todos</strong> los hábitos creados cada día.
+                Si fallas uno solo, la racha se reinicia desde cero. 💪
+            </p>
+        </div>
+        <div class="bloque">
+            <h3 class="subtitulo">🏅 Logros Desbloqueados</h3>
+            <div id="lista-logros"></div>
+        </div>
+    </section>
 </div>
 
-<!-- Modal de Edición -->
+<!-- Modal Editar -->
 <div id="modalEditar" class="modal oculto">
-    <div class="modal-contenido">
+    <div class="contenido-modal">
         <h3 id="tituloModal">Editar</h3>
-        <input type="text" id="inputEditar" class="campo-form">
-        <input type="number" id="inputEditarNumero" class="campo-form oculto">
-        <div class="botones-modal">
-            <button id="btnCancelarModal" class="btn-secundario">Cancelar</button>
-            <button id="btnConfirmarModal" class="btn-principal">Guardar</button>
+        <input type="text" id="inputEditar" class="entrada">
+        <input type="number" id="inputEditarNumero" class="entrada oculto">
+        <div class="fila-botones">
+            <button id="btnCancelarModal" class="boton-secundario">Cancelar</button>
+            <button id="btnConfirmarModal" class="boton-principal">Guardar</button>
         </div>
     </div>
 </div>
 
-<!-- Código de la App -->
 <script src="app.js"></script>
 </body>
 </html>
