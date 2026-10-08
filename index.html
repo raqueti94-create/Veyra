@@ -39,7 +39,6 @@
         <section id="contable" class="pagina">
             <h1 class="titulo-principal">💰 Resumen Financiero</h1>
             
-            <!-- GRÁFICOS -->
             <div class="bloque">
                 <h3 class="subtitulo">📊 Resumen del Mes</h3>
                 <div class="grafico-contenedor">
@@ -97,7 +96,6 @@
                 </div>
                 <input type="text" id="descripcionMov" class="campo-form" placeholder="Descripción">
                 <input type="number" id="montoMov" class="campo-form" placeholder="Monto" min="1">
-                <!-- ✅ SE ACTUALIZA DINÁMICAMENTE -->
                 <select id="categoriaMov" class="campo-form">
                     <option value="">Seleccionar categoría</option>
                 </select>
@@ -127,7 +125,8 @@
             <div class="bloque">
                 <label class="etiqueta-form">Mi presupuesto mensual:</label>
                 <input type="number" class="campo-form" id="inputPresupuesto" placeholder="Ej: 2000000" min="0">
-                <button id="btnGuardarPres" class="btn-principal">💾 Guardar Presupuesto</button>
+                <!-- ✅ BOTÓN CON ID CORRECTO -->
+                <button id="btnGuardarPresupuesto" class="btn-principal">💾 Guardar Presupuesto</button>
                 <div class="datos-presupuesto">
                     <div class="fila-dato"><span>Presupuesto:</span><strong id="montoPresupuesto">$ 0</strong></div>
                     <div class="fila-dato"><span>Gastado:</span><strong class="rojo" id="montoGastado">$ 0</strong></div>
@@ -146,7 +145,6 @@
                 <input type="text" id="nombreHabito" class="campo-form" placeholder="Nombre del hábito">
                 <button id="btnCrearHabito" class="btn-principal">✅ Crear Hábito</button>
             </div>
-            <!-- ✅ AHORA CON CASILLAS PARA MARCAR -->
             <div id="listaHabitos"></div>
         </section>
 
@@ -237,20 +235,16 @@ async function inicializarCategoriasDefault() {
                 batch.set(ref, { userId: usuarioActual.uid, nombre: cat.nombre, icono: cat.icono, esDefault: true });
             });
             await batch.commit();
-            console.log('✅ Categorías creadas');
         }
     } catch (e) {
         console.log('Categorías:', e.message);
     }
 }
 
-// ✅ ACTUALIZAR EL DESPLEGABLE DE CATEGORÍAS
 async function actualizarSelectCategorias() {
     if (!usuarioActual) return;
     const select = document.getElementById('categoriaMov');
-    const valorActual = select.value; // Mantener la selección si existe
-    
-    // Limpiar y dejar la opción por defecto
+    const valorActual = select.value;
     select.innerHTML = '<option value="">Seleccionar categoría</option>';
     
     const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).orderBy('nombre').get();
@@ -259,7 +253,6 @@ async function actualizarSelectCategorias() {
         select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
     });
     
-    // Restaurar selección si sigue existiendo
     if (valorActual) select.value = valorActual;
 }
 
@@ -344,15 +337,33 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('nombreCat').value = '';
         document.getElementById('formNuevaCat').classList.add('oculto');
         await cargarCategorias();
-        await actualizarSelectCategorias(); // ✅ Se actualiza el desplegable automáticamente
+        await actualizarSelectCategorias();
     });
 
-    document.getElementById('btnGuardarPres').addEventListener('click', async () => {
+    // ✅ CORREGIDO: ID coincide con el botón
+    document.getElementById('btnGuardarPresupuesto').addEventListener('click', async () => {
+        console.log('👉 Botón presionado - guardando presupuesto'); // Para depurar
+        if (!usuarioActual) {
+            alert('❌ No hay sesión activa');
+            return;
+        }
         const valor = parseInt(document.getElementById('inputPresupuesto').value);
-        if (isNaN(valor)) return alert('Escribe un monto válido');
-        await db.collection('usuarios').doc(usuarioActual.uid).set({ presupuestoMensual: valor }, { merge: true });
-        alert('✅ Presupuesto guardado');
-        await cargarPresupuesto();
+        if (isNaN(valor) || valor <= 0) {
+            alert('⚠️ Escribe un monto válido mayor a 0');
+            return;
+        }
+        
+        try {
+            await db.collection('usuarios').doc(usuarioActual.uid).set(
+                { presupuestoMensual: valor },
+                { merge: true }
+            );
+            alert('✅ Presupuesto guardado: $' + valor.toLocaleString());
+            document.getElementById('inputPresupuesto').value = '';
+            await cargarPresupuesto();
+        } catch (e) {
+            alert('❌ Error al guardar: ' + e.message);
+        }
     });
 
     document.getElementById('btnCrearHabito').addEventListener('click', async () => {
@@ -373,9 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
             boton.classList.add('activa');
             document.getElementById(boton.dataset.pagina).classList.remove('oculto');
-            // ✅ Cargar categorías al entrar a la página para que el select esté al día
             if (boton.dataset.pagina === 'contable') {
                 await actualizarSelectCategorias();
+            }
+            if (boton.dataset.pagina === 'presupuesto') {
+                await cargarPresupuesto(); // ✅ Carga al entrar
             }
         });
     });
@@ -404,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nombre = document.getElementById('inputEditar').value.trim();
                 if (!nombre) return alert('Escribe un nombre');
                 await db.collection('categorias').doc(estadoEdicion.id).update({ nombre });
-                await actualizarSelectCategorias(); // ✅ También actualiza si editas una categoría
+                await actualizarSelectCategorias();
             }
             document.getElementById('modalEditar').classList.add('oculto');
             estadoEdicion = { tipo: null, id: null, esIngreso: false };
@@ -420,7 +433,7 @@ async function cargarDatos() {
     await Promise.all([
         cargarMovimientos(),
         cargarCategorias(),
-        actualizarSelectCategorias(), // ✅ Siempre actualizar las opciones
+        actualizarSelectCategorias(),
         cargarPresupuesto(),
         cargarHabitos()
     ]);
@@ -553,7 +566,7 @@ async function cargarCategorias() {
             if (confirm('¿Eliminar esta categoría?')) {
                 await db.collection('categorias').doc(btn.dataset.id).delete();
                 await cargarCategorias();
-                await actualizarSelectCategorias(); // ✅ Queda eliminada del desplegable también
+                await actualizarSelectCategorias();
             }
         });
     });
@@ -561,11 +574,16 @@ async function cargarCategorias() {
 
 async function cargarPresupuesto() {
     if (!usuarioActual) return;
+    console.log('👉 Cargando presupuesto...'); // Para depurar
+    
     let presupuesto = 0;
     try {
         const doc = await db.collection('usuarios').doc(usuarioActual.uid).get();
         presupuesto = doc.exists ? (doc.data()?.presupuestoMensual || 0) : 0;
-    } catch (e) {}
+        console.log('👉 Presupuesto guardado:', presupuesto);
+    } catch (e) {
+        console.log('Error leyendo presupuesto:', e);
+    }
 
     const mes = document.getElementById('mesSeleccionado').value;
     const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
@@ -597,17 +615,14 @@ async function cargarPresupuesto() {
     }
 }
 
-// ✅ NUEVA FUNCIÓN: MARCAR/DESMARCAR DÍA
 async function alternarDiaHábito(hábitoId, fecha) {
     if (!usuarioActual) return;
     const registroRef = db.collection('seguimiento_habitos').doc(`${hábitoId}_${fecha}`);
     
     const doc = await registroRef.get();
     if (doc.exists) {
-        // Si ya existe → quitar marca
         await registroRef.delete();
     } else {
-        // Si no existe → poner marca
         await registroRef.set({
             userId: usuarioActual.uid,
             habitoId: hábitoId,
@@ -630,28 +645,25 @@ async function cargarHabitos() {
         return;
     }
 
-    // Fecha de hoy y los últimos 6 días (semana)
     const hoy = new Date();
     const diasSemana = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date(hoy);
         d.setDate(hoy.getDate() - i);
         diasSemana.push({
-            fechaCod: d.toISOString().split('T')[0], // "2026-10-08"
+            fechaCod: d.toISOString().split('T')[0],
             diaNombre: d.toLocaleDateString('es-ES', { weekday: 'short' }),
             diaNum: d.getDate(),
             esHoy: i === 0
         });
     }
 
-    // Cargar todo el seguimiento de estos días
     const fechasConsultar = diasSemana.map(d => d.fechaCod);
     const seguimientoSnap = await db.collection('seguimiento_habitos')
         .where('userId', '==', usuarioActual.uid)
         .where('fecha', 'in', fechasConsultar)
         .get();
     
-    // Mapa: "habitoId_fecha" → true/false
     const completados = {};
     seguimientoSnap.forEach(doc => {
         const d = doc.data();
@@ -681,7 +693,6 @@ async function cargarHabitos() {
             </div>`;
     });
 
-    // Asignar eventos a cada casilla
     document.querySelectorAll('.dia-habito').forEach(boton => {
         boton.addEventListener('click', () => {
             alternarDiaHábito(boton.dataset.habito, boton.dataset.fecha);
@@ -692,7 +703,6 @@ async function cargarHabitos() {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar este hábito?')) {
                 await db.collection('habitos').doc(btn.dataset.id).delete();
-                // También se podría borrar su seguimiento, pero lo dejamos por si acaso
                 await cargarHabitos();
             }
         });
@@ -727,7 +737,6 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .subtitulo {font-size:1.1rem;margin-bottom:14px}
 .introduccion {text-align:center;color:rgba(255,255,255,0.9);margin-bottom:20px}
 
-/* GRÁFICOS */
 .grafico-contenedor {display:flex;justify-content:space-around;align-items:flex-end;height:240px;margin-top:20px;padding:0 5px}
 .barra-grafica {display:flex;flex-direction:column;align-items:center;gap:8px;width:28%}
 .etiqueta-barra {font-size:0.8rem;font-weight:600;color:var(--texto-claro)}
@@ -797,7 +806,6 @@ body {background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);min-height:1
 .morado {background:var(--primario)}
 h4 {margin-bottom:8px}
 
-/* ✅ ESTILOS DEL SEGUIMIENTO DE HÁBITOS */
 .habito-tarjeta {margin-bottom:16px}
 .cabecera-habito {display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .cabecera-habito h4 {font-size:1rem}
