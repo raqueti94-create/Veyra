@@ -1213,6 +1213,7 @@ async function cargarContable() {
         if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
         if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
         if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
+
         verificarAlertaSaldo(totalIngresos - totalGastos);
 
      } catch (err) {
