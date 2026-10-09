@@ -144,17 +144,18 @@
 
         <div class="bloque">
             <h3 class="subtitulo">➕ Registrar Movimiento</h3>
-            <div class="selector-tipo">
-                <button class="btn-tipo-ingreso" data-tipo="ingreso">💵 Ingreso</button>
-                <button class="bbtn-tipo-gasto" data-tipo="gasto">💸 Gasto</button>
-            </div>
-            <input type="text" id="descripcionMov" placeholder="Descripción" class="entrada">
-            <input type="number" id="montoMov" placeholder="Monto $" class="entrada">
-            <select id="categoriaMov" class="entrada">
-                <option value="">Seleccionar categoría</option>
-            </select>
-            <button id="btnGuardarMov" class="boton-principal">Guardar</button>
-        </div>
+          <div class="selector-tipo">
+    <button class="btn-tipo-ingreso">💵 Ingreso</button>
+    <button class="btn-tipo-gasto">💸 Gasto</button>
+</div>
+
+<div class="campos-formulario">
+    <input type="text" placeholder="Descripción" class="campo-dato">
+    <input type="number" placeholder="Monto $" class="campo-dato">
+    <select class="campo-dato">
+        <option>Seleccionar categoría</option>
+    </select>
+</div>
 
         <div class="bloque">
             <h3 class="subtitulo">📈 Resumen del Mes</h3>
