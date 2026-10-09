@@ -601,3 +601,6 @@ button:disabled {
     background: var(--primario);
     color: white;
 }
+.oculto {
+    display: none !important;
+}
