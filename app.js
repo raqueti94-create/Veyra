@@ -1117,54 +1117,198 @@ el('btnCopiarEnlace').addEventListener('click', async () => {
     }
 });
 
-// ========== ACTUALIZAR CARGAR CONTABLE PARA INCLUIR ALERTA E ICONOS ==========
-const cargarContableOriginal = cargarContable;
-cargarContable = async function () {
-    await cargarContableOriginal();
-    const mes = el('mesSeleccionado').value;
-    const movSnap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mes).get();
-    
-    let totalIngresos = 0, totalGastos = 0;
-    movSnap.forEach(doc => {
-        const m = doc.data();
-        if (m.tipo === 'ingreso') totalIngresos += m.monto;
-        else totalGastos += m.monto;
+// ========== FUNCIÓN AUXILIAR: FORMATEAR FECHA ==========
+function formatearFecha(fecha) {
+    if (!fecha) return '';
+    const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
+    return d.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
-    verificarAlertaSaldo(totalIngresos - totalGastos);
+}
+
+// ========== FUNCIÓN AUXILIAR: ÍCONO POR CATEGORÍA ==========
+function iconoCategoria(categoria) {
+    const iconos = {
+        'Salario': '💼',
+        'Ventas': '🛒',
+        'Comida': '🍔',
+        'Transporte': '🚗',
+        'Entretenimiento': '🎮',
+        'Servicios': '💡',
+        'Vivienda': '🏠',
+        'Salud': '🏥',
+        'Educación': '📚',
+        'Ropa': '👕',
+        'Ahorro': '💰',
+        'Otro': '📌'
+    };
+    return iconos[categoria] || '📌';
+}
+
+// ========== FUNCIÓN AUXILIAR: ALERTA DE SALDO ==========
+function verificarAlertaSaldo(saldo) {
+    const alerta = el('alertaSaldo');
+    if (!alerta) return;
     
-    // Actualizar lista con iconos y botones editar
+    if (saldo < 0) {
+        alerta.textContent = `⚠️ ¡Cuidado! Tienes saldo negativo: $ ${saldo.toLocaleString()}`;
+        alerta.className = 'alerta-saldo oculto';
+        alerta.classList.remove('oculto');
+        alerta.style.background = '#ffebee';
+        alerta.style.color = '#c62828';
+    } else if (saldo === 0) {
+        alerta.textContent = 'ℹ️ Tu saldo es cero';
+        alerta.className = 'alerta-saldo oculto';
+        alerta.classList.remove('oculto');
+        alerta.style.background = '#f5f5f5';
+        alerta.style.color = '#666';
+    } else {
+        alerta.textContent = `✅ ¡Bien! Tu saldo es: $ ${saldo.toLocaleString()}`;
+        alerta.className = 'alerta-saldo oculto';
+        alerta.classList.remove('oculto');
+        alerta.style.background = '#e8f5e9';
+        alerta.style.color = '#2e7d32';
+    }
+}
+
+// ========== CARGAR CONTABLE (VERSIÓN COMPLETA) ==========
+async function cargarContable() {
+    if (!usuarioActual) return;
+
+    const mes = el('mesSeleccionado')?.value || '';
     const lista = el('listaMovimientos');
-    lista.innerHTML = '';
-    const movSnap2 = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mes).orderBy('fecha', 'desc').get();
-    
-    movSnap2.forEach(doc => {
-        const m = doc.data();
-        lista.innerHTML += `
-            <div class="movimiento aparecer escala-hover">
-                <div class="info-mov">
-                    <div class="fecha">${formatearFecha(m.fecha)}</div>
-                    <div class="descripcion">
-                        <span class="icono-categoria">${iconoCategoria(m.categoria)}</span>
-                        ${m.descripcion}
-                    </div>
-                    <div class="categoria-pequeña">${m.categoria}</div>
-                </div>
-                <div class="valor-botones">
-                    <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
-                        ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                    </div>
-                    <div class="acciones">
-                        <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
-                        <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
-                    </div>
-                </div>
-            </div>`;
-    });
-};
+    const totalIngresosEl = el('totalIngresos');
+    const totalGastosEl = el('totalGastos');
+    const saldoTotalEl = el('saldoTotal');
+
+    // ✅ Cargar categorías primero
+    await cargarCategorias();
+
+    if (lista) lista.innerHTML = '<p class="texto-centrado">Cargando movimientos...</p>';
+
+    try {
+        const snapshot = await db.collection('movimientos')
+            .where('userId', '==', usuarioActual.uid)
+            .where('mes', '==', mes)
+            .orderBy('fecha', 'desc')
+            .get();
+
+        let totalIngresos = 0, totalGastos = 0;
+        lista.innerHTML = '';
+
+        if (snapshot.empty) {
+            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
+        } else {
+            snapshot.forEach(doc => {
+                const m = doc.data();
+                if (m.tipo === 'ingreso') totalIngresos += m.monto;
+                else totalGastos += m.monto;
+
+                lista.innerHTML += `
+                    <div class="movimiento aparecer escala-hover">
+                        <div class="info-mov">
+                            <div class="fecha">${formatearFecha(m.fecha)}</div>
+                            <div class="descripcion">
+                                <span class="icono-categoria">${iconoCategoria(m.categoria)}</span>
+                                ${m.descripcion}
+                            </div>
+                            <div class="categoria-pequeña">${m.categoria}</div>
+                        </div>
+                        <div class="valor-botones">
+                            <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
+                                ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
+                            </div>
+                            <div class="acciones">
+                                <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
+                                <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // Actualizar totales
+        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
+        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
+        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
+
+        // Mostrar alerta de saldo
+        verificarAlertaSaldo(totalIngresos - totalGastos);
+
+    } catch (err) {
+        console.error('Error cargando contable:', err);
+        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
+    }
+}
+
+// ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
+document.addEventListener('click', async e => {
+    // Eliminar
+    if (e.target.classList.contains('eliminar-mov')) {
+        if (!confirm('¿Eliminar este movimiento?')) return;
+        const id = e.target.dataset.id;
+        try {
+            await db.collection('movimientos').doc(id).delete();
+            cargarContable();
+        } catch (err) {
+            console.error(err);
+            alert('Error eliminando');
+        }
+    }
+
+    // Editar
+    if (e.target.classList.contains('btn-editar-mov')) {
+        const id = e.target.dataset.id;
+        const modal = el('modalEditarMov');
+        if (!modal) return;
+
+        modal.classList.remove('oculto');
+        el('idEditarMov').value = id;
+    }
+});
+
+// Confirmar edición
+document.addEventListener('DOMContentLoaded', function() {
+    const btnConfirmarEditar = el('btnConfirmarEditar');
+    const btnCancelarEditar = el('btnCancelarEditar');
+    const modalEditarMov = el('modalEditarMov');
+
+    if (btnCancelarEditar) {
+        btnCancelarEditar.addEventListener('click', () => {
+            modalEditarMov?.classList.add('oculto');
+        });
+    }
+
+    if (btnConfirmarEditar) {
+        btnConfirmarEditar.addEventListener('click', async () => {
+            const id = el('idEditarMov')?.value;
+            if (!id || !usuarioActual) return;
+
+            const desc = el('descEditarMov')?.value?.trim();
+            const cat = el('catEditarMov')?.value;
+            const monto = parseFloat(el('montoEditarMov')?.value) || 0;
+
+            if (!monto) return alert('Escribe un monto válido');
+
+            try {
+                await db.collection('movimientos').doc(id).update({
+                    descripcion: desc || 'Sin descripción',
+                    categoria: cat || 'Sin categoría',
+                    monto: monto
+                });
+                modalEditarMov?.classList.add('oculto');
+                cargarContable();
+            } catch (err) {
+                console.error(err);
+                alert('Error actualizando');
+            }
+        });
+    }
+});
 
 // ========== ACTUALIZAR CARGAR AHORRO PARA INCLUIR EDITAR ==========
 const cargarAhorroOriginal = cargarAhorro;
