@@ -593,7 +593,7 @@ async function cargarLogros() {
 }
 
 // ========== EXPORTAR — PDF ==========
-el('btnGenerarPDF').addEventListener('click', async () => {
+el('btnGenerarPDF').addEventListener('click', async function () {
     if (!usuarioActual) return;
     
     const mesValor = el('mesExtracto').value;
@@ -683,7 +683,7 @@ el('btnGenerarPDF').addEventListener('click', async () => {
     plantilla.style.position = 'relative';
     plantilla.style.left = '0';
     
-    // Esperar a que se renderice y generar
+    // Esperar y generar PDF
     setTimeout(async () => {
         const pdf = new jsPDF('p', 'mm', 'a4');
         
