@@ -182,7 +182,7 @@ if (btnEditar) {
         const titulo = document.getElementById('tituloModalNombre');
         if (titulo) titulo.textContent = '✏️ Cambiar tu nombre';
         
-        const input = document.getElementById('inputNombreUsuario');
+        const input = document.getElementById('inputEditarNombreUsuario');
         if (input && nombreUsuarioGuardado) {
             input.value = nombreUsuarioGuardado;
         }
