@@ -304,10 +304,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnGuardar = el('btnGuardarMov');
     const selectMes = el('mesSeleccionado');
 
+    // === BOTÓN GUARDAR MOVIMIENTO — UNA SOLA VEZ ===
     if (btnGuardar) {
         btnGuardar.addEventListener('click', async () => {
             if (!usuarioActual) return;
-            
+
             const descripcion = el('descripcionMov');
             const categoria = el('categoriaMov');
             const monto = el('montoMov');
@@ -323,21 +324,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 fecha: new Date()
             };
 
-            if (!datos.monto) return alert('Escribe un monto válido');
+            if (!datos.monto) {
+                return alert('Escribe un monto válido');
+            }
 
             try {
                 await db.collection('movimientos').add(datos);
+                
+                // Limpiar campos
                 if (descripcion) descripcion.value = '';
                 if (monto) monto.value = '';
+
+                // ✅ CARGAR UNA SOLA VEZ
                 cargarContable();
+
             } catch (err) {
-                console.error(err);
-                alert('Error guardando movimiento');
+                console.error('Error guardando:', err);
+                alert('No se pudo guardar el movimiento');
             }
         });
     }
 
+    // === CAMBIO DE MES — UNA SOLA VEZ ===
     if (selectMes) {
+        // Quitar eventos anteriores duplicados
+        selectMes.removeEventListener('change', cargarContable);
+        // Agregar UNA SOLA VEZ
         selectMes.addEventListener('change', cargarContable);
     }
 });
@@ -1125,19 +1137,18 @@ function verificarAlertaSaldo(saldo) {
 }
 
     // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
-    let cargarContableEnEjecucion = false;
+  let cargarContableEnEjecucion = false;
 
 async function cargarContable() {
-    console.log('🔄 Ejecutando cargarContable');
-    
+    // ESCUDO TOTAL: Si está corriendo, NO dejes que entre otra
     if (cargarContableEnEjecucion) {
-        console.log('⛔ Llamada duplicada BLOQUEADA');
+        console.log('⛔ LLAMADA DUPLICADA BLOQUEADA');
         return;
     }
     
     if (!usuarioActual) return;
 
-    cargarContableEnEjecucion = true;
+    cargarContableEnEjecucion = true; // BLOQUEAR
 
     const mes = el('mesSeleccionado')?.value || '';
     const lista = el('listaMovimientos');
@@ -1147,9 +1158,8 @@ async function cargarContable() {
 
     await cargarCategorias();
 
-    if (lista) {
-        lista.innerHTML = '';
-    }
+    // BORRAR TODO ANTES DE CARGAR — GARANTIZADO
+    if (lista) lista.innerHTML = '';
 
     try {
         const snapshot = await db.collection('movimientos')
@@ -1203,7 +1213,7 @@ async function cargarContable() {
         console.error('Error cargando contable:', err);
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
-        cargarContableEnEjecucion = false;
+        cargarContableEnEjecucion = false; // DESBLOQUEAR
     }
 }
 // ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
@@ -1334,29 +1344,36 @@ setTimeout(() => {
 
 // === BOTONES INGRESO / GASTO — VERSIÓN CORRECTA ===
 document.addEventListener('DOMContentLoaded', function() {
-    el('btnGuardarMov').addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const datos = {
-            userId: usuarioActual.uid,
-            tipo: tipoMovimiento,
-            descripcion: el('descripcionMov').value || 'Sin descripción',
-            categoria: el('categoriaMov').value || 'Sin categoría',
-            monto: parseFloat(el('montoMov').value) || 0,
-            mes: el('mesSeleccionado').value,
-            fecha: new Date()
-        };
-        if (!datos.monto) return alert('Escribe un monto válido');
-        try {
-            await db.collection('movimientos').add(datos);
-            el('descripcionMov').value = '';
-            el('montoMov').value = '';
-            cargarContable();
-        } catch (err) {
-            console.error(err);
-            alert('Error guardando movimiento');
-        }
-    });
-    el('mesSeleccionado').addEventListener('change', cargarContable);
+  el('btnGuardarMov').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    
+    const montoValor = parseFloat(el('montoMov').value) || 0;
+    if (!montoValor) return alert('Escribe un monto válido');
+
+    const datos = {
+        userId: usuarioActual.uid,
+        tipo: tipoMovimiento,
+        descripcion: el('descripcionMov').value || 'Sin descripción',
+        categoria: el('categoriaMov').value || 'Sin categoría',
+        monto: montoValor,
+        mes: el('mesSeleccionado').value,
+        fecha: new Date()
+    };
+
+    try {
+        await db.collection('movimientos').add(datos);
+        
+        // LIMPIAR CAMPOS
+        el('descripcionMov').value = '';
+        el('montoMov').value = '';
+
+        // ✅ UNA SOLA LLAMADA — NO REPETIR
+        cargarContable();
+
+    } catch (err) {
+        console.error(err);
+        alert('Error guardando movimiento');
+    }
 });
 // ========== CARGAR CATEGORÍAS ==========
 async function cargarCategorias() {
