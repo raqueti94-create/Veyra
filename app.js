@@ -168,34 +168,44 @@ if (btnCancelar) {
 const btnGuardar = document.getElementById('btnGuardarNombre');
 if (btnGuardar) {
     btnGuardar.addEventListener('click', async () => {
+        console.log('👉 Clic en Guardar'); // ✅ Aparece al hacer clic
+        
         const input = document.getElementById('inputNombreUsuario');
         const nuevoNombre = input ? input.value.trim() : '';
-        
+        console.log('👉 Nombre a guardar:', nuevoNombre);
+
         if (!nuevoNombre) {
             alert('Escribe un nombre válido ✍️');
             return;
         }
         
+        const usuario = firebase.auth().currentUser;
+        console.log('👉 Usuario activo:', usuario ? 'Sí' : 'NO');
+
+        if (!usuario) {
+            alert('No hay sesión activa — recarga la página');
+            return;
+        }
+        
         try {
-            const usuario = firebase.auth().currentUser;
-            if (usuario) {
-                await db.collection('usuarios').doc(usuario.uid).set(
-                    { nombre: nuevoNombre },
-                    { merge: true }
-                );
-                nombreUsuarioGuardado = nuevoNombre;
-                
-                const elNombre = document.getElementById('nombreUsuario');
-                if (elNombre) elNombre.textContent = `👋 Hola, ${nuevoNombre}`;
-                
-                const modal = document.getElementById('modalNombre');
-                if (modal) modal.classList.add('oculto');
-                
-                console.log('✅ Nombre guardado');
-            }
+            console.log('👉 Guardando en Firestore...');
+            await db.collection('usuarios').doc(usuario.uid).set(
+                { nombre: nuevoNombre },
+                { merge: true }
+            );
+            
+            nombreUsuarioGuardado = nuevoNombre;
+            console.log('✅ Guardado correctamente');
+            
+            const elNombre = document.getElementById('nombreUsuario');
+            if (elNombre) elNombre.textContent = `👋 Hola, ${nuevoNombre}`;
+            
+            const modal = document.getElementById('modalNombre');
+            if (modal) modal.classList.add('oculto');
+            
         } catch (error) {
-            console.error('❌ Error:', error);
-            alert('No se pudo guardar, intenta de nuevo');
+            console.error('❌ Error completo:', error);
+            alert('Error: ' + error.message);
         }
     });
 }
