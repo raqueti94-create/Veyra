@@ -9,6 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
 
     <style>
 * {
@@ -354,11 +357,41 @@ body {
     font-weight: 600;
     cursor: pointer;
 }
+/* Contenedor para gráficos */
+.contenedor-grafico {
+    position: relative;
+    height: 320px;
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+.selector-grafico {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.btn-tipo-grafico {
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--borde);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+    color: var(--texto-claro);
+}
+.btn-tipo-grafico.activo {
+    border-color: var(--primario);
+    background: var(--primario);
+    color: white;
+}
 @media (max-width: 768px) {
     .fila-doble { grid-template-columns: 1fr; }
     .selector-tipo { flex-direction: column; }
     .cabecera { flex-direction: column; text-align: center; }
     .contenedor-botones-cabecera { width: 100%; justify-content: center; }
+    .contenedor-grafico { height: 260px; }
 }
     </style>
 </head>
@@ -456,6 +489,17 @@ body {
                 <p class="valor-grande" id="saldoActual">$0</p>
             </div>
         </div>
+
+        <div class="bloque">
+            <h3>📈 Evolución de Saldo</h3>
+            <div class="selector-grafico">
+                <button class="btn-tipo-grafico activo" data-grafico="mensual">📊 Mensual</button>
+                <button class="btn-tipo-grafico" data-grafico="acumulado">📈 Acumulado</button>
+            </div>
+            <div class="contenedor-grafico">
+                <canvas id="graficoEvolucion"></canvas>
+            </div>
+        </div>
     </section>
 
     <section class="contenido-pestaña oculto" id="pestaña-compartir">
@@ -502,11 +546,17 @@ let usuarioActual = null;
 let tipoMovimiento = 'ingreso';
 let modoEdicionId = null;
 let esRegistro = false;
+let grafico = null;
+let tipoGraficoActivo = 'mensual';
+let datosMovimientos = [];
 
 // ===== AUXILIARES =====
 function el(id) { return document.getElementById(id); }
 function formatearMonto(valor) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor || 0);
+}
+function formatearMes(fecha) {
+    return new Date(fecha).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
 }
 
 // ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
@@ -616,10 +666,23 @@ document.querySelectorAll('.pestaña').forEach(boton => {
         const id = boton.dataset.pestaña;
         document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
         el(`pestaña-${id}`).classList.remove('oculto');
+        if (id === 'resumen') {
+            setTimeout(dibujarGrafico, 100);
+        }
     });
 });
 
-// ===== CAMBIAR TIPO =====
+// ===== CAMBIAR TIPO GRÁFICO =====
+document.querySelectorAll('.btn-tipo-grafico').forEach(boton => {
+    boton.addEventListener('click', () => {
+        document.querySelectorAll('.btn-tipo-grafico').forEach(b => b.classList.remove('activo'));
+        boton.classList.add('activo');
+        tipoGraficoActivo = boton.dataset.grafico;
+        dibujarGrafico();
+    });
+});
+
+// ===== CAMBIAR TIPO MOVIMIENTO =====
 el('btnIngreso').addEventListener('click', () => {
     tipoMovimiento = 'ingreso';
     el('btnIngreso').classList.add('activo');
@@ -663,7 +726,7 @@ el('btnGuardarMov').addEventListener('click', async () => {
     }
 });
 
-// ===== CARGAR SOLO TUS MOVIMIENTOS =====
+// ===== CARGAR MOVIMIENTOS =====
 async function cargarMovimientos() {
     if (!usuarioActual) return;
     const lista = el('listaMovimientos');
@@ -673,18 +736,26 @@ async function cargarMovimientos() {
             .where('uid', '==', usuarioActual.uid)
             .orderBy('fecha', 'desc')
             .get();
+        
+        datosMovimientos = [];
         lista.innerHTML = '';
         let totalIng = 0, totalGas = 0;
+        
         if (snap.empty) {
             lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no tienes movimientos</p>';
         }
+        
         snap.forEach(doc => {
-            const m = doc.data();
+            const m = { id: doc.id, ...doc.data() };
+            datosMovimientos.push(m);
+            
             const f = new Date(m.fecha).toLocaleString('es-CO', {
                 day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
             });
+            
             if (m.tipo === 'ingreso') totalIng += m.valor;
             else totalGas += m.valor;
+            
             lista.innerHTML += `
                 <div class="movimiento">
                     <div class="info-mov">
@@ -702,15 +773,118 @@ async function cargarMovimientos() {
                     </div>
                 </div>`;
         });
+        
         el('totalIngresos').textContent = formatearMonto(totalIng);
         el('totalGastos').textContent = formatearMonto(totalGas);
         el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
         
         document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
         document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
+        
+        dibujarGrafico();
     } catch (err) {
         lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
     }
+}
+
+// ===== DIBUJAR GRÁFICO =====
+function dibujarGrafico() {
+    if (!datosMovimientos.length) {
+        if (grafico) grafico.destroy();
+        return;
+    }
+
+    // Agrupar por mes
+    const porMes = {};
+    datosMovimientos.forEach(m => {
+        const mes = formatearMes(m.fecha);
+        if (!porMes[mes]) {
+            porMes[mes] = { ingreso: 0, gasto: 0 };
+        }
+        porMes[mes][m.tipo] += m.valor;
+    });
+
+    const etiquetas = Object.keys(porMes).sort((a, b) => new Date(a) - new Date(b));
+    const ingresos = etiquetas.map(m => porMes[m].ingreso);
+    const gastos = etiquetas.map(m => porMes[m].gasto);
+    
+    let datosSaldo;
+    if (tipoGraficoActivo === 'acumulado') {
+        let saldo = 0;
+        datosSaldo = etiquetas.map((_, i) => {
+            saldo += ingresos[i] - gastos[i];
+            return saldo;
+        });
+    }
+
+    if (grafico) grafico.destroy();
+
+    const ctx = el('graficoEvolucion').getContext('2d');
+    grafico = new Chart(ctx, {
+        type: tipoGraficoActivo === 'mensual' ? 'bar' : 'line',
+        data: tipoGraficoActivo === 'mensual' ? {
+            labels: etiquetas,
+            datasets: [
+                {
+                    label: 'Ingresos',
+                    data: ingresos,
+                    backgroundColor: 'rgba(0, 184, 148, 0.65)',
+                    borderColor: '#00b894',
+                    borderWidth: 2,
+                    borderRadius: 8
+                },
+                {
+                    label: 'Gastos',
+                    data: gastos,
+                    backgroundColor: 'rgba(225, 112, 85, 0.65)',
+                    borderColor: '#e17055',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }
+            ]
+        } : {
+            labels: etiquetas,
+            datasets: [{
+                label: 'Saldo Acumulado',
+                data: datosSaldo,
+                borderColor: '#6c5ce7',
+                backgroundColor: 'rgba(108, 92, 231, 0.15)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointBackgroundColor: '#6c5ce7',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v)
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
 }
 
 // ===== EDITAR =====
