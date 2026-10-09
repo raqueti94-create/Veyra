@@ -630,76 +630,97 @@ button:disabled {
     }
 }
 
-/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
+/* ========== SELECTOR TIPO — INGRESO / GASTO ========== */
 .selector-tipo {
-    display: flex;
-    gap: 1rem;
-    margin: 1.5rem 0 1.25rem;
+    display: flex !important;
+    gap: 1rem !important;
+    justify-content: flex-start !important;
+    margin: 1.5rem 0 1.25rem !important;
+    width: 100% !important;
 }
 
 .btn-tipo-ingreso,
 .btn-tipo-gasto {
-    flex: 1;
-    padding: 1rem 1.5rem;
-    border: 2px solid var(--borde);
-    border-radius: 14px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
-    color: var(--texto-claro);
+    flex: 0 0 auto !important;
+    min-width: 140px !important;
+    padding: 0.9rem 1.5rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 14px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+    color: var(--texto-claro) !important;
+    text-align: center !important;
 }
 
-/* ✅ SELECCIONADO — INGRESO */
+/* ✅ INGRESO SELECCIONADO */
 .btn-tipo-ingreso.activo {
-    border-color: var(--exito);
-    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35);
-    transform: translateY(-2px);
+    border-color: var(--exito) !important;
+    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
 }
 
-/* ✅ SELECCIONADO — GASTO */
+/* ✅ GASTO SELECCIONADO */
 .btn-tipo-gasto.activo {
-    border-color: var(--peligro);
-    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35);
-    transform: translateY(-2px);
+    border-color: var(--peligro) !important;
+    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
 }
 
 /* 🔹 NO SELECCIONADO — EFECTO AL PASAR */
 .btn-tipo-ingreso:not(.activo):hover {
-    border-color: var(--exito);
-    color: var(--exito);
-    background: #e8f5e9;
+    border-color: var(--exito) !important;
+    color: var(--exito) !important;
+    background: #e8f5e9 !important;
 }
 
 .btn-tipo-gasto:not(.activo):hover {
-    border-color: var(--peligro);
-    color: var(--peligro);
-    background: #fff0f0;
+    border-color: var(--peligro) !important;
+    color: var(--peligro) !important;
+    background: #fff0f0 !important;
 }
 
-/* ========== FORMULARIO — ESPACIADO CORRECTO ========== */
-.formulario-movimiento {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem; /* Separación entre campos */
-    margin-top: 1rem;
+/* ========== CAMPOS DE DATOS ========== */
+.campos-formulario {
+    display: flex !important;
+    gap: 0.8rem !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
 }
 
-.grupo-filas {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+.campo-dato {
+    flex: 1 !important;
+    min-width: 150px !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
 }
 
-.grupo-filas input,
-.grupo-filas select {
-    flex: 1;
-    min-width: 160px;
+/* ========== BOTÓN GUARDAR — SEPARADO ========== */
+.btn-guardar-movimiento {
+    margin-top: 1rem !important;
+    padding: 1rem 2rem !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
+    width: 100% !important;
+}
+
+.btn-guardar-movimiento:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
 }
 
 /* ========== BOTÓN GUARDAR ========== */
