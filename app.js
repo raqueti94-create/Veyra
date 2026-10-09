@@ -192,7 +192,6 @@ async function cargarDatos() {
 }
 
 // ========== PESTAÑA CONTABLE ==========
-let cargarContableEnEjecucion = false;
 
 async function cargarContable() {
     const lista = el('listaMovimientos');
