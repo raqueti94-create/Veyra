@@ -118,20 +118,25 @@ async function guardarNombreUsuario(uid, nombre) {
 }
 
 // ========== AUTENTICACIÓN ==========
-auth.onAuthStateChanged(async (usuario) => {
+firebase.auth().onAuthStateChanged((usuario) => {
+    // Obtener las dos pantallas
+    const pantallaLogin = document.getElementById('pantallaLogin');
+    const pantallaPrincipal = document.getElementById('pantallaPrincipal');
+
     if (usuario) {
-        usuarioActual = usuario;
-        el('pantallaLogin').classList.add('oculto');
-        el('pantallaPrincipal').classList.remove('oculto');
-        await cargarNombreUsuario(usuario.uid);
-        await cargarDatos();
+        // ✅ Hay sesión → Mostrar contenido, Ocultar login
+        if (pantallaLogin) pantallaLogin.classList.add('oculto');
+        if (pantallaPrincipal) pantallaPrincipal.classList.remove('oculto');
+        
+        // Cargar el nombre del usuario
+        cargarNombreUsuario(usuario.uid);
+        
     } else {
-        usuarioActual = null;
-        el('pantallaLogin').classList.remove('oculto');
-        el('pantallaPrincipal').classList.add('oculto');
+        // ✅ NO hay sesión → Mostrar login, Ocultar todo el resto
+        if (pantallaLogin) pantallaLogin.classList.remove('oculto');
+        if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
     }
 });
-
 // ========== LOGIN Y REGISTRO ==========
 el('btnIngresar').addEventListener('click', async () => {
     try {
