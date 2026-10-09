@@ -1137,29 +1137,33 @@ function verificarAlertaSaldo(saldo) {
 }
 
     // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
-  let cargarContableEnEjecucion = false;
+let cargarContableEnEjecucion = false;
 
 async function cargarContable() {
-    // ESCUDO TOTAL: Si está corriendo, NO dejes que entre otra
+    console.log('🔄 Ejecutando cargarContable');
+    
+    // ✅ LIMPIAR PRIMERO — ANTES DE CUALQUIER OTRA COSA
+    const lista = el('listaMovimientos');
+    if (lista) {
+        lista.innerHTML = ''; // BORRAR TODO DE INMEDIATO
+    }
+    
+    // ✅ BLOQUEO DE LLAMADAS DUPLICADAS
     if (cargarContableEnEjecucion) {
-        console.log('⛔ LLAMADA DUPLICADA BLOQUEADA');
+        console.log('⛔ Llamada duplicada BLOQUEADA — lista ya limpia');
         return;
     }
     
     if (!usuarioActual) return;
 
-    cargarContableEnEjecucion = true; // BLOQUEAR
+    cargarContableEnEjecucion = true;
 
     const mes = el('mesSeleccionado')?.value || '';
-    const lista = el('listaMovimientos');
     const totalIngresosEl = el('totalIngresos');
     const totalGastosEl = el('totalGastos');
     const saldoTotalEl = el('saldoTotal');
 
     await cargarCategorias();
-
-    // BORRAR TODO ANTES DE CARGAR — GARANTIZADO
-    if (lista) lista.innerHTML = '';
 
     try {
         const snapshot = await db.collection('movimientos')
@@ -1213,7 +1217,7 @@ async function cargarContable() {
         console.error('Error cargando contable:', err);
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
-        cargarContableEnEjecucion = false; // DESBLOQUEAR
+        cargarContableEnEjecucion = false;
     }
 }
 // ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
