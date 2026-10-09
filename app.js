@@ -1189,7 +1189,6 @@ setTimeout(() => {
 
 // === BOTONES INGRESO / GASTO — VERSIÓN CORRECTA ===
 document.addEventListener('DOMContentLoaded', function() {
-    // ✅ Ahora SÍ existe el elemento antes de buscarlo
     el('btnGuardarMov').addEventListener('click', async () => {
         if (!usuarioActual) return;
         const datos = {
@@ -1211,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(err);
             alert('Error guardando movimiento');
         }
-    });
+    }); // ✅ ← AQUÍ VA EL CIERRE QUE FALTABA
 
     el('mesSeleccionado').addEventListener('change', cargarContable);
 });
