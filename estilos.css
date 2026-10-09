@@ -547,3 +547,57 @@ button:disabled {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
 }
+
+/* ========== MODAL ========== */
+.modal-fondo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+}
+.modal-fondo.oculto {
+    display: none;
+}
+.modal-contenido {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.modal-contenido h3 {
+    text-align: center;
+    color: var(--primario);
+    margin-bottom: 1.5rem;
+}
+.modal-contenido input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+}
+.modal-contenido input:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+.botones-modal {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+}
+.btn-cancelar {
+    background: #e1e5e9;
+    color: var(--texto);
+}
+.btn-guardar {
+    background: var(--primario);
+    color: white;
+}
