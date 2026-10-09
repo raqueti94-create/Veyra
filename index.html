@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- ESTILOS — PARTE 1: Base y Estructura -->
     <style>
 * {
     margin: 0;
@@ -47,22 +46,16 @@ body {
     z-index: 9999;
     transition: opacity 0.5s ease, visibility 0.5s ease;
 }
-.pantalla-carga.oculto {
-    opacity: 0;
-    visibility: hidden;
-}
+.pantalla-carga.oculto { opacity: 0; visibility: hidden; }
 .spinner {
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     border: 4px solid rgba(255,255,255,0.3);
     border-top-color: white;
     border-radius: 50%;
     animation: girar 1s linear infinite;
     margin-bottom: 1rem;
 }
-@keyframes girar {
-    to { transform: rotate(360deg); }
-}
+@keyframes girar { to { transform: rotate(360deg); } }
 .pantalla-carga p { color: white; font-size: 1.1rem; }
 .oculto {
     display: none !important;
@@ -75,12 +68,9 @@ body {
 }
 .aparecer {
     animation: aparecer 0.4s ease forwards;
-    opacity: 0;
-    transform: translateY(15px);
+    opacity: 0; transform: translateY(15px);
 }
-@keyframes aparecer {
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
 .escala-hover { transition: var(--transicion); }
 .escala-hover:hover { transform: scale(1.02); }
 .pantalla-login {
@@ -95,12 +85,10 @@ body {
     background: white;
     padding: 3rem 2rem;
     border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 100%; max-width: 440px;
     animation: aparecer 0.5s ease forwards;
-    transform: translateY(20px);
-    opacity: 0;
+    transform: translateY(20px); opacity: 0;
 }
 .icono-app {
     font-size: 4.5rem;
@@ -142,7 +130,7 @@ body {
     outline: none;
     border-color: var(--primario);
     background: white;
-    box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
+    box-shadow: 0 0 0 4px rgba(108,92,231,0.15);
     transform: translateY(-2px);
 }
 .error {
@@ -171,11 +159,11 @@ body {
     transition: all 0.3s ease;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     color: white;
-    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+    box-shadow: 0 6px 20px rgba(108,92,231,0.4);
 }
 .boton-principal:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(108, 92, 231, 0.5);
+    box-shadow: 0 12px 30px rgba(108,92,231,0.5);
 }
 .boton-secundario {
     width: 100%;
@@ -193,7 +181,7 @@ body {
     background: #6c5ce7;
     color: white;
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(108, 92, 231, 0.35);
+    box-shadow: 0 10px 25px rgba(108,92,231,0.35);
 }
 .pantalla-principal {
     max-width: 1200px;
@@ -346,53 +334,6 @@ select:focus, input:focus {
 .btn-accion:hover { background: #e1e5e9; }
 .btn-editar:hover { background: #d4edda; color: #155724; }
 .btn-eliminar:hover { background: #f8d7da; color: #a71d2a; }
-.dias-habito {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-}
-.dia-habito {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.7rem 0.4rem;
-    border-radius: 10px;
-    background: #f1f2f6;
-    cursor: pointer;
-    transition: var(--transicion);
-}
-.dia-habito:hover { transform: scale(1.05); }
-.dia-habito.hecho {
-    background: #d4edda;
-    color: #155724;
-    font-weight: 600;
-}
-.dia-habito.hoy { border: 2px solid var(--primario); }
-.boton-recordatorio {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.75rem !important;
-    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
-    color: #5d3a00 !important;
-    border: 3px solid #e68900 !important;
-    padding: 1rem 2rem !important;
-    border-radius: 14px !important;
-    font-size: 1.05rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35) !important;
-    margin-top: 1rem !important;
-}
-.boton-recordatorio:hover {
-    transform: translateY(-3px) scale(1.02) !important;
-    box-shadow: 0 10px 24px rgba(255, 152, 0, 0.45) !important;
-    background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%) !important;
-}
-    </style>
-
-    <!-- ESTILOS — PARTE 2: Botones, Compartir y Responsivo -->
-    <style>
 .selector-tipo {
     display: flex !important;
     gap: 1rem !important;
@@ -419,13 +360,13 @@ select:focus, input:focus {
     border-color: var(--exito) !important;
     background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
     color: white !important;
-    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
+    box-shadow: 0 4px 12px rgba(0,184,148,0.35) !important;
 }
 .btn-tipo-gasto.activo {
     border-color: var(--peligro) !important;
     background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
     color: white !important;
-    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
+    box-shadow: 0 4px 12px rgba(225,112,85,0.35) !important;
 }
 .btn-tipo-ingreso:not(.activo):hover {
     border-color: var(--exito) !important;
@@ -463,12 +404,12 @@ select:focus, input:focus {
     transition: all 0.3s ease !important;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
     color: white !important;
-    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
+    box-shadow: 0 6px 16px rgba(108,92,231,0.35) !important;
     width: 100% !important;
 }
 .btn-guardar-movimiento:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
+    box-shadow: 0 10px 24px rgba(108,92,231,0.45) !important;
 }
 .botones-compartir {
     display: flex;
@@ -489,11 +430,11 @@ select:focus, input:focus {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+    box-shadow: 0 4px 12px rgba(37,211,102,0.35);
 }
 .btn-whatsapp:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.45);
+    box-shadow: 0 8px 20px rgba(37,211,102,0.45);
 }
 .btn-copiar {
     display: inline-flex;
@@ -508,11 +449,11 @@ select:focus, input:focus {
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.35);
 }
 .btn-copiar:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.45);
+    box-shadow: 0 8px 20px rgba(0,123,255,0.45);
 }
 .btn-cerrar-sesion,
 .btn-cambiar-nombre {
@@ -531,7 +472,7 @@ select:focus, input:focus {
     background: var(--primario);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+    box-shadow: 0 4px 12px rgba(108,92,231,0.25);
 }
 .acciones-usuario {
     display: flex;
@@ -542,7 +483,7 @@ select:focus, input:focus {
 .modal-fondo {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0,0,0,0.55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -575,7 +516,7 @@ select:focus, input:focus {
 .modal-contenido input:focus {
     outline: none;
     border-color: var(--primario);
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
 }
 .botones-modal {
     display: flex;
@@ -589,8 +530,6 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     .fila-doble { grid-template-columns: 1fr; }
     .pestaña { padding: 0.7rem 0.9rem; font-size: 0.85rem; }
     .cabecera { flex-direction: column; text-align: center; }
-    .dias-habito { gap: 0.3rem; }
-    .dia-habito { padding: 0.5rem 0.2rem; }
     .valor-grande { font-size: 1.4rem; }
     .movimiento { flex-direction: column; align-items: flex-start; }
     .valor-botones { width: 100%; justify-content: space-between; }
@@ -602,49 +541,33 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     .caja-login { padding: 2rem 1.5rem; border-radius: 20px; }
     .icono-app { font-size: 3.8rem; }
     .caja-login h1 { font-size: 1.8rem; }
-    .boton-principal,
-    .boton-secundario { padding: 1rem; font-size: 1rem; }
 }
     </style>
 </head>
 <body>
 
-<!-- ==================================================
-     PANTALLA DE CARGA
-     ================================================== -->
 <div class="pantalla-carga" id="pantallaCarga">
     <div class="spinner"></div>
     <p>Iniciando...</p>
 </div>
 
-<!-- ==================================================
-     PANTALLA DE INICIO DE SESIÓN
-     ================================================== -->
 <div class="pantalla-login oculto" id="pantallaLogin">
     <div class="caja-login">
         <span class="icono-app">💰</span>
         <h1>Mis Finanzas</h1>
         <p class="subtitulo">Registra y controla tus ingresos y gastos</p>
-
         <div class="grupo-input">
             <label for="inputNombre">Tu Nombre</label>
             <input type="text" id="inputNombre" placeholder="Escribe tu nombre">
         </div>
-
         <div class="fila-botones">
             <button class="boton-principal" id="btnIngresar">Ingresar</button>
         </div>
-
         <p class="error" id="errorLogin"></p>
     </div>
 </div>
 
-<!-- ==================================================
-     PANTALLA PRINCIPAL
-     ================================================== -->
 <div class="pantalla-principal oculto" id="pantallaPrincipal">
-
-    <!-- Cabecera -->
     <header class="cabecera">
         <div>
             <h2>👋 Bienvenido, <span id="nombreUsuario">Usuario</span></h2>
@@ -655,49 +578,31 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         </div>
     </header>
 
-    <!-- Navegación por pestañas -->
     <nav class="navegacion">
         <button class="pestaña activa" data-pestaña="contable">📒 Contable</button>
         <button class="pestaña" data-pestaña="resumen">📊 Resumen</button>
-        <button class="pestaña" data-pestaña="habitos">🔥 Hábitos</button>
         <button class="pestaña" data-pestaña="compartir">🔗 Compartir</button>
     </nav>
 
-    <!-- ==================================================
-         PESTAÑA: CONTABLE
-         ================================================== -->
     <section class="contenido-pestaña" id="pestaña-contable">
         <div class="bloque">
             <h3>📝 Registrar Movimiento</h3>
-
-            <!-- ✅ BOTONES INGRESO / GASTO — CLASES CORRECTAS -->
             <div class="selector-tipo">
-                <button type="button" class="btn-tipo-ingreso activo" id="btnIngreso">
-                    💰 Ingreso
-                </button>
-                <button type="button" class="btn-tipo-gasto" id="btnGasto">
-                    📉 Gasto
-                </button>
+                <button type="button" class="btn-tipo-ingreso activo" id="btnIngreso">💰 Ingreso</button>
+                <button type="button" class="btn-tipo-gasto" id="btnGasto">📉 Gasto</button>
             </div>
-
             <div class="campos-formulario">
                 <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción">
                 <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="0">
             </div>
-
             <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
         </div>
-
-        <!-- Lista de movimientos -->
         <div class="bloque">
             <h3>📋 Movimientos</h3>
             <div id="listaMovimientos"></div>
         </div>
     </section>
 
-    <!-- ==================================================
-         PESTAÑA: RESUMEN
-         ================================================== -->
     <section class="contenido-pestaña oculto" id="pestaña-resumen">
         <div class="bloque">
             <h3>📊 Resumen del Mes</h3>
@@ -718,40 +623,18 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
         </div>
     </section>
 
-    <!-- ==================================================
-         PESTAÑA: HÁBITOS
-         ================================================== -->
-    <section class="contenido-pestaña oculto" id="pestaña-habitos">
-        <div class="bloque">
-            <h3>🔥 Racha de Días</h3>
-            <p>Días seguidos registrando: <strong id="diasRacha">0</strong></p>
-            <div class="dias-habito" id="calendarioHabitos"></div>
-        </div>
-    </section>
-
-    <!-- ==================================================
-         PESTAÑA: COMPARTIR
-         ================================================== -->
     <section class="contenido-pestaña oculto" id="pestaña-compartir">
         <div class="bloque">
             <h3>🔗 Compartir App</h3>
             <p>Comparte esta herramienta con tus amigos:</p>
             <div class="botones-compartir">
-                <button class="btn-whatsapp" id="btnCompartirWsp">
-                    💬 WhatsApp
-                </button>
-                <button class="btn-copiar" id="btnCopiarEnlace">
-                    📋 Copiar Enlace
-                </button>
+                <button class="btn-whatsapp" id="btnCompartirWsp">💬 WhatsApp</button>
+                <button class="btn-copiar" id="btnCopiarEnlace">📋 Copiar Enlace</button>
             </div>
         </div>
     </section>
-
 </div>
 
-<!-- ==================================================
-     MODAL: CAMBIAR NOMBRE
-     ================================================== -->
 <div class="modal-fondo oculto" id="modalNombre">
     <div class="modal-contenido">
         <h3>✏️ Cambiar Nombre</h3>
@@ -763,35 +646,31 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     </div>
 </div>
 
-<!-- ==================================================
-     LÓGICA DE LA APLICACIÓN
-     ================================================== -->
 <script>
-// ===== VARIABLES GLOBALES =====
-let usuarioActual = null;
-let nombreUsuarioGuardado = 'Usuario';
-let rachaActual = 0;
-let tipoMovimiento = 'ingreso';
-let modoEdicionMov = null;
-let cargarContableEnEjecucion = false;
+// ===== TU CONFIGURACIÓN REAL DE FIREBASE =====
+const firebaseConfig = {
+    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
+    authDomain: "veyra-faa0e.firebaseapp.com",
+    projectId: "veyra-faa0e",
+    storageBucket: "veyra-faa0e.firebasestorage.app",
+    messagingSenderId: "100478048311",
+    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
+    measurementId: "G-KW7ZE24BQ8"
+};
 
-// ===== FUNCIONES AUXILIARES =====
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ===== VARIABLES =====
+let nombreUsuarioGuardado = 'Usuario';
+let tipoMovimiento = 'ingreso';
+let modoEdicionId = null;
+
+// ===== AUXILIARES =====
 function el(id) { return document.getElementById(id); }
 function formatearMonto(valor) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor || 0);
 }
-
-// ===== INICIALIZAR FIREBASE =====
-const firebaseConfig = {
-    apiKey: "AIzaSyBXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    authDomain: "tu-app.firebaseapp.com",
-    projectId: "tu-app",
-    storageBucket: "tu-app.appspot.com",
-    messagingSenderId: "XXXXXXXXXXXX",
-    appId: "1:XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
 
 // ===== MOSTRAR PANTALLA PRINCIPAL =====
 function mostrarPantallaPrincipal() {
@@ -802,7 +681,7 @@ function mostrarPantallaPrincipal() {
     cargarMovimientos();
 }
 
-// ===== INICIO DE SESIÓN =====
+// ===== INICIO =====
 el('btnIngresar').addEventListener('click', () => {
     const nombre = el('inputNombre').value.trim();
     if (!nombre) {
@@ -814,51 +693,42 @@ el('btnIngresar').addEventListener('click', () => {
     mostrarPantallaPrincipal();
 });
 
-// ===== NAVEGACIÓN DE PESTAÑAS =====
+// ===== NAVEGACIÓN =====
 document.querySelectorAll('.pestaña').forEach(boton => {
     boton.addEventListener('click', () => {
         document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
         boton.classList.add('activa');
-        const pestañaId = boton.dataset.pestaña;
+        const id = boton.dataset.pestaña;
         document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
-        el(`pestaña-${pestañaId}`).classList.remove('oculto');
+        el(`pestaña-${id}`).classList.remove('oculto');
     });
 });
 
-// ===== CAMBIO DE TIPO: INGRESO / GASTO =====
+// ===== CAMBIAR TIPO =====
 el('btnIngreso').addEventListener('click', () => {
     tipoMovimiento = 'ingreso';
     el('btnIngreso').classList.add('activo');
     el('btnGasto').classList.remove('activo');
 });
-
 el('btnGasto').addEventListener('click', () => {
     tipoMovimiento = 'gasto';
     el('btnGasto').classList.add('activo');
     el('btnIngreso').classList.remove('activo');
 });
 
-// ===== GUARDAR MOVIMIENTO =====
+// ===== GUARDAR =====
 el('btnGuardarMov').addEventListener('click', async () => {
     const descripcion = el('descripcionMov').value.trim();
     const valor = parseFloat(el('valorMov').value);
-
     if (!descripcion || isNaN(valor) || valor <= 0) {
         alert('Completa todos los datos correctamente');
         return;
     }
-
-    const datos = {
-        descripcion,
-        valor,
-        tipo: tipoMovimiento,
-        fecha: new Date().toISOString()
-    };
-
+    const datos = { descripcion, valor, tipo: tipoMovimiento, fecha: new Date().toISOString() };
     try {
-        if (modoEdicionMov) {
-            await db.collection('movimientos').doc(modoEdicionMov).update(datos);
-            modoEdicionMov = null;
+        if (modoEdicionId) {
+            await db.collection('movimientos').doc(modoEdicionId).update(datos);
+            modoEdicionId = null;
             el('btnGuardarMov').textContent = '✅ Guardar Movimiento';
         } else {
             await db.collection('movimientos').add(datos);
@@ -866,149 +736,122 @@ el('btnGuardarMov').addEventListener('click', async () => {
         el('descripcionMov').value = '';
         el('valorMov').value = '';
         cargarMovimientos();
-    } catch (error) {
-        console.error('Error:', error);
-        alert('No se pudo guardar');
+    } catch (err) {
+        console.error('Error:', err);
+        alert('No se pudo guardar: ' + err.message);
     }
 });
 
-// ===== CARGAR MOVIMIENTOS =====
+// ===== CARGAR LISTA =====
 async function cargarMovimientos() {
-    cargarContableEnEjecucion = true;
     const lista = el('listaMovimientos');
     lista.innerHTML = '<p>Cargando...</p>';
-
     try {
-        const snapshot = await db.collection('movimientos').orderBy('fecha', 'desc').get();
+        const snap = await db.collection('movimientos').orderBy('fecha', 'desc').get();
         lista.innerHTML = '';
-
-        let totalIngresos = 0, totalGastos = 0;
-
-        if (snapshot.empty) {
-            lista.innerHTML = '<p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no hay movimientos registrados</p>';
+        let totalIng = 0, totalGas = 0;
+        if (snap.empty) {
+            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no hay movimientos</p>';
         }
-
-        snapshot.forEach(doc => {
+        snap.forEach(doc => {
             const m = doc.data();
-            const fecha = new Date(m.fecha).toLocaleString('es-CO', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit'
+            const f = new Date(m.fecha).toLocaleString('es-CO', {
+                day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
             });
-
-            if (m.tipo === 'ingreso') totalIngresos += m.valor;
-            else totalGastos += m.valor;
-
+            if (m.tipo === 'ingreso') totalIng += m.valor;
+            else totalGas += m.valor;
             lista.innerHTML += `
                 <div class="movimiento">
                     <div class="info-mov">
                         <p class="descripcion">${m.descripcion}</p>
-                        <p class="fecha">${fecha}</p>
+                        <p class="fecha">${f}</p>
                     </div>
                     <div class="valor-botones">
-                        <p class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
-                            ${m.tipo === 'ingreso' ? '+' : '-'}${formatearMonto(m.valor)}
+                        <p class="valor ${m.tipo==='ingreso'?'positivo':'negativo'}">
+                            ${m.tipo==='ingreso'?'+':'-'}${formatearMonto(m.valor)}
                         </p>
                         <div class="acciones">
                             <button class="btn-accion btn-editar" data-id="${doc.id}">✏️</button>
                             <button class="btn-accion btn-eliminar" data-id="${doc.id}">🗑️</button>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
-
-        // Actualizar resumen
-        el('totalIngresos').textContent = formatearMonto(totalIngresos);
-        el('totalGastos').textContent = formatearMonto(totalGastos);
-        el('saldoActual').textContent = formatearMonto(totalIngresos - totalGastos);
-
-        // Asignar eventos editar/eliminar
-        document.querySelectorAll('.btn-editar').forEach(btn => {
-            btn.addEventListener('click', () => editarMovimiento(btn.dataset.id));
-        });
-        document.querySelectorAll('.btn-eliminar').forEach(btn => {
-            btn.addEventListener('click', () => eliminarMovimiento(btn.dataset.id));
-        });
-
-    } catch (error) {
-        console.error('Error:', error);
-        lista.innerHTML = '<p style="color: var(--peligro);">Error al cargar los datos</p>';
+        el('totalIngresos').textContent = formatearMonto(totalIng);
+        el('totalGastos').textContent = formatearMonto(totalGas);
+        el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
+        
+        // Eventos editar/eliminar
+        document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
+        document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
+    } catch (err) {
+        lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
     }
-
-    cargarContableEnEjecucion = false;
 }
 
-// ===== EDITAR MOVIMIENTO =====
-async function editarMovimiento(id) {
+// ===== EDITAR =====
+async function editar(id) {
     const doc = await db.collection('movimientos').doc(id).get();
     if (!doc.exists) return;
-    const datos = doc.data();
-
-    el('descripcionMov').value = datos.descripcion;
-    el('valorMov').value = datos.valor;
-    tipoMovimiento = datos.tipo;
-
-    if (tipoMovimiento === 'ingreso') {
+    const d = doc.data();
+    el('descripcionMov').value = d.descripcion;
+    el('valorMov').value = d.valor;
+    tipoMovimiento = d.tipo;
+    if (d.tipo === 'ingreso') {
         el('btnIngreso').classList.add('activo');
         el('btnGasto').classList.remove('activo');
     } else {
         el('btnGasto').classList.add('activo');
         el('btnIngreso').classList.remove('activo');
     }
-
-    modoEdicionMov = id;
+    modoEdicionId = id;
     el('btnGuardarMov').textContent = '🔄 Actualizar Movimiento';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===== ELIMINAR MOVIMIENTO =====
-async function eliminarMovimiento(id) {
+// ===== ELIMINAR =====
+async function eliminar(id) {
     if (!confirm('¿Eliminar este movimiento?')) return;
     await db.collection('movimientos').doc(id).delete();
     cargarMovimientos();
 }
 
 // ===== COMPARTIR =====
-el('btnCompartirWsp').addEventListener('click', () => {
-    const texto = encodeURIComponent('Mira esta app para controlar tus finanzas: ' + window.location.href);
-    window.open(`https://wa.me/?text=${texto}`, '_blank');
-});
-
-el('btnCopiarEnlace').addEventListener('click', async () => {
+el('btnCompartirWsp').onclick = () => {
+    const t = encodeURIComponent('Mira esta app para controlar tus finanzas: ' + window.location.href);
+    window.open(`https://wa.me/?text=${t}`, '_blank');
+};
+el('btnCopiarEnlace').onclick = async () => {
     await navigator.clipboard.writeText(window.location.href);
     alert('¡Enlace copiado!');
-});
+};
 
 // ===== CAMBIAR NOMBRE =====
-el('btnCambiarNombre').addEventListener('click', () => {
+el('btnCambiarNombre').onclick = () => {
     el('inputNuevoNombre').value = nombreUsuarioGuardado;
     el('modalNombre').classList.remove('oculto');
-});
-
-el('btnCancelarNombre').addEventListener('click', () => {
+};
+el('btnCancelarNombre').onclick = () => el('modalNombre').classList.add('oculto');
+el('btnGuardarNombre').onclick = () => {
+    const n = el('inputNuevoNombre').value.trim();
+    if (!n) return alert('Escribe un nombre válido');
+    nombreUsuarioGuardado = n;
+    localStorage.setItem('nombreUsuario', n);
+    el('nombreUsuario').textContent = n;
     el('modalNombre').classList.add('oculto');
-});
-
-el('btnGuardarNombre').addEventListener('click', () => {
-    const nuevoNombre = el('inputNuevoNombre').value.trim();
-    if (!nuevoNombre) return alert('Escribe un nombre válido');
-    nombreUsuarioGuardado = nuevoNombre;
-    localStorage.setItem('nombreUsuario', nuevoNombre);
-    el('nombreUsuario').textContent = nuevoNombre;
-    el('modalNombre').classList.add('oculto');
-});
+};
 
 // ===== CERRAR SESIÓN =====
-el('btnCerrarSesion').addEventListener('click', () => {
+el('btnCerrarSesion').onclick = () => {
     if (!confirm('¿Cerrar sesión?')) return;
     localStorage.removeItem('nombreUsuario');
     el('pantallaPrincipal').classList.add('oculto');
     el('pantallaLogin').classList.remove('oculto');
     el('inputNombre').value = '';
-});
+};
 
 // ===== RECUPERAR SESIÓN =====
-window.addEventListener('load', () => {
+window.onload = () => {
     const guardado = localStorage.getItem('nombreUsuario');
     if (guardado) {
         nombreUsuarioGuardado = guardado;
@@ -1017,7 +860,7 @@ window.addEventListener('load', () => {
         el('pantallaCarga').classList.add('oculto');
         el('pantallaLogin').classList.remove('oculto');
     }
-});
+};
 </script>
 
 </body>
