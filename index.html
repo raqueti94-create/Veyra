@@ -22,17 +22,25 @@
 <!-- PANTALLA DE LOGIN -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
-        <h1>💰 Mis Finanzas</h1>
+        <div class="icono-app">💰</div>
+        <h1>Mis Finanzas</h1>
         <p class="subtitulo">Controla tus ahorros, gastos y metas</p>
         
-        <input type="email" id="correoLogin" placeholder="Correo electrónico" class="entrada">
-        <input type="password" id="claveLogin" placeholder="Contraseña" class="entrada">
+        <div class="grupo-input">
+            <label for="correoLogin">📧 Correo electrónico</label>
+            <input type="email" id="correoLogin" placeholder="tu@correo.com">
+        </div>
+        
+        <div class="grupo-input">
+            <label for="claveLogin">🔒 Contraseña</label>
+            <input type="password" id="claveLogin" placeholder="Escribe tu contraseña">
+        </div>
         
         <p id="mensajeError" class="error"></p>
         
         <div class="fila-botones">
-            <button id="btnIngresar" class="boton-principal">Ingresar</button>
-            <button id="btnRegistrar" class="boton-secundario">Crear cuenta</button>
+            <button id="btnIngresar" class="boton-principal">✅ Ingresar</button>
+            <button id="btnRegistrar" class="boton-secundario">✨ Crear cuenta</button>
         </div>
     </div>
 </div>
