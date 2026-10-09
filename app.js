@@ -1,11 +1,12 @@
 // ========== CONFIGURACIÓN FIREBASE ==========
 const firebaseConfig = {
-    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGVJtqHXLUfIY2w",
-    authDomain: "veyra-app.firebaseapp.com",
-    projectId: "veyra-app",
-    storageBucket: "veyra-app.appspot.com",
-    messagingSenderId: "452902909761",
-    appId: "1:452902909761:web:64e8b5c4c8c5d5e7f8a9b0c"
+    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
+    authDomain: "veyra-faa0e.firebaseapp.com",
+    projectId: "veyra-faa0e",
+    storageBucket: "veyra-faa0e.firebasestorage.app",
+    messagingSenderId: "100478048311",
+    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
+    measurementId: "G-KW7ZE24BQ8"
 };
 
 firebase.initializeApp(firebaseConfig);
