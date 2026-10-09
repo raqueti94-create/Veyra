@@ -1046,3 +1046,8 @@ async function cargarDatos() {
     await cargarHabitos();
     await cargarLogros();
 }
+// Forzar ocultar carga después de 3 segundos
+setTimeout(() => {
+    const carga = document.getElementById('pantallaCarga');
+    if (carga) carga.classList.add('oculto');
+}, 3000);
