@@ -119,23 +119,24 @@ async function guardarNombreUsuario(uid, nombre) {
 
 // ========== AUTENTICACIÓN ==========
 firebase.auth().onAuthStateChanged((usuario) => {
-    const pantallaLogin = document.getElementById('pantallalogin');
+    // IDs EXACTOS del HTML
+    const pantallaLogin = document.getElementById('pantallaLogin'); // ✅ L y G mayúsculas
     const pantallaPrincipal = document.getElementById('pantallaPrincipal');
 
-    // Guardar el usuario globalmente
+    // Asignar usuario global
     usuarioActual = usuario;
 
     if (usuario) {
-        // ✅ Hay sesión → Ocultar login, Mostrar contenido
+        // ✅ Con sesión → Ocultar login, Mostrar contenido
         if (pantallaLogin) pantallaLogin.classList.add('oculto');
         if (pantallaPrincipal) pantallaPrincipal.classList.remove('oculto');
         
-        // Cargar todo
+        // Cargar datos
         cargarNombreUsuario(usuario.uid);
         cargarDatos();
         
     } else {
-        // ✅ NO hay sesión → Mostrar login, Ocultar todo
+        // ✅ Sin sesión → Mostrar login, Ocultar contenido
         if (pantallaLogin) pantallaLogin.classList.remove('oculto');
         if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
     }
