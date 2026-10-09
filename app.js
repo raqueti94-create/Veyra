@@ -1124,30 +1124,6 @@ function verificarAlertaSaldo(saldo) {
     }
 }
 
-// ========== CARGAR CONTABLE — VERSIÓN FINAL SIN DUPLICADOS ==========
-let cargarContableEnEjecucion = false; // ✅ BANDERA DE PROTECCIÓN
-
-async function cargarContable() {
-    console.log('🔄 Ejecutando cargarContable');
-    
-    // Si ya está en proceso, no permitir otra llamada
-    if (cargarContableEnEjecucion) {
-        console.log('⛔ Llamada duplicada bloqueada');
-        return;
-    }
-    
-    if (!usuarioActual) return;
-
-    cargarContableEnEjecucion = true; // Bloquear
-
-    const mes = el('mesSeleccionado')?.value || '';
-    const lista = el('listaMovimientos');
-    const totalIngresosEl = el('totalIngresos');
-    const totalGastosEl = el('totalGastos');
-    const saldoTotalEl = el('saldoTotal');
-
-    await cargarCategorias();
-
     // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
     let cargarContableEnEjecucion = false;
 
