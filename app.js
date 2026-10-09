@@ -190,7 +190,7 @@ if (btnCerrar) {
         
         if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
         
-        // Ocultar pantalla principal
+        // Ocultar pantalla principal ANTES de recargar
         const pantallaPrincipal = document.getElementById('pantallaPrincipal');
         if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
         
