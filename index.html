@@ -141,13 +141,17 @@ body {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.8rem;
+    gap: 1rem;
 }
 .cabecera h2 { font-size: 1.1rem; color: var(--primario); }
-.btn-cerrar-sesion {
+.contenedor-botones-cabecera {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+.boton-cabecera {
     background: transparent;
-    border: 2px solid var(--peligro);
-    color: var(--peligro);
+    border: 2px solid;
     border-radius: 10px;
     padding: 0.6rem 1rem;
     font-size: 0.9rem;
@@ -155,7 +159,24 @@ body {
     cursor: pointer;
     transition: var(--transicion);
 }
-.btn-cerrar-sesion:hover { background: var(--peligro); color: white; transform: translateY(-2px); }
+.btn-cambiar-nombre {
+    border-color: var(--primario);
+    color: var(--primario);
+}
+.btn-cambiar-nombre:hover {
+    background: var(--primario);
+    color: white;
+    transform: translateY(-2px);
+}
+.btn-cerrar-sesion {
+    border-color: var(--peligro);
+    color: var(--peligro);
+}
+.btn-cerrar-sesion:hover {
+    background: var(--peligro);
+    color: white;
+    transform: translateY(-2px);
+}
 .navegacion { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
 .pestaña {
     padding: 0.7rem 1.1rem;
@@ -273,9 +294,71 @@ body {
     text-decoration: underline;
     font-size: 0.95rem;
 }
+.modal-fondo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+}
+.modal-fondo.oculto { display: none; }
+.modal-contenido {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.modal-contenido h3 {
+    text-align: center;
+    color: var(--primario);
+    margin-bottom: 1.5rem;
+}
+.modal-contenido input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+}
+.modal-contenido input:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
+}
+.botones-modal {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+}
+.btn-cancelar-modal {
+    background: #e1e5e9;
+    color: var(--texto);
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-guardar-modal {
+    background: var(--primario);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
 @media (max-width: 768px) {
     .fila-doble { grid-template-columns: 1fr; }
     .selector-tipo { flex-direction: column; }
+    .cabecera { flex-direction: column; text-align: center; }
+    .contenedor-botones-cabecera { width: 100%; justify-content: center; }
 }
     </style>
 </head>
@@ -324,7 +407,10 @@ body {
         <div>
             <h2>👋 Bienvenido, <span id="nombreUsuario">Usuario</span></h2>
         </div>
-        <button class="btn-cerrar-sesion" id="btnCerrarSesion">🚪 Cerrar sesión</button>
+        <div class="contenedor-botones-cabecera">
+            <button class="boton-cabecera btn-cambiar-nombre" id="btnCambiarNombre">✏️ Cambiar nombre</button>
+            <button class="boton-cabecera btn-cerrar-sesion" id="btnCerrarSesion">🚪 Cerrar sesión</button>
+        </div>
     </header>
 
     <nav class="navegacion">
@@ -382,6 +468,17 @@ body {
             </div>
         </div>
     </section>
+</div>
+
+<div class="modal-fondo oculto" id="modalNombre">
+    <div class="modal-contenido">
+        <h3>✏️ Cambiar Nombre</h3>
+        <input type="text" id="inputNuevoNombre" placeholder="Escribe tu nuevo nombre">
+        <div class="botones-modal">
+            <button class="btn-cancelar-modal" id="btnCancelarNombre">Cancelar</button>
+            <button class="btn-guardar-modal" id="btnGuardarNombre">Guardar</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -448,7 +545,6 @@ el('btnIngresar').addEventListener('click', async () => {
         } else {
             credencial = await auth.signInWithEmailAndPassword(correo, contraseña);
         }
-        // Éxito → se activa el observador onAuthStateChanged
     } catch (error) {
         console.error('Error:', error);
         let mensaje = 'No se pudo completar la operación';
@@ -483,6 +579,32 @@ auth.onAuthStateChanged(usuario => {
         el('subtituloLogin').textContent = 'Ingresa para continuar';
         el('btnIngresar').textContent = 'Ingresar';
         el('btnCambiarModo').textContent = '¿No tienes cuenta? Crear una';
+    }
+});
+
+// ===== CAMBIAR NOMBRE =====
+el('btnCambiarNombre').addEventListener('click', () => {
+    const nombreActual = el('nombreUsuario').textContent;
+    el('inputNuevoNombre').value = nombreActual;
+    el('modalNombre').classList.remove('oculto');
+});
+el('btnCancelarNombre').addEventListener('click', () => {
+    el('modalNombre').classList.add('oculto');
+});
+el('btnGuardarNombre').addEventListener('click', async () => {
+    const nuevoNombre = el('inputNuevoNombre').value.trim();
+    if (!nuevoNombre) {
+        alert('Escribe un nombre válido');
+        return;
+    }
+    if (!usuarioActual) return;
+    try {
+        await usuarioActual.updateProfile({ displayName: nuevoNombre });
+        el('nombreUsuario').textContent = nuevoNombre;
+        el('modalNombre').classList.add('oculto');
+        alert('Nombre actualizado ✅');
+    } catch (error) {
+        alert('Error al cambiar el nombre: ' + error.message);
     }
 });
 
