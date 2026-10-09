@@ -728,52 +728,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Exportar PDF
     el('btnGenerarPDF')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const mesValor = el('mesExtracto').value;
+        if (!usuarioActual) {
+            alert('Inicia sesión para generar el PDF');
+            return;
+        }
+
+        const mesValor = el('mesExtracto')?.value;
+        if (!mesValor) {
+            alert('Selecciona el mes');
+            return;
+        }
         const mesNombre = mesSeleccionadoTexto(mesValor);
-        const movSnap = await db.collection('movimientos')
-            .where('userId', '==', usuarioActual.uid).where('mes', '==', mesValor).orderBy('fecha', 'desc').get();
-        let totalIngresos = 0, totalGastos = 0;
-        const movimientos = [];
-        movSnap.forEach(doc => {
-            const m = doc.data();
-            m.tipo === 'ingreso' ? totalIngresos += m.monto : totalGastos += m.monto;
-            movimientos.push({ fecha: formatearFecha(m.fecha), descripcion: m.descripcion, categoria: m.categoria, monto: m.monto, tipo: m.tipo });
-        });
-        const saldo = totalIngresos - totalGastos;
-        const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-        const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-        const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).get();
-        let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
-        depSnap.forEach(d => {
-            const datos = d.data();
-            totalAhorrado += datos.monto;
-            if (datos.lugar === 'nequi') nequi += datos.monto;
-            else if (datos.lugar === 'banco') banco += datos.monto;
-            else if (datos.lugar === 'efectivo') efectivo += datos.monto;
-        });
-        const falta = Math.max(0, meta - totalAhorrado);
-        const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
-        el('pdfMesPeriodo').textContent = mesNombre;
-        el('pdfNombreUsuario').textContent = nombreUsuarioGuardado;
-        el('pdfFechaEmision').textContent = new Date().toLocaleDateString('es-CO');
-        el('pdfTablaIngresos').textContent = `$ ${totalIngresos.toLocaleString()}`;
-        el('pdfTablaGastos').textContent = `$ ${totalGastos.toLocaleString()}`;
-        el('pdfTablaSaldo').textContent = `$ ${saldo.toLocaleString()}`;
-        el('pdfMetaAhorro').textContent = `$ ${meta.toLocaleString()}`;
-        el('pdfTotalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
-        el('pdfFaltaAhorro').textContent = `$ ${falta.toLocaleString()}`;
-        el('pdfPorcentajeAhorro').textContent = `${porcentaje}%`;
-        el('pdfNequi').textContent = `$ ${nequi.toLocaleString()}`;
-        el('pdfBanco').textContent = `$ ${banco.toLocaleString()}`;
-        el('pdfEfectivo').textContent = `$ ${efectivo.toLocaleString()}`;
-        const cuerpo = el('pdfCuerpoMov');
-        cuerpo.innerHTML = '';
-        if (movimientos.length === 0) {
-            cuerpo.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>';
-        } else {
-            movimientos.forEach(m => {
-                cuerpo.innerHTML += `
+
+        try {
+            // 1. Obtener movimientos
+            const movSnap = await db.collection('movimientos')
+                .where('userId', '==', usuarioActual.uid)
+                .where('mes', '==', mesValor)
+                .orderBy('fecha', 'desc')
+                .get();
+
+            let totalIngresos = 0, totalGastos = 0;
+            const movimientos = [];
+            movSnap.forEach(doc => {
+                const m = doc.data();
+                if (m.tipo === 'ingreso') totalIngresos += m.monto;
+                else totalGastos += m.monto;
+                movimientos.push({
+                    fecha: formatearFecha(m.fecha),
+                    descripcion: m.descripcion || 'Sin descripción',
+                    categoria: m.categoria || 'Sin categoría',
+                    monto: m.monto,
+                    tipo: m.tipo
+                });
+            });
+            const saldo = totalIngresos - totalGastos;
+
+            // 2. Datos de ahorro
+            const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
+            const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
+
+            const depSnap = await db.collection('ahorro_depositos')
+                .where('userId', '==', usuarioActual.uid)
+                .get();
+            let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
+            depSnap.forEach(d => {
+                const datos = d.data();
+                totalAhorrado += datos.monto;
+                if (datos.lugar === 'nequi') nequi += datos.monto;
+                else if (datos.lugar === 'banco') banco += datos.monto;
+                else if (datos.lugar === 'efectivo') efectivo += datos.monto;
+            });
+            const falta = Math.max(0, meta - totalAhorrado);
+            const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
+
+            // 3. Construir contenido directamente desde JS (NO depende de los id del HTML)
+            const cuerpoFilas = movimientos.length === 0
+                ? `<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>`
+                : movimientos.map(m => `
                     <tr>
                         <td style="padding:8px; border-bottom:1px solid #eee;">${m.fecha}</td>
                         <td style="padding:8px; border-bottom:1px solid #eee;">${m.descripcion}</td>
@@ -781,8 +793,105 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:${m.tipo === 'ingreso' ? '#00b894' : '#e17055'};">
                             ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
                         </td>
-                    </tr>`;
+                    </tr>`).join('');
+
+            // 4. Crear plantilla temporal completa
+            const plantillaHTML = `
+<div style="padding:20px; font-family:Arial, sans-serif; color:#333;">
+    <h2 style="text-align:center; color:#2d3436; margin-bottom:5px;">📄 Extracto Financiero</h2>
+    <p style="text-align:center; color:#636e72; margin-bottom:20px;">Periodo: ${mesNombre}</p>
+    
+    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #ddd; padding-bottom:10px; margin-bottom:15px;">
+        <div><strong>Usuario:</strong> ${nombreUsuarioGuardado || 'Usuario'}</div>
+        <div><strong>Fecha de emisión:</strong> ${new Date().toLocaleDateString('es-CO')}</div>
+    </div>
+
+    <h3 style="color:#2d3436;">Resumen del Mes</h3>
+    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+        <tr style="background:#f8f9fa;">
+            <th style="padding:10px; text-align:left;">Concepto</th>
+            <th style="padding:10px; text-align:right;">Valor</th>
+        </tr>
+        <tr>
+            <td style="padding:8px; border-bottom:1px solid #eee;">💰 Total Ingresos</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#00b894; font-weight:bold;">$ ${totalIngresos.toLocaleString()}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px; border-bottom:1px solid #eee;">📉 Total Gastos</td>
+            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#e17055; font-weight:bold;">$ ${totalGastos.toLocaleString()}</td>
+        </tr>
+        <tr style="background:#f0f0f0; font-weight:bold;">
+            <td style="padding:10px;">💵 Saldo del Mes</td>
+            <td style="padding:10px; text-align:right;">$ ${saldo.toLocaleString()}</td>
+        </tr>
+    </table>
+
+    <h3 style="color:#2d3436;">Movimientos</h3>
+    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+        <tr style="background:#f8f9fa;">
+            <th style="padding:10px; text-align:left;">Fecha</th>
+            <th style="padding:10px; text-align:left;">Descripción</th>
+            <th style="padding:10px; text-align:left;">Categoría</th>
+            <th style="padding:10px; text-align:right;">Monto</th>
+        </tr>
+        ${cuerpoFilas}
+    </table>
+
+    <h3 style="color:#2d3436;">💰 Ahorro</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <tr>
+            <td style="padding:8px;"><strong>Meta:</strong></td>
+            <td style="padding:8px; text-align:right;">$ ${meta.toLocaleString()}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px;"><strong>Total Ahorrado:</strong></td>
+            <td style="padding:8px; text-align:right; font-weight:bold;">$ ${totalAhorrado.toLocaleString()}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px;"><strong>Falta para la meta:</strong></td>
+            <td style="padding:8px; text-align:right;">$ ${falta.toLocaleString()}</td>
+        </tr>
+        <tr>
+            <td style="padding:8px;"><strong>Progreso:</strong></td>
+            <td style="padding:8px; text-align:right;">${porcentaje}%</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+            <td style="padding:8px;">📱 Nequi</td>
+            <td style="padding:8px; text-align:right;">$ ${nequi.toLocaleString()}</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+            <td style="padding:8px;">🏦 Banco</td>
+            <td style="padding:8px; text-align:right;">$ ${banco.toLocaleString()}</td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+            <td style="padding:8px;">💵 Efectivo</td>
+            <td style="padding:8px; text-align:right;">$ ${efectivo.toLocaleString()}</td>
+        </tr>
+    </table>
+</div>`;
+
+            // 5. Generar PDF desde el contenido creado
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = plantillaHTML;
+            document.body.appendChild(tempDiv);
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            await pdf.html(tempDiv, {
+                x: 5,
+                y: 5,
+                width: 200,
+                windowWidth: 794,
+                autoPaging: true
             });
+
+            pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
+            document.body.removeChild(tempDiv);
+
+        } catch (err) {
+            console.error('Error generando PDF:', err);
+            alert('Error al generar el PDF: ' + err.message);
+        }
+    });
         }
         const plantilla = el('plantillaPDF');
         plantilla.style.display = 'block';
