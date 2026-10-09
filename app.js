@@ -1175,7 +1175,7 @@ function verificarAlertaSaldo(saldo) {
     }
 }
 
-// ========== CARGAR CONTABLE (VERSIÓN COMPLETA) ==========
+// ========== CARGAR CONTABLE — VERSIÓN FINAL SIN DUPLICADOS ==========
 async function cargarContable() {
     if (!usuarioActual) return;
 
@@ -1185,9 +1185,10 @@ async function cargarContable() {
     const totalGastosEl = el('totalGastos');
     const saldoTotalEl = el('saldoTotal');
 
-    // ✅ Cargar categorías primero
+    // Cargar categorías
     await cargarCategorias();
 
+    // Limpiar lista ANTES de cargar — elimina duplicados
     if (lista) lista.innerHTML = '<p class="texto-centrado">Cargando movimientos...</p>';
 
     try {
@@ -1198,17 +1199,23 @@ async function cargarContable() {
             .get();
 
         let totalIngresos = 0, totalGastos = 0;
-        lista.innerHTML = '';
+        
+        // Limpiar definitivamente antes de insertar
+        if (lista) lista.innerHTML = '';
 
         if (snapshot.empty) {
-            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
+            if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
         } else {
             snapshot.forEach(doc => {
                 const m = doc.data();
-                if (m.tipo === 'ingreso') totalIngresos += m.monto;
-                else totalGastos += m.monto;
+                if (m.tipo === 'ingreso') {
+                    totalIngresos += m.monto;
+                } else {
+                    totalGastos += m.monto;
+                }
 
-                lista.innerHTML += `
+                if (lista) {
+                    lista.innerHTML += `
                     <div class="movimiento aparecer escala-hover">
                         <div class="info-mov">
                             <div class="fecha">${formatearFecha(m.fecha)}</div>
@@ -1228,6 +1235,7 @@ async function cargarContable() {
                             </div>
                         </div>
                     </div>`;
+                }
             });
         }
 
@@ -1236,7 +1244,6 @@ async function cargarContable() {
         if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
         if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
 
-        // Mostrar alerta de saldo
         verificarAlertaSaldo(totalIngresos - totalGastos);
 
     } catch (err) {
