@@ -126,14 +126,16 @@ firebase.auth().onAuthStateChanged((usuario) => {
 
     if (usuario) {
         console.log('✅ Conectado:', usuario.email);
-        if (pantallaLogin) pantallaLogin.classList.add('oculto');
-        if (pantallaPrincipal) pantallaPrincipal.classList.remove('oculto');
+        // Ocultar login — Mostrar app
+        if (pantallaLogin) pantallaLogin.style.display = 'none';
+        if (pantallaPrincipal) pantallaPrincipal.style.display = 'block';
         cargarNombreUsuario(usuario.uid);
         cargarDatos();
     } else {
         console.log('🔒 Sin sesión');
-        if (pantallaLogin) pantallaLogin.classList.remove('oculto');
-        if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
+        // Mostrar login — Ocultar app
+        if (pantallaLogin) pantallaLogin.style.display = 'flex';
+        if (pantallaPrincipal) pantallaPrincipal.style.display = 'none';
     }
 });
 // ========== LOGIN Y REGISTRO ==========
