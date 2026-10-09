@@ -176,32 +176,29 @@ setTimeout(() => el('pantallaCarga')?.classList.add('oculto'), 3000);
 // FIN PARTE 1 — Pegar Parte 2 a continuación
 // ==================================================
 // ==================================================
-// PARTE 2: FUNCIONES DE CARGA, EVENTOS, MÓDULOS
-// GUARDAR COMO: parte2.js o pegar después de la Parte 1
+// PARTE 2: CARGA DE DATOS — CONTABLE, AHORRO, HÁBITOS, LOGROS
 // ==================================================
 
-// ========== CARGAR DATOS GENERALES ==========
+// ========== CARGA GENERAL ==========
 async function cargarDatos() {
-    await cargarContable();
-    await cargarAhorro();
-    await cargarHabitos();
-    await cargarLogros();
+    await Promise.all([
+        cargarContable(),
+        cargarAhorro(),
+        cargarHabitos(),
+        cargarLogros()
+    ]);
     cargarResumenSemanal();
     cargarProyeccion();
 }
 
 // ========== PESTAÑA CONTABLE ==========
+let cargarContableEnEjecucion = false;
+
 async function cargarContable() {
-    console.log('🔄 Ejecutando cargarContable');
-    
     const lista = el('listaMovimientos');
     if (lista) lista.innerHTML = '';
     
-    if (cargarContableEnEjecucion) {
-        console.log('⛔ Llamada duplicada BLOQUEADA');
-        return;
-    }
-    if (!usuarioActual) return;
+    if (cargarContableEnEjecucion || !usuarioActual) return;
     cargarContableEnEjecucion = true;
 
     const mes = el('mesSeleccionado')?.value || '';
@@ -219,6 +216,7 @@ async function cargarContable() {
             .get();
 
         let totalIngresos = 0, totalGastos = 0;
+
         if (snapshot.empty) {
             if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
         } else {
@@ -536,7 +534,7 @@ async function cargarComparacion() {
         </div>`;
 }
 
-// ========== TARJETA Y EXPORTAR ==========
+// ========== TARJETA ==========
 function cargarVistaPreviaTarjeta() {
     el('tarjetaNombre') && (el('tarjetaNombre').textContent = nombreUsuarioGuardado || 'Usuario');
     el('tarjetaRacha') && (el('tarjetaRacha').textContent = `${rachaActual} días`);
@@ -556,8 +554,14 @@ function cargarVistaPreviaTarjeta() {
         el('vistaPreviaTarjeta').innerHTML = el('tarjetaImagen').innerHTML;
     }
 }
+// ==================================================
+// PARTE 3: EVENTOS, PDF CORREGIDO Y DELEGACIÓN
+// ==================================================
 
-// ========== EVENTOS ÚNICOS — SIN DUPLICADOS ==========
+let modoEdicionMov = null;
+let modoEdicionDep = null;
+
+// ========== INICIO DE EVENTOS ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Login / Registro
     el('btnIngresar')?.addEventListener('click', async () => {
@@ -726,13 +730,14 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) { alert('Error: ' + error.message); }
     });
 
-    // Exportar PDF
+    // ==============================================
+    // PDF GENERADO CORRECTAMENTE — SIN DEPENDENCIAS
+    // ==============================================
     el('btnGenerarPDF')?.addEventListener('click', async () => {
         if (!usuarioActual) {
             alert('Inicia sesión para generar el PDF');
             return;
         }
-
         const mesValor = el('mesExtracto')?.value;
         if (!mesValor) {
             alert('Selecciona el mes');
@@ -741,7 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const mesNombre = mesSeleccionadoTexto(mesValor);
 
         try {
-            // 1. Obtener movimientos
+            // Obtener datos de Firebase
             const movSnap = await db.collection('movimientos')
                 .where('userId', '==', usuarioActual.uid)
                 .where('mes', '==', mesValor)
@@ -764,13 +769,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const saldo = totalIngresos - totalGastos;
 
-            // 2. Datos de ahorro
+            // Datos de ahorro
             const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
             const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-
-            const depSnap = await db.collection('ahorro_depositos')
-                .where('userId', '==', usuarioActual.uid)
-                .get();
+            const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).get();
             let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
             depSnap.forEach(d => {
                 const datos = d.data();
@@ -782,8 +784,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const falta = Math.max(0, meta - totalAhorrado);
             const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
 
-            // 3. Construir contenido directamente desde JS (NO depende de los id del HTML)
-            const cuerpoFilas = movimientos.length === 0
+            // Construir filas de movimientos
+            const filasMov = movimientos.length === 0
                 ? `<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>`
                 : movimientos.map(m => `
                     <tr>
@@ -795,95 +797,47 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                     </tr>`).join('');
 
-            // 4. Crear plantilla temporal completa
+            // Plantilla completa
             const plantillaHTML = `
 <div style="padding:20px; font-family:Arial, sans-serif; color:#333;">
     <h2 style="text-align:center; color:#2d3436; margin-bottom:5px;">📄 Extracto Financiero</h2>
     <p style="text-align:center; color:#636e72; margin-bottom:20px;">Periodo: ${mesNombre}</p>
-    
     <div style="display:flex; justify-content:space-between; border-bottom:2px solid #ddd; padding-bottom:10px; margin-bottom:15px;">
         <div><strong>Usuario:</strong> ${nombreUsuarioGuardado || 'Usuario'}</div>
-        <div><strong>Fecha de emisión:</strong> ${new Date().toLocaleDateString('es-CO')}</div>
+        <div><strong>Emisión:</strong> ${new Date().toLocaleDateString('es-CO')}</div>
     </div>
-
     <h3 style="color:#2d3436;">Resumen del Mes</h3>
     <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-        <tr style="background:#f8f9fa;">
-            <th style="padding:10px; text-align:left;">Concepto</th>
-            <th style="padding:10px; text-align:right;">Valor</th>
-        </tr>
-        <tr>
-            <td style="padding:8px; border-bottom:1px solid #eee;">💰 Total Ingresos</td>
-            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#00b894; font-weight:bold;">$ ${totalIngresos.toLocaleString()}</td>
-        </tr>
-        <tr>
-            <td style="padding:8px; border-bottom:1px solid #eee;">📉 Total Gastos</td>
-            <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#e17055; font-weight:bold;">$ ${totalGastos.toLocaleString()}</td>
-        </tr>
-        <tr style="background:#f0f0f0; font-weight:bold;">
-            <td style="padding:10px;">💵 Saldo del Mes</td>
-            <td style="padding:10px; text-align:right;">$ ${saldo.toLocaleString()}</td>
-        </tr>
+        <tr style="background:#f8f9fa;"><th style="padding:10px; text-align:left;">Concepto</th><th style="padding:10px; text-align:right;">Valor</th></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #eee;">💰 Total Ingresos</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#00b894; font-weight:bold;">$ ${totalIngresos.toLocaleString()}</td></tr>
+        <tr><td style="padding:8px; border-bottom:1px solid #eee;">📉 Total Gastos</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#e17055; font-weight:bold;">$ ${totalGastos.toLocaleString()}</td></tr>
+        <tr style="background:#f0f0f0; font-weight:bold;"><td style="padding:10px;">💵 Saldo del Mes</td><td style="padding:10px; text-align:right;">$ ${saldo.toLocaleString()}</td></tr>
     </table>
-
     <h3 style="color:#2d3436;">Movimientos</h3>
     <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-        <tr style="background:#f8f9fa;">
-            <th style="padding:10px; text-align:left;">Fecha</th>
-            <th style="padding:10px; text-align:left;">Descripción</th>
-            <th style="padding:10px; text-align:left;">Categoría</th>
-            <th style="padding:10px; text-align:right;">Monto</th>
-        </tr>
-        ${cuerpoFilas}
+        <tr style="background:#f8f9fa;"><th style="padding:10px; text-align:left;">Fecha</th><th style="padding:10px; text-align:left;">Descripción</th><th style="padding:10px; text-align:left;">Categoría</th><th style="padding:10px; text-align:right;">Monto</th></tr>
+        ${filasMov}
     </table>
-
     <h3 style="color:#2d3436;">💰 Ahorro</h3>
     <table style="width:100%; border-collapse:collapse;">
-        <tr>
-            <td style="padding:8px;"><strong>Meta:</strong></td>
-            <td style="padding:8px; text-align:right;">$ ${meta.toLocaleString()}</td>
-        </tr>
-        <tr>
-            <td style="padding:8px;"><strong>Total Ahorrado:</strong></td>
-            <td style="padding:8px; text-align:right; font-weight:bold;">$ ${totalAhorrado.toLocaleString()}</td>
-        </tr>
-        <tr>
-            <td style="padding:8px;"><strong>Falta para la meta:</strong></td>
-            <td style="padding:8px; text-align:right;">$ ${falta.toLocaleString()}</td>
-        </tr>
-        <tr>
-            <td style="padding:8px;"><strong>Progreso:</strong></td>
-            <td style="padding:8px; text-align:right;">${porcentaje}%</td>
-        </tr>
-        <tr style="background:#f8f9fa;">
-            <td style="padding:8px;">📱 Nequi</td>
-            <td style="padding:8px; text-align:right;">$ ${nequi.toLocaleString()}</td>
-        </tr>
-        <tr style="background:#f8f9fa;">
-            <td style="padding:8px;">🏦 Banco</td>
-            <td style="padding:8px; text-align:right;">$ ${banco.toLocaleString()}</td>
-        </tr>
-        <tr style="background:#f8f9fa;">
-            <td style="padding:8px;">💵 Efectivo</td>
-            <td style="padding:8px; text-align:right;">$ ${efectivo.toLocaleString()}</td>
-        </tr>
+        <tr><td style="padding:8px;"><strong>Meta:</strong></td><td style="padding:8px; text-align:right;">$ ${meta.toLocaleString()}</td></tr>
+        <tr><td style="padding:8px;"><strong>Total Ahorrado:</strong></td><td style="padding:8px; text-align:right; font-weight:bold;">$ ${totalAhorrado.toLocaleString()}</td></tr>
+        <tr><td style="padding:8px;"><strong>Falta para la meta:</strong></td><td style="padding:8px; text-align:right;">$ ${falta.toLocaleString()}</td></tr>
+        <tr><td style="padding:8px;"><strong>Progreso:</strong></td><td style="padding:8px; text-align:right;">${porcentaje}%</td></tr>
+        <tr style="background:#f8f9fa;"><td style="padding:8px;">📱 Nequi</td><td style="padding:8px; text-align:right;">$ ${nequi.toLocaleString()}</td></tr>
+        <tr style="background:#f8f9fa;"><td style="padding:8px;">🏦 Banco</td><td style="padding:8px; text-align:right;">$ ${banco.toLocaleString()}</td></tr>
+        <tr style="background:#f8f9fa;"><td style="padding:8px;">💵 Efectivo</td><td style="padding:8px; text-align:right;">$ ${efectivo.toLocaleString()}</td></tr>
     </table>
 </div>`;
 
-            // 5. Generar PDF desde el contenido creado
+            // Generar PDF
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = plantillaHTML;
             document.body.appendChild(tempDiv);
 
+            const { jsPDF } = window.jspdf;
             const pdf = new jsPDF('p', 'mm', 'a4');
-            await pdf.html(tempDiv, {
-                x: 5,
-                y: 5,
-                width: 200,
-                windowWidth: 794,
-                autoPaging: true
-            });
-
+            await pdf.html(tempDiv, { x: 5, y: 5, width: 200, windowWidth: 794, autoPaging: true });
             pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
             document.body.removeChild(tempDiv);
 
@@ -891,16 +845,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error generando PDF:', err);
             alert('Error al generar el PDF: ' + err.message);
         }
-    });
-        }
-        const plantilla = el('plantillaPDF');
-        plantilla.style.display = 'block';
-        setTimeout(async () => {
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            await pdf.html(plantilla, { x: 10, y: 10, width: 190, windowWidth: 794, autoPaging: true });
-            pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
-            plantilla.style.display = 'none';
-        }, 300);
     });
 
     // Generar imagen tarjeta
@@ -923,10 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
     el('btnRecordatorioHabito')?.addEventListener('click', async () => {
         try {
             if (Notification.permission === 'granted') {
-                new Notification('💪 ¡Hola!', {
-                    body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!',
-                    icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico'
-                });
+                new Notification('💪 ¡Hola!', { body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!', icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico' });
                 alert('🔔 Recordatorio enviado ✅');
             } else if (Notification.permission !== 'denied') {
                 const permiso = await Notification.requestPermission();
@@ -939,9 +880,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Compartir
     el('btnCompartirWhatsapp')?.addEventListener('click', () => {
-        const texto = encodeURIComponent(
-            `💰 Mi Progreso Financiero\nUsuario: ${nombreUsuarioGuardado}\n🔥 Racha: ${rachaActual} días\nMira mi avance: ${window.location.href}`
-        );
+        const texto = encodeURIComponent(`💰 Mi Progreso Financiero\nUsuario: ${nombreUsuarioGuardado}\n🔥 Racha: ${rachaActual} días\nMira mi avance: ${window.location.href}`);
         window.open(`https://wa.me/?text=${texto}`, '_blank');
     });
     el('btnCopiarEnlace')?.addEventListener('click', async () => {
@@ -963,7 +902,6 @@ document.addEventListener('click', async e => {
         await db.collection('movimientos').doc(e.target.dataset.id).delete();
         cargarContable();
     }
-
     // Abrir editar movimiento
     if (e.target.classList.contains('btn-editar-mov')) {
         const id = e.target.dataset.id;
@@ -984,32 +922,27 @@ document.addEventListener('click', async e => {
         el('montoEditarMov').value = m.monto || '';
         el('catEditarMov').value = m.categoria || '';
     }
-
     // Eliminar categoría
     if (e.target.classList.contains('btn-eliminar-cat')) {
         if (!confirm('¿Eliminar esta categoría?')) return;
         await db.collection('categorias').doc(e.target.dataset.id).delete();
         cargarCategorias();
     }
-
     // Editar categoría
     if (e.target.classList.contains('btn-editar-cat')) {
         const id = e.target.dataset.id;
         const nombreActual = e.target.dataset.nombre;
         const nuevoNombre = prompt('Nuevo nombre de categoría:', nombreActual);
-        if (!nuevoNombre || nuevoNombre.trim() === '') return;
-        if (nuevoNombre.trim() === nombreActual) return;
+        if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre.trim() === nombreActual) return;
         await db.collection('categorias').doc(id).update({ nombre: nuevoNombre.trim() });
         cargarCategorias();
     }
-
     // Eliminar depósito
     if (e.target.classList.contains('eliminar-deposito')) {
         if (!confirm('¿Eliminar este depósito?')) return;
         await db.collection('ahorro_depositos').doc(e.target.dataset.id).delete();
         cargarAhorro();
     }
-
     // Editar depósito
     if (e.target.classList.contains('btn-editar-deposito')) {
         modoEdicionDep = e.target.dataset.id;
@@ -1017,7 +950,6 @@ document.addEventListener('click', async e => {
         const doc = await db.collection('ahorro_depositos').doc(modoEdicionDep).get();
         el('montoEditarDep').value = doc.data().monto || '';
     }
-
     // Eliminar hábito
     if (e.target.classList.contains('eliminar-habito')) {
         if (!confirm('¿Eliminar este hábito? Se perderá su historial ✍️')) return;
@@ -1025,7 +957,6 @@ document.addEventListener('click', async e => {
         cargarHabitos();
         cargarLogros();
     }
-
     // Marcar/desmarcar día de hábito
     if (e.target.classList.contains('dia-habito')) {
         const habitoId = e.target.dataset.habito;
