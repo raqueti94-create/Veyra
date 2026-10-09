@@ -141,23 +141,61 @@ el('btnRegistrar').addEventListener('click', async () => {
 });
 
 // Botón Cambiar Nombre → Abre el modal
-const btnEditar = el('btnEditarNombre');
+const btnEditar = document.getElementById('btnEditarNombre');
 if (btnEditar) {
     btnEditar.addEventListener('click', () => {
-        el('modalNombre').classList.remove('oculto');
-        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
-        el('inputNombreUsuario').value = nombreUsuarioGuardado;
+        const modal = document.getElementById('modalNombre');
+        if (modal) modal.classList.remove('oculto');
+        
+        const titulo = document.getElementById('tituloModalNombre');
+        if (titulo) titulo.textContent = '✏️ Cambiar tu nombre';
+        
+        const input = document.getElementById('inputNombreUsuario');
+        if (input && nombreUsuarioGuardado) input.value = nombreUsuarioGuardado;
     });
 }
 
-// Botón Cerrar Sesión
-const btnCerrar = el('btnCerrarSesion');
-if (btnCerrar) {
-    btnCerrar.addEventListener('click', async () => {
-        if (confirm('¿Seguro que quieres cerrar sesión?')) {
-            await firebase.auth().signOut();
-            console.log('✅ Sesión cerrada');
-            window.location.reload();
+// Botón Cancelar → Cierra el modal
+const btnCancelar = document.getElementById('btnCancelarNombre');
+if (btnCancelar) {
+    btnCancelar.addEventListener('click', () => {
+        const modal = document.getElementById('modalNombre');
+        if (modal) modal.classList.add('oculto');
+    });
+}
+
+// Botón Guardar → Guarda el nombre
+const btnGuardar = document.getElementById('btnGuardarNombre');
+if (btnGuardar) {
+    btnGuardar.addEventListener('click', async () => {
+        const input = document.getElementById('inputNombreUsuario');
+        const nuevoNombre = input ? input.value.trim() : '';
+        
+        if (!nuevoNombre) {
+            alert('Escribe un nombre válido ✍️');
+            return;
+        }
+        
+        try {
+            const usuario = firebase.auth().currentUser;
+            if (usuario) {
+                await db.collection('usuarios').doc(usuario.uid).set(
+                    { nombre: nuevoNombre },
+                    { merge: true }
+                );
+                nombreUsuarioGuardado = nuevoNombre;
+                
+                const elNombre = document.getElementById('nombreUsuario');
+                if (elNombre) elNombre.textContent = `👋 Hola, ${nuevoNombre}`;
+                
+                const modal = document.getElementById('modalNombre');
+                if (modal) modal.classList.add('oculto');
+                
+                console.log('✅ Nombre guardado');
+            }
+        } catch (error) {
+            console.error('❌ Error:', error);
+            alert('No se pudo guardar, intenta de nuevo');
         }
     });
 }
