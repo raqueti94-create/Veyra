@@ -825,3 +825,26 @@ button:has-text("Enviarme recordatorio de hábito"):hover,
     box-shadow: 0 8px 20px rgba(255, 193, 7, 0.35);
     background: linear-gradient(135deg, #ffeeba 0%, #ffd460 100%);
 }
+
+/* RECORDATORIO */
+.boton-recordatorio {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.6rem !important;
+    background: linear-gradient(135deg, #fff3cd, #ffeeba) !important;
+    color: #856404 !important;
+    border: 2px solid #ffc107 !important;
+    padding: 0.85rem 1.5rem !important;
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 12px rgba(255,193,7,0.25) !important;
+}
+
+.boton-recordatorio:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(255,193,7,0.35) !important;
+    background: linear-gradient(135deg, #ffeeba, #ffd460) !important;
+}
