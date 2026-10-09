@@ -12,7 +12,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-const el = id => document.getElementById(id);
+// Función auxiliar para seleccionar elementos
+function el(id) {
+    return document.getElementById(id);
+}
 const { jsPDF } = window.jspdf;
 
 // ========== VARIABLES GLOBALES ==========
@@ -1027,6 +1030,14 @@ cargarDatos = async function () {
     cargarResumenSemanal();
     cargarProyeccion();
 };
+
+// ========== OCULTAR PANTALLA DE CARGA ==========
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const carga = document.getElementById('pantallaCarga');
+        if (carga) carga.classList.add('oculto');
+    }, 800);
+});
 
 // ========== CARGA INICIAL ==========
 async function cargarDatos() {
