@@ -114,11 +114,12 @@ body {
     padding: 6px;
     box-shadow: var(--sombra);
     overflow-x: auto;
+    flex-wrap: wrap;
 }
 .pestaña {
     flex: 1;
-    min-width: 100px;
-    padding: 12px 10px;
+    min-width: 80px;
+    padding: 10px 8px;
     border: none;
     background: transparent;
     color: var(--texto-claro);
@@ -126,6 +127,7 @@ body {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.25s;
+    font-size: 0.9rem;
 }
 .pestaña.activa {
     background: var(--primario);
@@ -157,7 +159,7 @@ body {
 }
 .texto-centrado { text-align: center; margin-top: 10px; }
 
-/* SELECTOR TIPO INGRESO/GASTO ✅ */
+/* SELECTOR TIPO INGRESO/GASTO */
 .selector-tipo {
     display: flex;
     gap: 10px;
@@ -204,16 +206,6 @@ body {
 .valor { font-size: 1.15rem; font-weight: 700; }
 .valor.positivo { color: var(--exito); }
 .valor.negativo { color: var(--peligro); }
-
-/* BARRAS PROGRESO */
-.contenedor-barras { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
-.barra-grupo { display: flex; align-items: center; gap: 10px; }
-.contenedor-barra { flex: 1; height: 24px; background: #e9ecef; border-radius: 12px; overflow: hidden; position: relative; }
-.barra { height: 100%; border-radius: 12px; transition: width 0.4s ease; }
-.barra.verde { background: linear-gradient(90deg, #00b894, #00ceaa); }
-.barra.roja { background: linear-gradient(90deg, #e17055, #ff7675); }
-.barra.azul { background: linear-gradient(90deg, #0984e3, #74b9ff); }
-.valor-barra { position: absolute; right: 8px; top: 2px; font-size: 0.75rem; font-weight: 600; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
 /* MOVIMIENTOS */
 .movimiento {
@@ -331,28 +323,6 @@ body {
 .logro-tarjeta.bloqueado .logro-emoji { color: #ff9800; text-shadow: 0 0 4px rgba(255,152,0,0.35); }
 .logro-info h4 { margin: 0; font-size: 1rem; color: #111; font-weight: 700; }
 .logro-info p { margin: 2px 0 0; font-size: 0.85rem; color: #333; line-height: 1.4; }
-
-/* LLUVIA DE EMOJIS */
-.lluvia-emojis {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 9999;
-    overflow: hidden;
-}
-.emoji-cayendo {
-    position: absolute;
-    top: -50px;
-    font-size: 2.5rem;
-    animation: caer 6s ease-in forwards;
-}
-@keyframes caer {
-    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-}
 
 /* MODAL */
 .modal {
