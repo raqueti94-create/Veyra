@@ -1,4 +1,4 @@
-// Configuración Firebase
+// ========== CONFIGURACIÓN FIREBASE ==========
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
     authDomain: "veyra-faa0e.firebaseapp.com",
@@ -13,256 +13,349 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 const el = id => document.getElementById(id);
 
-// ------------------- CONFIGURACIÓN DE LOGROS -------------------
-const LOGROS = [
-    { dias: 1,  nombre: "Primer paso dado ✅",   emoji: "🔥", descripcion: "¡Empezaste con fuerza!" },
-    { dias: 7,  nombre: "Una semana completa 💪", emoji: "⭐", descripcion: "7 días sin detenerse" },
-    { dias: 14, nombre: "Dos semanas sin fallar 🏅", emoji: "🏅", descripcion: "Constancia de acero" },
-    { dias: 30, nombre: "Un mes entero en racha 🏆", emoji: "🏆", descripcion: "30 días de compromiso" },
-    { dias: 100, nombre: "¡Casi tres meses! ⭐", emoji: "🌟", descripcion: "Dedicarón excepcional" },
-    { dias: 365, nombre: "Todo un año 🎖️", emoji: "🎖️", descripcion: "¡Un año completo! Eres imparable" }
-];
-
-// Variables Globales
+// ========== VARIABLES GLOBALES ==========
 let usuarioActual = null;
-let tipoMovimiento = 'ingreso';
-let estadoEdicion = { tipo: null, id: null, esIngreso: false };
-let rachaActual = 0;
-let logrosAnteriores = new Set();
+let nombreUsuarioGuardado = '';
+let categoriaEditarId = null;
+let movimientoEditarId = null;
 
-const categoriasDefault = [
-    { nombre: 'Trabajo', icono: '💼' },
-    { nombre: 'Casa', icono: '🏠' },
-    { nombre: 'Comida', icono: '🍽️' },
-    { nombre: 'Transporte', icono: '🚗' },
-    { nombre: 'Servicios', icono: '💡' },
-    { nombre: 'Otros', icono: '📦' }
+const LOGROS = [
+    { dias: 1,   nombre: "Primer paso dado ✅",   emoji: "🔥", descripcion: "¡Empezaste con fuerza!" },
+    { dias: 7,   nombre: "Una semana completa 💪", emoji: "⭐", descripcion: "7 días sin detenerte" },
+    { dias: 14,  nombre: "Caminante constante 🚶", emoji: "🏅", descripcion: "2 semanas seguidas" },
+    { dias: 30,  nombre: "Maestro de la constancia 🏆", emoji: "👑", descripcion: "¡Todo un mes!" }
 ];
 
-// ------------------- PANTALLAS -------------------
-function mostrarPantallaPrincipal() {
-    document.getElementById('pantallaLogin').classList.add('oculto');
-    document.getElementById('pantallaPrincipal').classList.remove('oculto');
+// ========== FUNCIONES AUXILIARES ==========
+function obtenerFechaHoy() {
+    return new Date().toISOString().split('T')[0];
 }
 
-function mostrarPantallaLogin() {
-    document.getElementById('pantallaLogin').classList.remove('oculto');
-    document.getElementById('pantallaPrincipal').classList.add('oculto');
-    document.getElementById('mensajeError').textContent = '';
+function formatearFecha(fecha) {
+    if (!fecha) return '';
+    const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
+    return d.toLocaleDateString();
 }
 
-// ------------------- AUTENTICACIÓN -------------------
-auth.onAuthStateChanged(async usuario => {
+// ========== NOMBRE DE USUARIO ==========
+async function cargarNombreUsuario(uid) {
+    try {
+        const doc = await db.collection('usuarios').doc(uid).get();
+        if (doc.exists && doc.data().nombre) {
+            nombreUsuarioGuardado = doc.data().nombre;
+            el('nombreUsuario').textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
+            el('editarNombreContenedor').classList.remove('oculto');
+        } else {
+            el('modalNombre').classList.remove('oculto');
+            el('btnCancelarNombre').classList.add('oculto');
+            el('tituloModalNombre').textContent = '👤 Crea tu nombre de usuario';
+        }
+    } catch (err) {
+        console.error('Error cargando nombre:', err);
+    }
+}
+
+async function guardarNombreUsuario(uid, nombre) {
+    if (!nombre.trim()) return alert('Por favor escribe un nombre');
+    try {
+        await db.collection('usuarios').doc(uid).set({ nombre: nombre.trim() }, { merge: true });
+        nombreUsuarioGuardado = nombre.trim();
+        el('nombreUsuario').textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
+        el('modalNombre').classList.add('oculto');
+        el('editarNombreContenedor').classList.remove('oculto');
+        el('inputNombreUsuario').value = '';
+    } catch (err) {
+        console.error('Error guardando nombre:', err);
+        alert('No se pudo guardar el nombre, intenta de nuevo');
+    }
+}
+
+// ========== AUTENTICACIÓN ==========
+auth.onAuthStateChanged(async (usuario) => {
     if (usuario) {
         usuarioActual = usuario;
-        document.getElementById('nombreUsuario').textContent = '👋 Hola, ' + (usuario.displayName || usuario.email);
-        mostrarPantallaPrincipal();
-        await inicializarCategoriasDefault();
+        el('pantallaLogin').classList.add('oculto');
+        el('pantallaPrincipal').classList.remove('oculto');
+        
+        await cargarNombreUsuario(usuario.uid);
         await cargarDatos();
-        // Guardar logros ya desbloqueados al iniciar
-        LOGROS.forEach(l => {
-            if (rachaActual >= l.dias) logrosAnteriores.add(l.dias);
-        });
     } else {
         usuarioActual = null;
-        mostrarPantallaLogin();
+        el('pantallaLogin').classList.remove('oculto');
+        el('pantallaPrincipal').classList.add('oculto');
     }
 });
 
-// ------------------- CATEGORÍAS -------------------
-async function inicializarCategoriasDefault() {
-    if (!usuarioActual) return;
-    try {
-        const snap = await db.collection('categorias')
-            .where('userId', '==', usuarioActual.uid)
-            .limit(1)
-            .get();
+// ========== NAVEGACIÓN DE PESTAÑAS ==========
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('pestaña')) {
+        document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
+        e.target.classList.add('activa');
         
-        if (snap.empty) {
-            const batch = db.batch();
-            categoriasDefault.forEach(cat => {
-                const ref = db.collection('categorias').doc();
-                batch.set(ref, { 
-                    userId: usuarioActual.uid, 
-                    nombre: cat.nombre, 
-                    icono: cat.icono, 
-                    esDefault: true 
-                });
-            });
-            await batch.commit();
-        }
-    } catch (e) {
-        console.log('Categorías:', e.message);
+        const pagina = e.target.dataset.pagina;
+        document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
+        el(pagina).classList.remove('oculto');
+        
+        if (pagina === 'contable') cargarContable();
+        if (pagina === 'ahorro') cargarAhorro();
+        if (pagina === 'habitos') cargarHabitos();
+        if (pagina === 'logros') cargarLogros();
     }
-}
+});
 
-async function actualizarSelectCategorias() {
+// ========== LOGIN Y REGISTRO ==========
+el('btnIngresar').addEventListener('click', async () => {
+    try {
+        el('mensajeError').textContent = '';
+        await auth.signInWithEmailAndPassword(
+            el('correoLogin').value,
+            el('claveLogin').value
+        );
+    } catch (err) {
+        el('mensajeError').textContent = 'Correo o contraseña incorrectos';
+    }
+});
+
+el('btnRegistrar').addEventListener('click', async () => {
+    try {
+        el('mensajeError').textContent = '';
+        await auth.createUserWithEmailAndPassword(
+            el('correoLogin').value,
+            el('claveLogin').value
+        );
+    } catch (err) {
+        el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
+    }
+});
+
+document.querySelector('.btn-cerrar').addEventListener('click', () => {
+    auth.signOut();
+});
+
+// ========== PESTAÑA CONTABLE ==========
+let tipoMovimiento = 'ingreso';
+
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-tipo')) {
+        document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('activa'));
+        e.target.classList.add('activa');
+        tipoMovimiento = e.target.dataset.tipo;
+    }
+});
+
+el('btnGuardarMov').addEventListener('click', async () => {
     if (!usuarioActual) return;
-    const select = document.getElementById('categoriaMov');
-    const valorActual = select.value;
-    select.innerHTML = '<option value="">Seleccionar categoría</option>';
     
-    const snap = await db.collection('categorias')
-        .where('userId', '==', usuarioActual.uid)
-        .orderBy('nombre')
-        .get();
+    const datos = {
+        userId: usuarioActual.uid,
+        tipo: tipoMovimiento,
+        descripcion: el('descripcionMov').value || 'Sin descripción',
+        categoria: el('categoriaMov').value || 'Sin categoría',
+        monto: parseFloat(el('montoMov').value) || 0,
+        mes: el('mesSeleccionado').value,
+        fecha: new Date()
+    };
     
-    snap.forEach(doc => {
-        const c = doc.data();
-        select.innerHTML += `<option value="${c.nombre}">${c.icono || '📁'} ${c.nombre}</option>`;
-    });
-    if (valorActual) select.value = valorActual;
-}
+    if (!datos.monto) return alert('Escribe un monto válido');
+    
+    try {
+        if (movimientoEditarId) {
+            const { id, ...sinId } = datos;
+            await db.collection('movimientos').doc(movimientoEditarId).update(sinId);
+            movimientoEditarId = null;
+        } else {
+            await db.collection('movimientos').add(datos);
+        }
+        
+        el('descripcionMov').value = '';
+        el('montoMov').value = '';
+        cargarContable();
+    } catch (err) {
+        console.error(err);
+        alert('Error guardando movimiento');
+    }
+});
 
-// ------------------- CARGA GENERAL -------------------
-async function cargarDatos() {
-    if (!usuarioActual) return;
-    await Promise.all([
-        cargarMovimientos(),
-        cargarCategorias(),
-        actualizarSelectCategorias(),
-        cargarAhorro(),
-        cargarHabitos(),
-        calcularRachaGeneral()
-    ]);
-}
+el('mesSeleccionado').addEventListener('change', cargarContable);
 
-// ------------------- MOVIMIENTOS -------------------
-async function cargarMovimientos() {
+async function cargarContable() {
     if (!usuarioActual) return;
-    const mes = document.getElementById('mesSeleccionado').value;
-    const snap = await db.collection('movimientos')
+    
+    const mes = el('mesSeleccionado').value;
+    const movSnap = await db.collection('movimientos')
         .where('userId', '==', usuarioActual.uid)
         .where('mes', '==', mes)
         .orderBy('fecha', 'desc')
         .get();
     
-    let ingresos = 0, gastos = 0;
-    const lista = document.getElementById('listaMovimientos');
+    let totalIngresos = 0, totalGastos = 0;
+    const lista = el('listaMovimientos');
     lista.innerHTML = '';
     
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">No hay movimientos este mes</p>';
-    } else {
-        snap.forEach(doc => {
-            const m = doc.data();
-            const montoNum = Number(m.monto) || 0;
-            if (montoNum >= 0) ingresos += montoNum;
-            else gastos += Math.abs(montoNum);
-            
-            const fecha = m.fecha?.toDate ? m.fecha.toDate() : new Date();
-            lista.innerHTML += `
-                <div class="movimiento">
-                    <div class="info-mov">
-                        <div class="fecha">${fecha.toLocaleDateString()}</div>
-                        <div class="descripcion">${m.descripcion}</div>
-                        <div class="categoria-pequeña">${m.categoria || 'Sin categoría'}</div>
-                    </div>
-                    <div class="valor-botones">
-                        <div class="valor ${montoNum >= 0 ? 'positivo' : 'negativo'}">
-                            ${montoNum >= 0 ? '+' : '-'} $ ${Math.abs(montoNum).toLocaleString()}
-                        </div>
-                        <div class="acciones">
-                            <button class="btn-accion editar-mov" data-id="${doc.id}" 
-                                data-desc="${m.descripcion}" data-monto="${Math.abs(montoNum)}" 
-                                data-ingreso="${montoNum >= 0}">✏️</button>
-                            <button class="btn-accion eliminar-mov" data-id="${doc.id}">🗑️</button>
-                        </div>
-                    </div>
-                </div>`;
-        });
-
-        document.querySelectorAll('.eliminar-mov').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                if (confirm('¿Eliminar este movimiento?')) {
-                    await db.collection('movimientos').doc(btn.dataset.id).delete();
-                    await cargarMovimientos();
-                }
-            });
-        });
-
-        document.querySelectorAll('.editar-mov').forEach(btn => {
-            btn.addEventListener('click', () => {
-                estadoEdicion = { tipo: 'movimiento', id: btn.dataset.id, esIngreso: btn.dataset.ingreso === 'true' };
-                document.getElementById('tituloModal').textContent = 'Editar Movimiento';
-                document.getElementById('inputEditar').value = btn.dataset.desc;
-                document.getElementById('inputEditarNumero').value = btn.dataset.monto;
-                document.getElementById('inputEditarNumero').classList.remove('oculto');
-                document.getElementById('modalEditar').classList.add('oculto');
-            });
-        });
-    }
-
-    document.getElementById('totalIngresos').textContent = `$ ${ingresos.toLocaleString()}`;
-    document.getElementById('totalGastos').textContent = `$ ${gastos.toLocaleString()}`;
-    document.getElementById('saldoTotal').textContent = `$ ${(ingresos - gastos).toLocaleString()}`;
-
-    const maximo = Math.max(ingresos, gastos, 1);
-    const porcIngresos = (ingresos / maximo) * 100;
-    const porcGastos = (gastos / maximo) * 100;
-    const saldo = ingresos - gastos;
-    const porcSaldo = (saldo / maximo) * 100;
-
-    document.getElementById('barraIngresos').style.height = `${porcIngresos}%`;
-    document.getElementById('barraGastos').style.height = `${porcGastos}%`;
-    document.getElementById('barraSaldo').style.height = `${Math.max(0, porcSaldo)}%`;
-    document.getElementById('valorBarraIngresos').textContent = `$${ingresos.toLocaleString()}`;
-    document.getElementById('valorBarraGastos').textContent = `$${gastos.toLocaleString()}`;
-    document.getElementById('valorBarraSaldo').textContent = `$${saldo.toLocaleString()}`;
-}
-
-// ------------------- CATEGORÍAS LISTA -------------------
-async function cargarCategorias() {
-    if (!usuarioActual) return;
-    const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
-    const lista = document.getElementById('listaCategorias');
-    lista.innerHTML = '';
-    
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">Cargando categorías...</p>';
-        return;
-    }
-    
-    snap.forEach(doc => {
-        const c = doc.data();
+    movSnap.forEach(doc => {
+        const m = doc.data();
+        if (m.tipo === 'ingreso') totalIngresos += m.monto;
+        else totalGastos += m.monto;
+        
         lista.innerHTML += `
-            <div class="categoria">
-                <span class="icono">${c.icono || '📁'}</span>
-                <div>
-                    <strong>${c.nombre}</strong>
-                    <small>${c.esDefault ? 'Predeterminada' : 'Personalizada'}</small>
+            <div class="movimiento">
+                <div class="info-mov">
+                    <div class="fecha">${formatearFecha(m.fecha)}</div>
+                    <div class="descripcion">${m.descripcion}</div>
+                    <div class="categoria-pequeña">${m.categoria}</div>
                 </div>
-                <div class="acciones">
-                    ${!c.esDefault ? `
-                        <button class="btn-accion editar-cat" data-id="${doc.id}" data-nombre="${c.nombre}">✏️</button>
-                        <button class="btn-accion eliminar-cat" data-id="${doc.id}">🗑️</button>
-                    ` : ''}
+                <div class="valor-botones">
+                    <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
+                        ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
+                    </div>
+                    <div class="acciones">
+                        <button class="btn-accion editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
+                        <button class="btn-accion eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                    </div>
                 </div>
             </div>`;
     });
-
-    document.querySelectorAll('.editar-cat').forEach(btn => {
-        btn.addEventListener('click', () => {
-            estadoEdicion = { tipo: 'categoria', id: btn.dataset.id };
-            document.getElementById('tituloModal').textContent = 'Editar Categoría';
-            document.getElementById('inputEditar').value = btn.dataset.nombre;
-            document.getElementById('inputEditarNumero').classList.add('oculto');
-            document.getElementById('modalEditar').classList.remove('oculto');
+    
+    const saldo = totalIngresos - totalGastos;
+    el('totalIngresos').textContent = `$ ${totalIngresos.toLocaleString()}`;
+    el('totalGastos').textContent = `$ ${totalGastos.toLocaleString()}`;
+    el('saldoTotal').textContent = `$ ${saldo.toLocaleString()}`;
+    
+    // Eventos editar/eliminar
+    document.querySelectorAll('.eliminar-mov').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (confirm('¿Eliminar este movimiento?')) {
+                await db.collection('movimientos').doc(btn.dataset.id).delete();
+                cargarContable();
+            }
         });
     });
+    
+    document.querySelectorAll('.editar-mov').forEach(btn => {
+        btn.addEventListener('click', () => {
+            movimientoEditarId = btn.dataset.id;
+            el('tituloModal').textContent = 'Editar Movimiento';
+            el('inputEditar').classList.add('oculto');
+            el('inputEditarNumero').classList.remove('oculto');
+            el('modalEditar').classList.remove('oculto');
+        });
+    });
+    
+    cargarCategorias();
+}
 
+// ========== CATEGORÍAS ==========
+el('btnAbrirCat').addEventListener('click', () => {
+    el('formNuevaCat').classList.toggle('oculto');
+});
+
+el('btnGuardarCat').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    const nombre = el('nombreCat').value.trim();
+    if (!nombre) return alert('Escribe un nombre');
+    
+    try {
+        if (categoriaEditarId) {
+            await db.collection('categorias').doc(categoriaEditarId).update({ nombre });
+            categoriaEditarId = null;
+        } else {
+            await db.collection('categorias').add({
+                userId: usuarioActual.uid,
+                nombre
+            });
+        }
+        el('nombreCat').value = '';
+        el('formNuevaCat').classList.add('oculto');
+        cargarCategorias();
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+async function cargarCategorias() {
+    if (!usuarioActual) return;
+    const catSnap = await db.collection('categorias')
+        .where('userId', '==', usuarioActual.uid)
+        .get();
+    
+    const select = el('categoriaMov');
+    select.innerHTML = '<option value="">Seleccionar categoría</option>';
+    const lista = el('listaCategorias');
+    lista.innerHTML = '';
+    
+    catSnap.forEach(doc => {
+        const c = doc.data();
+        select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+        lista.innerHTML += `
+            <div class="categoria">
+                <span class="icono">📁</span>
+                <span>${c.nombre}</span>
+                <div style="margin-left:auto">
+                    <button class="btn-accion editar-cat" data-id="${doc.id}">✏️</button>
+                    <button class="btn-accion eliminar-cat" data-id="${doc.id}">🗑️</button>
+                </div>
+            </div>`;
+    });
+    
     document.querySelectorAll('.eliminar-cat').forEach(btn => {
         btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar esta categoría?')) {
+            if (confirm('¿Eliminar categoría?')) {
                 await db.collection('categorias').doc(btn.dataset.id).delete();
-                await cargarCategorias();
-                await actualizarSelectCategorias();
+                cargarCategorias();
             }
+        });
+    });
+    
+    document.querySelectorAll('.editar-cat').forEach(btn => {
+        btn.addEventListener('click', () => {
+            categoriaEditarId = btn.dataset.id;
+            el('nombreCat').value = btn.closest('.categoria').querySelector('span:nth-child(2)').textContent;
+            el('formNuevaCat').classList.remove('oculto');
         });
     });
 }
 
-// ------------------- AHORRO PROGRAMADO -------------------
+// ========== PESTAÑA AHORRO ==========
+el('lugarAhorro').addEventListener('change', () => {
+    el('campoBanco').classList.toggle('oculto', el('lugarAhorro').value !== 'banco');
+});
+
+el('btnGuardarAhorro').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    
+    const meta = parseFloat(el('metaAhorro').value) || 0;
+    const lugar = el('lugarAhorro').value;
+    const monto = parseFloat(el('montoGuardar').value) || 0;
+    const nombreBanco = el('nombreBanco').value.trim();
+    
+    if (!meta) return alert('Establece una meta');
+    if (!lugar) return alert('Selecciona dónde lo guardas');
+    if (!monto) return alert('Escribe el monto');
+    
+    try {
+        await db.collection('ahorro_config').doc(usuarioActual.uid).set({
+            meta,
+            nombreBanco: lugar === 'banco' ? nombreBanco : ''
+        }, { merge: true });
+        
+        await db.collection('ahorro_depositos').add({
+            userId: usuarioActual.uid,
+            monto,
+            lugar,
+            fecha: new Date()
+        });
+        
+        el('montoGuardar').value = '';
+        el('lugarAhorro').value = '';
+        el('nombreBanco').value = '';
+        el('campoBanco').classList.add('oculto');
+        cargarAhorro();
+    } catch (err) {
+        console.error(err);
+        alert('Error guardando');
+    }
+});
+
 async function cargarAhorro() {
     if (!usuarioActual) return;
     
@@ -277,7 +370,7 @@ async function cargarAhorro() {
     
     let totalAhorrado = 0;
     let totalNequi = 0, totalBanco = 0, totalEfectivo = 0;
-    const listaDep = document.getElementById('listaDepositos');
+    const listaDep = el('listaDepositos');
     listaDep.innerHTML = '';
     
     if (depSnap.empty) {
@@ -287,7 +380,6 @@ async function cargarAhorro() {
             const d = doc.data();
             totalAhorrado += d.monto;
             
-            // Sumar por ubicación
             if (d.lugar === 'nequi') totalNequi += d.monto;
             else if (d.lugar === 'banco') totalBanco += d.monto;
             else if (d.lugar === 'efectivo') totalEfectivo += d.monto;
@@ -308,419 +400,238 @@ async function cargarAhorro() {
                     </div>
                 </div>`;
         });
-
-        // Eliminar depósito
+        
         document.querySelectorAll('.eliminar-deposito').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (confirm('¿Eliminar este depósito?\nEsto restará el monto del total ahorrado.')) {
+                if (confirm('¿Eliminar este depósito?')) {
                     await db.collection('ahorro_depositos').doc(btn.dataset.id).delete();
-                    await cargarAhorro();
+                    cargarAhorro();
                 }
             });
         });
     }
-
+    
     const falta = Math.max(0, meta - totalAhorrado);
     const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
-    const circunferencia = 2 * Math.PI * 40; // 251.2
-
-    // Actualizar gráfico circular
-    const actualizarArco = (id, valor) => {
+    const circunferencia = 2 * Math.PI * 40;
+    
+    const actualizarArco = (id, valor, desplazamiento = 0) => {
         const porc = totalAhorrado > 0 ? valor / totalAhorrado : 0;
         const longitud = porc * circunferencia;
-        const resto = circunferencia - longitud;
-        const elem = document.getElementById(id);
-        if (elem) elem.style.strokeDasharray = `${longitud} ${resto}`;
+        const elem = el(id);
+        if (elem) {
+            elem.style.strokeDasharray = `${longitud} ${circunferencia - longitud}`;
+            elem.style.strokeDashoffset = `${-desplazamiento}`;
+        }
     };
-
-    // Orden de arcos: Nequi → Banco → Efectivo
-    // Nequi
-    actualizarArco('arcNequi', totalNequi);
-    document.getElementById('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`;
     
-    // Banco — desplazado por lo que ocupa Nequi
-    const desplazamientoBanco = totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0;
-    const arcoBanco = document.getElementById('arcBanco');
-    if (arcoBanco) arcoBanco.style.strokeDashoffset = `${-desplazamientoBanco}`;
-    actualizarArco('arcBanco', totalBanco);
-    document.getElementById('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`;
+    actualizarArco('arcNequi', totalNequi, 0);
+    el('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`;
     
-    // Efectivo — desplazado por Nequi + Banco
-    const desplazamientoEfectivo = totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0;
-    const arcoEfectivo = document.getElementById('arcEfectivo');
-    if (arcoEfectivo) arcoEfectivo.style.strokeDashoffset = `${-desplazamientoEfectivo}`;
-    actualizarArco('arcEfectivo', totalEfectivo);
-    document.getElementById('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`;
-
-    // Textos generales
-    const el = id => document.getElementById(id);
-    if (el('metaTotal')) el('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
-    if (el('totalAhorrado')) el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
-    if (el('faltaParaMeta')) el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
-    if (el('porcentajeAhorro')) el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
-
-    const barra = el('barraAhorro');
-    if (barra) barra.style.width = `${porcentaje}%`;
-    if (el('alertaMeta')) el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
-
-    if (meta > 0 && el('metaAhorro')) el('metaAhorro').value = meta;
+    const desplBanco = totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0;
+    actualizarArco('arcBanco', totalBanco, desplBanco);
+    el('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`;
+    
+    const desplEfectivo = totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0;
+    actualizarArco('arcEfectivo', totalEfectivo, desplEfectivo);
+    el('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`;
+    
+    el('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
+    el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
+    el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
+    el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
+    el('barraAhorro').style.width = `${porcentaje}%`;
+    el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
+    
+    if (meta > 0) el('metaAhorro').value = meta;
     if (el('lugarAhorro')) {
         if (nombreBanco && el('nombreBanco')) el('nombreBanco').value = nombreBanco;
     }
 }
-// ------------------- HÁBITOS -------------------
-function obtenerFechaHoy() {
-    return new Date().toISOString().split('T')[0];
-}
 
-function sumarDias(fechaStr, dias) {
-    const fecha = new Date(fechaStr);
-    fecha.setDate(fecha.getDate() + dias);
-    return fecha.toISOString().split('T')[0];
-}
-
-async function alternarDiaHábito(hábitoId, fecha) {
+// ========== PESTAÑA HÁBITOS ==========
+el('btnCrearHabito').addEventListener('click', async () => {
     if (!usuarioActual) return;
-    const registroRef = db.collection('seguimiento_habitos').doc(`${hábitoId}_${fecha}`);
-    const doc = await registroRef.get();
+    const nombre = el('nombreHabito').value.trim();
+    if (!nombre) return alert('Escribe el nombre del hábito');
     
-    if (doc.exists) await registroRef.delete();
-    else await registroRef.set({
-        userId: usuarioActual.uid,
-        habitoId: hábitoId,
-        fecha: fecha,
-        completado: true,
-        fechaRegistro: new Date()
-    });
-    
-    await cargarHabitos();
-    await calcularRachaGeneral();
-}
+    try {
+        await db.collection('habitos').add({
+            userId: usuarioActual.uid,
+            nombre,
+            fechaCreacion: new Date()
+        });
+        el('nombreHabito').value = '';
+        cargarHabitos();
+    } catch (err) {
+        console.error(err);
+    }
+});
 
 async function cargarHabitos() {
     if (!usuarioActual) return;
-    const snap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
-    const lista = document.getElementById('listaHabitos');
-    lista.innerHTML = '';
     
-    if (snap.empty) {
-        lista.innerHTML = '<p class="texto-centrado">Crea tu primer hábito 💪</p>';
-        return;
-    }
-
-    const hoy = new Date();
-    const diasSemana = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(hoy);
-        d.setDate(d.getDate() - i);
-        diasSemana.push({
-            fechaCod: d.toISOString().split('T')[0],
-            diaNombre: d.toLocaleDateString('es-ES', { weekday: 'short' }),
-            diaNum: d.getDate(),
-            esHoy: i === 0
-        });
-    }
-
-    const fechas = diasSemana.map(d => d.fechaCod);
-    const marcasSnap = await db.collection('seguimiento_habitos')
+    const habSnap = await db.collection('habitos')
         .where('userId', '==', usuarioActual.uid)
-        .where('fecha', 'in', fechas)
+        .orderBy('fechaCreacion', 'desc')
         .get();
     
-    const marcas = {};
-    marcasSnap.forEach(doc => {
-        const [hid, fecha] = doc.id.split('_');
-        if (!marcas[hid]) marcas[hid] = {};
-        marcas[hid][fecha] = true;
-    });
-
-    snap.forEach(doc => {
+    const lista = el('listaHabitos');
+    lista.innerHTML = '';
+    const hoy = obtenerFechaHoy();
+    const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    
+    habSnap.forEach(doc => {
         const h = doc.data();
-        const hId = doc.id;
+        const habitoId = doc.id;
+        
+        let diasHtml = '';
+        for (let i = 6; i >= 0; i--) {
+            const fecha = new Date();
+            fecha.setDate(fecha.getDate() - i);
+            const fechaStr = fecha.toISOString().split('T')[0];
+            const nombreDia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
+            
+            const cumplido = h.diasCumplidos?.[fechaStr];
+            const esHoy = fechaStr === hoy;
+            
+            diasHtml += `
+                <div class="dia-habito ${cumplido ? 'hecho' : ''} ${esHoy ? 'hoy' : ''}"
+                     data-habito="${habitoId}" data-fecha="${fechaStr}">
+                    <span class="nombre-dia">${nombreDia}</span>
+                    <span class="numero-dia">${fecha.getDate()}</span>
+                </div>`;
+        }
+        
         lista.innerHTML += `
             <div class="bloque habito-tarjeta">
                 <div class="cabecera-habito">
-                    <h4>${h.nombre}</h4>
-                    <button class="btn-accion eliminar-habito" data-id="${hId}">🗑️</button>
+                    <h4 style="font-size:1rem; color:#2d3436;">${h.nombre}</h4>
+                    <div>
+                        <button class="btn-accion eliminar-habito" data-id="${habitoId}">🗑️</button>
+                    </div>
                 </div>
-                <div class="dias-habito">
-                    ${diasSemana.map(dia => {
-                        const hecho = marcas[hId]?.[dia.fechaCod];
-                        return `
-                            <button class="dia-habito ${hecho ? 'hecho' : ''} ${dia.esHoy ? 'hoy' : ''}"
-                                onclick="alternarDiaHábito('${hId}', '${dia.fechaCod}')">
-                                <span class="nombre-dia">${dia.diaNombre}</span>
-                                <span class="numero-dia">${dia.diaNum}</span>
-                            </button>
-                        `;
-                    }).join('')}
-                </div>
+                <div class="dias-habito">${diasHtml}</div>
             </div>`;
     });
-
+    
+    // Marcar/desmarcar día
+    document.querySelectorAll('.dia-habito').forEach(dia => {
+        dia.addEventListener('click', async () => {
+            if (!usuarioActual) return;
+            const habId = dia.dataset.habito;
+            const fecha = dia.dataset.fecha;
+            
+            const ref = db.collection('habitos').doc(habId);
+            const snap = await ref.get();
+            const dias = snap.data()?.diasCumplidos || {};
+            
+            if (dias[fecha]) delete dias[fecha];
+            else dias[fecha] = true;
+            
+            await ref.update({ diasCumplidos: dias });
+            await cargarHabitos();
+            await cargarLogros();
+        });
+    });
+    
+    // Eliminar hábito
     document.querySelectorAll('.eliminar-habito').forEach(btn => {
         btn.addEventListener('click', async () => {
             if (confirm('¿Eliminar este hábito?')) {
                 await db.collection('habitos').doc(btn.dataset.id).delete();
                 await cargarHabitos();
-                await calcularRachaGeneral();
+                await cargarLogros();
             }
         });
     });
 }
 
-// ------------------- LLUVIA DE EMOJIS 🎊 -------------------
-function lanzarLluviaEmojis(emoji, cantidad = 25) {
-    const contenedor = document.createElement('div');
-    contenedor.className = 'lluvia-emojis';
-    document.body.appendChild(contenedor);
-
-    for (let i = 0; i < cantidad; i++) {
-        const emojiElemento = document.createElement('span');
-        emojiElemento.className = 'emoji-cayendo';
-        emojiElemento.textContent = emoji;
-        emojiElemento.style.left = `${Math.random() * 95 + 2.5}%`;
-        emojiElemento.style.animationDelay = `${Math.random() * 2}s`;
-        contenedor.appendChild(emojiElemento);
-    }
-
-    // Se elimina automáticamente a los 6 segundos
-    setTimeout(() => contenedor.remove(), 6000);
-}
-
-// ------------------- CÁLCULO DE RACHA Y LOGROS -------------------
-async function calcularRachaGeneral() {
+// ========== PESTAÑA LOGROS Y RACHA ==========
+async function cargarLogros() {
     if (!usuarioActual) return;
     
-    const habitosSnap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
-    const idsHabitos = habitosSnap.docs.map(d => d.id);
-    
-    if (idsHabitos.length === 0) {
-        rachaActual = 0;
-        const elem = document.getElementById('diasActivos');
-        if (elem) elem.textContent = '0 días en racha';
-        renderizarLogros();
-        return;
-    }
-
-    const seguimientoSnap = await db.collection('seguimiento_habitos')
+    const habSnap = await db.collection('habitos')
         .where('userId', '==', usuarioActual.uid)
         .get();
     
-    const porFecha = {};
-    seguimientoSnap.forEach(doc => {
-        const [hid, fecha] = doc.id.split('_');
-        if (!porFecha[fecha]) porFecha[fecha] = {};
-        porFecha[fecha][hid] = true;
+    const habitos = [];
+    const fechasCumplidas = {};
+    
+    habSnap.forEach(doc => {
+        habitos.push({ id: doc.id, ...doc.data() });
+        Object.keys(doc.data()?.diasCumplidos || {}).forEach(fecha => {
+            if (!fechasCumplidas[fecha]) fechasCumplidas[fecha] = 0;
+            fechasCumplidas[fecha]++;
+        });
     });
-
+    
+    // Calcular racha: todos los hábitos cumplidos ese día
     let racha = 0;
-    let fechaActual = obtenerFechaHoy();
+    let hoy = new Date();
     
     while (true) {
-        const marcasDelDia = porFecha[fechaActual] || {};
-        const todosCumplidos = idsHabitos.every(id => marcasDelDia[id]);
+        const fechaStr = hoy.toISOString().split('T')[0];
+        const cumplidos = fechasCumplidas[fechaStr] || 0;
         
-        if (!todosCumplidos) break;
+        if (habitos.length === 0 || cumplidos < habitos.length) break;
         
         racha++;
-        fechaActual = sumarDias(fechaActual, -1);
+        hoy.setDate(hoy.getDate() - 1);
     }
-
-    rachaActual = racha;
-    const elem = document.getElementById('diasActivos');
-    if (elem) {
-        elem.textContent = `${racha} ${racha === 1 ? 'día' : 'días'} en racha`;
-    }
-
-    // ✅ DETECTAR NUEVO LOGRO DESBLOQUEADO
-    for (const logro of LOGROS) {
-        if (racha >= logro.dias && !logrosAnteriores.has(logro.dias)) {
-            logrosAnteriores.add(logro.dias);
-            lanzarLluviaEmojis(logro.emoji); // 🎊 Lluvia de emojis del logro
-        }
-    }
-
-    renderizarLogros();
-}
-
-// Dibujar la lista de logros en pantalla
-function renderizarLogros() {
-    const contenedor = document.getElementById('lista-logros');
-    if (!contenedor) return;
     
-    contenedor.innerHTML = LOGROS.map(logro => {
-        const desbloqueado = rachaActual >= logro.dias;
-        return `
+    el('diasActivos').textContent = `${racha} días en racha`;
+    
+    // Mostrar logros
+    const listaLogros = el('lista-logros');
+    listaLogros.innerHTML = '';
+    
+    LOGROS.forEach(logro => {
+        const desbloqueado = racha >= logro.dias;
+        listaLogros.innerHTML += `
             <div class="logro-tarjeta ${desbloqueado ? 'desbloqueado' : 'bloqueado'}">
                 <span class="logro-emoji">${desbloqueado ? logro.emoji : '🔒'}</span>
                 <div class="logro-info">
                     <h4>${logro.nombre}</h4>
-                    <p>${desbloqueado ? logro.descripcion : `Alcanza ${logro.dias} días para desbloquear`}</p>
+                    <p>${logro.descripcion}</p>
                 </div>
-            </div>
-        `;
-    }).join('');
+            </div>`;
+    });
 }
 
-// ------------------- EVENTOS GENERALES -------------------
-document.addEventListener('DOMContentLoaded', () => {
-    // Login / Registro
-    document.getElementById('btnIngresar')?.addEventListener('click', async () => {
-        const correo = document.getElementById('correoLogin').value;
-        const clave = document.getElementById('claveLogin').value;
-        try {
-            await auth.signInWithEmailAndPassword(correo, clave);
-        } catch (err) {
-            document.getElementById('mensajeError').textContent = 'Error: ' + err.message;
-        }
-    });
-
-    document.getElementById('btnRegistrar')?.addEventListener('click', async () => {
-        const correo = document.getElementById('correoLogin').value;
-        const clave = document.getElementById('claveLogin').value;
-        try {
-            await auth.createUserWithEmailAndPassword(correo, clave);
-        } catch (err) {
-            document.getElementById('mensajeError').textContent = 'Error: ' + err.message;
-        }
-    });
-
-    document.querySelector('.btn-cerrar')?.addEventListener('click', () => auth.signOut());
-
-    // Navegación pestañas
-    document.querySelectorAll('.pestaña').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.pestaña').forEach(t => t.classList.remove('activa'));
-            tab.classList.add('activa');
-            const destino = tab.dataset.pagina;
-            document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
-            document.getElementById(destino).classList.remove('oculto');
-            if (destino === 'logros') renderizarLogros();
-        });
-    });
-
-    // Selector de mes
-    document.getElementById('mesSeleccionado')?.addEventListener('change', cargarMovimientos);
-
-    // Tipo ingreso/gasto
-    document.querySelectorAll('.btn-tipo').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('activa'));
-            btn.classList.add('activa');
-            tipoMovimiento = btn.dataset.tipo;
-        });
-    });
-
-    // Guardar movimiento
-    document.getElementById('btnGuardarMov')?.addEventListener('click', async () => {
-        const desc = document.getElementById('descripcionMov').value.trim();
-        const monto = parseFloat(document.getElementById('montoMov').value);
-        const cat = document.getElementById('categoriaMov').value;
-        
-        if (!desc || isNaN(monto) || !cat) return alert('Completa todos los campos');
-        
-        const valorFinal = tipoMovimiento === 'gasto' ? -Math.abs(monto) : Math.abs(monto);
-        const mes = document.getElementById('mesSeleccionado').value;
-        
-        await db.collection('movimientos').add({
-            userId: usuarioActual.uid,
-            descripcion: desc,
-            monto: valorFinal,
-            categoria: cat,
-            mes: mes,
-            fecha: new Date()
-        });
-        
-        document.getElementById('descripcionMov').value = '';
-        document.getElementById('montoMov').value = '';
-        await cargarMovimientos();
-    });
-
-    // Nueva categoría
-    document.getElementById('btnAbrirCat')?.addEventListener('click', () => {
-        document.getElementById('formNuevaCat').classList.toggle('oculto');
-    });
-
-    document.getElementById('btnGuardarCat')?.addEventListener('click', async () => {
-        const nombre = document.getElementById('nombreCat').value.trim();
-        if (!nombre) return;
-        await db.collection('categorias').add({
-            userId: usuarioActual.uid,
-            nombre: nombre,
-            icono: '📁',
-            esDefault: false
-        });
-        document.getElementById('nombreCat').value = '';
-        document.getElementById('formNuevaCat').classList.add('oculto');
-        await cargarCategorias();
-        await actualizarSelectCategorias();
-    });
-
-    // Guardar ahorro
-    document.getElementById('btnGuardarAhorro')?.addEventListener('click', async () => {
-        const meta = parseFloat(document.getElementById('metaAhorro').value) || 0;
-        const lugar = document.getElementById('lugarAhorro').value;
-        const nombreBanco = document.getElementById('nombreBanco')?.value?.trim() || '';
-        
-        await db.collection('ahorro_config').doc(usuarioActual.uid).set({
-            meta, lugar, nombreBanco
-        }, { merge: true });
-        
-        const montoDep = parseFloat(document.getElementById('montoGuardar')?.value);
-        if (!isNaN(montoDep) && montoDep > 0) {
-            await db.collection('ahorro_depositos').add({
-                userId: usuarioActual.uid,
-                monto: montoDep,
-                lugar: lugar,
-                fecha: new Date()
-            });
-            document.getElementById('montoGuardar').value = '';
-        }
-        
-        await cargarAhorro();
-    });
-
-    // Mostrar/ocultar campo banco
-    document.getElementById('lugarAhorro')?.addEventListener('change', e => {
-        document.getElementById('campoBanco')?.classList.toggle('oculto', e.target.value !== 'banco');
-    });
-
-    // Crear hábito
-    document.getElementById('btnCrearHabito')?.addEventListener('click', async () => {
-        const nombre = document.getElementById('nombreHabito').value.trim();
-        if (!nombre) return alert('Escribe el nombre del hábito');
-        await db.collection('habitos').add({
-            userId: usuarioActual.uid,
-            nombre: nombre,
-            fechaCreacion: new Date()
-        });
-        document.getElementById('nombreHabito').value = '';
-        await cargarHabitos();
-        await calcularRachaGeneral();
-    });
-
-    // Modal editar
-    document.getElementById('btnCancelarModal')?.addEventListener('click', () => {
-        document.getElementById('modalEditar').classList.add('oculto');
-        estadoEdicion = { tipo: null, id: null, esIngreso: false };
-    });
-
-    document.getElementById('btnConfirmarModal')?.addEventListener('click', async () => {
-        if (estadoEdicion.tipo === 'movimiento') {
-            const desc = document.getElementById('inputEditar').value.trim();
-            const monto = parseFloat(document.getElementById('inputEditarNumero').value);
-            if (!desc || isNaN(monto)) return;
-            const valor = estadoEdicion.esIngreso ? Math.abs(monto) : -Math.abs(monto);
-            await db.collection('movimientos').doc(estadoEdicion.id).update({ descripcion: desc, monto: valor });
-            await cargarMovimientos();
-        } else if (estadoEdicion.tipo === 'categoria') {
-            const nombre = document.getElementById('inputEditar').value.trim();
-            if (!nombre) return;
-            await db.collection('categorias').doc(estadoEdicion.id).update({ nombre });
-            await cargarCategorias();
-            await actualizarSelectCategorias();
-        }
-        document.getElementById('modalEditar').classList.add('oculto');
-    });
+// ========== EVENTOS MODALES ==========
+document.addEventListener('click', e => {
+    // Guardar nombre
+    if (e.target.id === 'btnGuardarNombre' && usuarioActual) {
+        guardarNombreUsuario(usuarioActual.uid, el('inputNombreUsuario').value);
+    }
+    
+    // Editar nombre
+    if (e.target.id === 'btnEditarNombre') {
+        el('modalNombre').classList.remove('oculto');
+        el('inputNombreUsuario').value = nombreUsuarioGuardado;
+        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
+        el('btnCancelarNombre').classList.remove('oculto');
+    }
+    
+    // Cancelar nombre
+    if (e.target.id === 'btnCancelarNombre') {
+        el('modalNombre').classList.add('oculto');
+        el('inputNombreUsuario').value = '';
+    }
+    
+    // Cerrar modal edición
+    if (e.target.id === 'btnCancelarModal') {
+        el('modalEditar').classList.add('oculto');
+        movimientoEditarId = null;
+        categoriaEditarId = null;
+    }
 });
+
+// ========== CARGA INICIAL ==========
+async function cargarDatos() {
+    await cargarContable();
+    await cargarAhorro();
+    await cargarHabitos();
+    await cargarLogros();
+}
