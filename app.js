@@ -299,32 +299,48 @@ document.addEventListener('click', e => {
         tipoMovimiento = e.target.dataset.tipo;
     }
 });
-document.addEventListener('DOMContentLoaded', function() {
-    el('btnGuardarMov').addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const datos = {
-            userId: usuarioActual.uid,
-            tipo: tipoMovimiento,
-            descripcion: el('descripcionMov').value || 'Sin descripción',
-            categoria: el('categoriaMov').value || 'Sin categoría',
-            monto: parseFloat(el('montoMov').value) || 0,
-            mes: el('mesSeleccionado').value,
-            fecha: new Date()
-        };
-        if (!datos.monto) return alert('Escribe un monto válido');
-        try {
-            await db.collection('movimientos').add(datos);
-            el('descripcionMov').value = '';
-            el('montoMov').value = '';
-            cargarContable();
-        } catch (err) {
-            console.error(err);
-            alert('Error guardando movimiento');
-        }
-    }); // ✅ ESTA ERA LA QUE FALTABA — cierra el click del botón
 
-    el('mesSeleccionado').addEventListener('change', cargarContable);
-}); // ✅ Cierra el DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    const btnGuardar = el('btnGuardarMov');
+    const selectMes = el('mesSeleccionado');
+
+    if (btnGuardar) {
+        btnGuardar.addEventListener('click', async () => {
+            if (!usuarioActual) return;
+            
+            const descripcion = el('descripcionMov');
+            const categoria = el('categoriaMov');
+            const monto = el('montoMov');
+            const mes = el('mesSeleccionado');
+
+            const datos = {
+                userId: usuarioActual.uid,
+                tipo: tipoMovimiento,
+                descripcion: descripcion?.value || 'Sin descripción',
+                categoria: categoria?.value || 'Sin categoría',
+                monto: parseFloat(monto?.value) || 0,
+                mes: mes?.value || '',
+                fecha: new Date()
+            };
+
+            if (!datos.monto) return alert('Escribe un monto válido');
+
+            try {
+                await db.collection('movimientos').add(datos);
+                if (descripcion) descripcion.value = '';
+                if (monto) monto.value = '';
+                cargarContable();
+            } catch (err) {
+                console.error(err);
+                alert('Error guardando movimiento');
+            }
+        });
+    }
+
+    if (selectMes) {
+        selectMes.addEventListener('change', cargarContable);
+    }
+});
 
 async function cargarContable() {
     if (!usuarioActual) return;
