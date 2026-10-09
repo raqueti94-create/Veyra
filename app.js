@@ -290,7 +290,8 @@ document.addEventListener('click', e => {
         tipoMovimiento = e.target.dataset.tipo;
     }
 });
-
+document.addEventListener('DOMContentLoaded', function() {
+    
 el('btnGuardarMov').addEventListener('click', async () => {
     if (!usuarioActual) return;
     const datos = {
@@ -312,9 +313,10 @@ el('btnGuardarMov').addEventListener('click', async () => {
         console.error(err);
         alert('Error guardando movimiento');
     }
-});
 
 el('mesSeleccionado').addEventListener('change', cargarContable);
+
+});
 
 async function cargarContable() {
     if (!usuarioActual) return;
