@@ -77,94 +77,149 @@ body {
     transform: scale(1.02);
 }
 
-/* ========== PANTALLA LOGIN ========== */
+/* ========== PANTALLA LOGIN — DISEÑO RENOVADO ========== */
 .pantalla-login {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    padding: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #fd79a8 100%);
 }
-.tarjeta-login {
+
+.caja-login {
     background: white;
-    padding: 2.5rem;
-    border-radius: 20px;
-    box-shadow: var(--sombra);
+    padding: 2.5rem 2rem;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     width: 100%;
     max-width: 420px;
     animation: aparecer 0.5s ease forwards;
+    transform: translateY(20px);
+    opacity: 0;
 }
-.tarjeta-login h1 {
+
+.icono-app {
+    font-size: 3.5rem;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.caja-login h1 {
     text-align: center;
     color: var(--primario);
-    margin-bottom: 0.5rem;
-    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+    font-size: 2rem;
+    font-weight: 700;
 }
-.tarjeta-login > p {
+
+.subtitulo {
     text-align: center;
     color: var(--texto-claro);
     margin-bottom: 2rem;
+    font-size: 1rem;
 }
+
 .grupo-input {
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
 }
+
 .grupo-input label {
     display: block;
-    margin-bottom: 0.4rem;
-    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--texto);
+    font-size: 0.95rem;
 }
-.grupo-input input, select, textarea {
+
+.grupo-input input {
     width: 100%;
-    padding: 0.9rem 1rem;
+    padding: 1rem 1.25rem;
     border: 2px solid var(--borde);
-    border-radius: 10px;
+    border-radius: 14px;
     font-size: 1rem;
-    transition: var(--transicion);
+    transition: all 0.3s ease;
+    background: #fafbfc;
 }
-.grupo-input input:focus, select:focus {
+
+.grupo-input input:focus {
     outline: none;
     border-color: var(--primario);
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
+    transform: translateY(-2px);
 }
-.botones-login {
+
+.fila-botones {
     display: flex;
-    gap: 0.8rem;
+    flex-direction: column;
+    gap: 1rem;
     margin-top: 1.5rem;
 }
-.btn {
-    flex: 1;
-    padding: 0.9rem;
+
+.boton-principal {
+    padding: 1rem;
     border: none;
-    border-radius: 10px;
-    font-size: 1rem;
+    border-radius: 14px;
+    font-size: 1.05rem;
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transicion);
-}
-.btn-principal {
-    background: var(--primario);
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     color: white;
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.35);
 }
-.btn-principal:hover {
-    background: var(--primario-oscuro);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(108, 92, 231, 0.3);
+
+.boton-principal:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(108, 92, 231, 0.45);
 }
-.btn-borde {
-    background: transparent;
+
+.boton-principal:active {
+    transform: translateY(0);
+}
+
+.boton-secundario {
+    padding: 1rem;
     border: 2px solid var(--primario);
+    border-radius: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: transparent;
     color: var(--primario);
 }
-.btn-borde:hover {
+
+.boton-secundario:hover {
     background: var(--primario);
     color: white;
+    transform: translateY(-2px);
 }
+
 .error {
     color: var(--peligro);
     margin-top: 1rem;
     text-align: center;
     font-weight: 500;
     min-height: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* ========== RESPONSIVO ========== */
+@media (max-width: 480px) {
+    .caja-login {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+    }
+    
+    .icono-app {
+        font-size: 3rem;
+    }
+    
+    .caja-login h1 {
+        font-size: 1.7rem;
+    }
 }
 
 /* ========== PANTALLA PRINCIPAL ========== */
