@@ -1446,19 +1446,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnAbrirCat = el('btnAbrirCat');
     const btnGuardarCat = el('btnGuardarCat');
     const formNuevaCat = el('formNuevaCat');
-
+    
     if (btnAbrirCat) {
         btnAbrirCat.addEventListener('click', () => {
             formNuevaCat?.classList.toggle('oculto');
         });
     }
-
+    
     if (btnGuardarCat) {
         btnGuardarCat.addEventListener('click', async () => {
             if (!usuarioActual) return;
             const nombre = el('nombreCat')?.value?.trim();
             if (!nombre) return alert('Escribe un nombre de categoría');
-
+            
             try {
                 await db.collection('categorias').add({
                     userId: usuarioActual.uid,
@@ -1467,7 +1467,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 el('nombreCat').value = '';
                 formNuevaCat?.classList.add('oculto');
-                cargarCategorias(); // ✅ Recarga la lista
+                cargarCategorias();
             } catch (err) {
                 console.error(err);
                 alert('Error guardando categoría');
@@ -1488,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Error eliminando categoría');
             }
         }
-
+        
         if (e.target.classList.contains('btn-editar-cat')) {
             const id = e.target.dataset.id;
             const nombreActual = e.target.dataset.nombre;
@@ -1498,10 +1498,12 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await db.collection('categorias').doc(id).update({
                     nombre: nuevoNombre.trim()
-        });
-        cargarCategorias();
-    } catch (err) {
-        console.error(err);
-        alert('Error al editar');
-    }
-});
+                });
+                cargarCategorias();
+            } catch (err) {
+                console.error(err);
+                alert('Error al editar');
+            }
+        }
+    }); // ← Cierra el listener de delegación
+}); // ← Cierra DOMContentLoaded
