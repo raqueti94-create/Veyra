@@ -1126,6 +1126,7 @@ function verificarAlertaSaldo(saldo) {
 
 // ========== CARGAR CONTABLE — VERSIÓN FINAL SIN DUPLICADOS ==========
 async function cargarContable() {
+    console.log('🔄 cargarContable se está ejecutando —', new Date().toLocaleTimeString());
     if (!usuarioActual) return;
 
     const mes = el('mesSeleccionado')?.value || '';
