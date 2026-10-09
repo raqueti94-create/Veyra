@@ -677,6 +677,33 @@ el('btnGenerarPDF').addEventListener('click', async () => {
         });
     }
     
+    // Mostrar temporalmente para que la librería lo lea
+    const plantilla = el('plantillaPDF');
+    plantilla.style.display = 'block';
+    plantilla.style.position = 'relative';
+    plantilla.style.left = '0';
+    
+    // Esperar a que se renderice y generar
+    setTimeout(async () => {
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        await pdf.html(plantilla, {
+            x: 10,
+            y: 10,
+            width: 190,
+            windowWidth: 794,
+            autoPaging: true
+        });
+        
+        pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
+        
+        // Ocultar de nuevo
+        plantilla.style.display = 'none';
+        plantilla.style.position = 'absolute';
+        plantilla.style.left = '-9999px';
+    }, 300);
+});
+    
     // Generar PDF
     const elemento = el('plantillaPDF');
     const pdf = new jsPDF('p', 'mm', 'a4');
