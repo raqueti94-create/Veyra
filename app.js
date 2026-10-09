@@ -410,32 +410,53 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========== PESTAÑA AHORRO ==========
-el('lugarAhorro').addEventListener('change', () => {
-    el('campoBanco').classList.toggle('oculto', el('lugarAhorro').value !== 'banco');
-});
-
-el('btnGuardarAhorro').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    const meta = parseFloat(el('metaAhorro').value) || 0;
-    const lugar = el('lugarAhorro').value;
-    const monto = parseFloat(el('montoGuardar').value) || 0;
-    const nombreBanco = el('nombreBanco').value.trim();
-    if (!meta) return alert('Establece una meta');
-    if (!lugar) return alert('Selecciona dónde lo guardas');
-    if (!monto) return alert('Escribe el monto');
-    try {
-        await db.collection('ahorro_config').doc(usuarioActual.uid).set({
-            meta, nombreBanco: lugar === 'banco' ? nombreBanco : ''
-        }, { merge: true });
-        await db.collection('ahorro_depositos').add({
-            userId: usuarioActual.uid, monto, lugar, fecha: new Date()
+document.addEventListener('DOMContentLoaded', function() {
+    const lugarAhorro = el('lugarAhorro');
+    const campoBanco = el('campoBanco');
+    const btnGuardarAhorro = el('btnGuardarAhorro');
+    
+    if (lugarAhorro && campoBanco) {
+        lugarAhorro.addEventListener('change', () => {
+            campoBanco.classList.toggle('oculto', lugarAhorro.value !== 'banco');
         });
-        el('montoGuardar').value = '';
-        el('lugarAhorro').value = '';
-        el('nombreBanco').value = '';
-        el('campoBanco').classList.add('oculto');
-        cargarAhorro();
-    } catch (err) { console.error(err); alert('Error guardando'); }
+    }
+
+    if (btnGuardarAhorro) {
+        btnGuardarAhorro.addEventListener('click', async () => {
+            if (!usuarioActual) return;
+            const meta = parseFloat(el('metaAhorro').value) || 0;
+            const lugar = el('lugarAhorro').value;
+            const monto = parseFloat(el('montoGuardar').value) || 0;
+            const nombreBanco = el('nombreBanco').value.trim();
+            
+            if (!meta) return alert('Establece una meta');
+            if (!lugar) return alert('Selecciona dónde lo guardas');
+            if (!monto) return alert('Escribe el monto');
+            
+            try {
+                await db.collection('ahorro_config').doc(usuarioActual.uid).set({
+                    meta, 
+                    nombreBanco: lugar === 'banco' ? nombreBanco : ''
+                }, { merge: true });
+                
+                await db.collection('ahorro_depositos').add({
+                    userId: usuarioActual.uid, 
+                    monto, 
+                    lugar, 
+                    fecha: new Date()
+                });
+                
+                el('montoGuardar').value = '';
+                el('lugarAhorro').value = '';
+                el('nombreBanco').value = '';
+                campoBanco?.classList.add('oculto');
+                cargarAhorro();
+            } catch (err) { 
+                console.error(err); 
+                alert('Error guardando'); 
+            }
+        });
+    }
 });
 
 async function cargarAhorro() {
@@ -447,7 +468,7 @@ async function cargarAhorro() {
     
     let totalAhorrado = 0, totalNequi = 0, totalBanco = 0, totalEfectivo = 0;
     const listaDep = el('listaDepositos');
-    listaDep.innerHTML = '';
+    if (listaDep) listaDep.innerHTML = '';
     
     depSnap.forEach(doc => {
         const d = doc.data();
@@ -455,21 +476,29 @@ async function cargarAhorro() {
         if (d.lugar === 'nequi') totalNequi += d.monto;
         else if (d.lugar === 'banco') totalBanco += d.monto;
         else if (d.lugar === 'efectivo') totalEfectivo += d.monto;
+        
         const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
-        const lugarTexto = { nequi: 'Nequi', banco: 'Cuenta Bancaria', efectivo: 'Efectivo' }[d.lugar] || d.lugar;
-        listaDep.innerHTML += `
-            <div class="movimiento">
-                <div class="info-mov">
-                    <div class="fecha">${fecha.toLocaleDateString()}</div>
-                    <div class="descripcion">${lugarTexto}</div>
-                </div>
-                <div class="valor-botones">
-                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
-                    <div class="acciones">
-                        <button class="btn-accion eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+        const lugarTexto = { 
+            nequi: 'Nequi', 
+            banco: 'Cuenta Bancaria', 
+            efectivo: 'Efectivo' 
+        }[d.lugar] || d.lugar;
+        
+        if (listaDep) {
+            listaDep.innerHTML += `
+                <div class="movimiento">
+                    <div class="info-mov">
+                        <div class="fecha">${fecha.toLocaleDateString()}</div>
+                        <div class="descripcion">${lugarTexto}</div>
                     </div>
-                </div>
-            </div>`;
+                    <div class="valor-botones">
+                        <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                        <div class="acciones">
+                            <button class="btn-accion eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                        </div>
+                    </div>
+                </div>`;
+        }
     });
     
     const falta = Math.max(0, meta - totalAhorrado);
@@ -487,19 +516,21 @@ async function cargarAhorro() {
     };
     
     actualizarArco('arcNequi', totalNequi, 0);
-    el('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`;
-    actualizarArco('arcBanco', totalBanco, totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0);
-    el('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`;
-    actualizarArco('arcEfectivo', totalEfectivo, totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0);
-    el('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`;
+    el('valorNequi') && (el('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`);
     
-    el('metaTotal').textContent = `$ ${meta.toLocaleString()}`;
-    el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
-    el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`;
-    el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`;
-    el('barraAhorro').style.width = `${porcentaje}%`;
-    el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
-    if (meta > 0) el('metaAhorro').value = meta;
+    actualizarArco('arcBanco', totalBanco, totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0);
+    el('valorBanco') && (el('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`);
+    
+    actualizarArco('arcEfectivo', totalEfectivo, totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0);
+    el('valorEfectivo') && (el('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`);
+    
+    el('metaTotal') && (el('metaTotal').textContent = `$ ${meta.toLocaleString()}`);
+    el('totalAhorrado') && (el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`);
+    el('faltaParaMeta') && (el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`);
+    el('porcentajeAhorro') && (el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`);
+    el('barraAhorro') && (el('barraAhorro').style.width = `${porcentaje}%`);
+    el('alertaMeta') && el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
+    el('metaAhorro') && meta > 0 && (el('metaAhorro').value = meta);
     
     document.querySelectorAll('.eliminar-deposito').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -510,7 +541,6 @@ async function cargarAhorro() {
         });
     });
 }
-
 // ========== PESTAÑA HÁBITOS ==========
 el('btnCrearHabito').addEventListener('click', async () => {
     if (!usuarioActual) return;
