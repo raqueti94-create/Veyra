@@ -636,6 +636,398 @@ document.addEventListener('click', e => {
     }
 });
 
+// ========== ICONOS POR CATEGORÍA ==========
+const ICONOS_CATEGORIA = {
+    'Comida': '🍔',
+    'Transporte': '🚗',
+    'Servicios': '💡',
+    'Entretenimiento': '🎮',
+    'Salud': '💊',
+    'Educación': '📚',
+    'Ropa': '👕',
+    'Trabajo': '💼',
+    'Regalo': '🎁',
+    'Nequi': '📱',
+    'Banco': '🏦',
+    'Efectivo': '💵',
+    'Sin categoría': '📁'
+};
+
+function iconoCategoria(nombre) {
+    return ICONOS_CATEGORIA[nombre] || '📁';
+}
+
+// ========== PANTALLA DE CARGA ==========
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        el('pantallaCarga').classList.add('oculto');
+    }, 600);
+});
+
+// ========== ALERTA DE SALDO BAJO ==========
+function verificarAlertaSaldo(saldo) {
+    const alerta = el('alertaSaldo');
+    let nivel = null, mensaje = '';
+    
+    if (saldo <= 50000 && saldo > 0) {
+        nivel = 'critica';
+        mensaje = '⚠️ Quedan menos de $50.000 — ¡Cuidado con los gastos!';
+    } else if (saldo <= 100000) {
+        nivel = 'critica';
+        mensaje = '⚠️ Quedan menos de $100.000';
+    } else if (saldo <= 250000) {
+        nivel = 'baja';
+        mensaje = '💡 Quedan menos de $250.000';
+    } else if (saldo <= 500000) {
+        nivel = 'baja';
+        mensaje = '💡 Quedan menos de $500.000';
+    }
+    
+    if (nivel) {
+        alerta.className = `alerta-saldo alerta-${nivel}`;
+        alerta.textContent = mensaje;
+        alerta.classList.remove('oculto');
+    } else {
+        alerta.classList.add('oculto');
+    }
+}
+
+// ========== EDITAR MOVIMIENTO ==========
+let modoEdicionMov = null;
+
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-editar-mov')) {
+        const id = e.target.dataset.id;
+        modoEdicionMov = id;
+        // Cargar datos
+        db.collection('movimientos').doc(id).get().then(doc => {
+            const m = doc.data();
+            el('idEditarMov').value = id;
+            el('descEditarMov').value = m.descripcion || '';
+            el('montoEditarMov').value = m.monto || '';
+            // Cargar categorías en select
+            const select = el('catEditarMov');
+            select.innerHTML = '';
+            db.collection('categorias').where('userId', '==', usuarioActual.uid).get().then(snap => {
+                snap.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.data().nombre;
+                    opt.textContent = d.data().nombre;
+                    if (d.data().nombre === m.categoria) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            });
+        });
+        el('modalEditarMov').classList.remove('oculto');
+    }
+});
+
+el('btnCancelarEditar').addEventListener('click', () => {
+    el('modalEditarMov').classList.add('oculto');
+    modoEdicionMov = null;
+});
+
+el('btnConfirmarEditar').addEventListener('click', async () => {
+    if (!modoEdicionMov) return;
+    try {
+        await db.collection('movimientos').doc(modoEdicionMov).update({
+            descripcion: el('descEditarMov').value || 'Sin descripción',
+            categoria: el('catEditarMov').value || 'Sin categoría',
+            monto: parseFloat(el('montoEditarMov').value) || 0
+        });
+        el('modalEditarMov').classList.add('oculto');
+        modoEdicionMov = null;
+        cargarContable();
+    } catch (err) {
+        alert('Error al editar: ' + err.message);
+    }
+});
+
+// ========== EDITAR DEPÓSITO ==========
+let modoEdicionDep = null;
+
+document.addEventListener('click', e => {
+    if (e.target.classList.contains('btn-editar-deposito')) {
+        const id = e.target.dataset.id;
+        modoEdicionDep = id;
+        db.collection('ahorro_depositos').doc(id).get().then(doc => {
+            el('idEditarDep').value = id;
+            el('montoEditarDep').value = doc.data().monto || '';
+        });
+        el('modalEditarDeposito').classList.remove('oculto');
+    }
+});
+
+el('btnCancelarEditarDep').addEventListener('click', () => {
+    el('modalEditarDeposito').classList.add('oculto');
+    modoEdicionDep = null;
+});
+
+el('btnConfirmarEditarDep').addEventListener('click', async () => {
+    if (!modoEdicionDep) return;
+    try {
+        await db.collection('ahorro_depositos').doc(modoEdicionDep).update({
+            monto: parseFloat(el('montoEditarDep').value) || 0
+        });
+        el('modalEditarDeposito').classList.add('oculto');
+        modoEdicionDep = null;
+        cargarAhorro();
+    } catch (err) {
+        alert('Error al editar: ' + err.message);
+    }
+});
+
+// ========== COMPARAR MESES ==========
+async function cargarComparacion() {
+    if (!usuarioActual) return;
+    const m1 = el('mesComparar1').value;
+    const m2 = el('mesComparar2').value;
+    
+    const datosMes = async (mes) => {
+        const snap = await db.collection('movimientos')
+            .where('userId', '==', usuarioActual.uid)
+            .where('mes', '==', mes).get();
+        let ing = 0, gas = 0;
+        snap.forEach(d => {
+            const m = d.data();
+            if (m.tipo === 'ingreso') ing += m.monto;
+            else gas += m.monto;
+        });
+        return { ing, gas, saldo: ing - gas };
+    };
+    
+    const d1 = await datosMes(m1);
+    const d2 = await datosMes(m2);
+    
+    const res = el('resultadoComparacion');
+    res.innerHTML = `
+        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem;">
+            <div style="padding:1rem; background:#f8f9fa; border-radius:10px;">
+                <h4>${mesSeleccionadoTexto(m1)}</h4>
+                <p>Ingresos: <span class="positivo">$ ${d1.ing.toLocaleString()}</span></p>
+                <p>Gastos: <span class="negativo">$ ${d1.gas.toLocaleString()}</span></p>
+                <p style="font-weight:700;">Saldo: $ ${d1.saldo.toLocaleString()}</p>
+            </div>
+            <div style="padding:1rem; background:#f8f9fa; border-radius:10px;">
+                <h4>${mesSeleccionadoTexto(m2)}</h4>
+                <p>Ingresos: <span class="positivo">$ ${d2.ing.toLocaleString()}</span></p>
+                <p>Gastos: <span class="negativo">$ ${d2.gas.toLocaleString()}</span></p>
+                <p style="font-weight:700;">Saldo: $ ${d2.saldo.toLocaleString()}</p>
+            </div>
+        </div>
+        <div style="margin-top:1rem; padding:1rem; background:#e3f2fd; border-radius:10px;">
+            <p><strong>Diferencia entre meses:</strong></p>
+            <p>Ingresos: ${d2.ing >= d1.ing ? '↑' : '↓'} $ ${Math.abs(d2.ing - d1.ing).toLocaleString()}</p>
+            <p>Gastos: ${d2.gas <= d1.gas ? '↓' : '↑'} $ ${Math.abs(d2.gas - d1.gas).toLocaleString()}</p>
+        </div>
+    `;
+}
+
+// ========== PROYECCIÓN DE AHORRO ==========
+async function cargarProyeccion() {
+    if (!usuarioActual) return;
+    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
+    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
+    if (!meta) {
+        el('proyeccionAhorro').innerHTML = '<p style="color:#636e72;">Establece una meta de ahorro para ver la proyección 🎯</p>';
+        return;
+    }
+    
+    const depSnap = await db.collection('ahorro_depositos')
+        .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'asc').get();
+    
+    if (depSnap.empty) {
+        el('proyeccionAhorro').innerHTML = '<p style="color:#636e72;">Registra depósitos para calcular cuándo alcanzas tu meta 📈</p>';
+        return;
+    }
+    
+    let totalAhorrado = 0;
+    const primerDia = depSnap.docs[0].data().fecha?.toDate();
+    const diasTranscurridos = Math.max(1, Math.ceil((new Date() - primerDia) / (1000 * 60 * 60 * 24)));
+    
+    depSnap.forEach(d => totalAhorrado += d.data().monto);
+    
+    const promedioDiario = totalAhorrado / diasTranscurridos;
+    const falta = Math.max(0, meta - totalAhorrado);
+    const diasFaltantes = promedioDiario > 0 ? Math.ceil(falta / promedioDiario) : Infinity;
+    const fechaMeta = new Date();
+    fechaMeta.setDate(fechaMeta.getDate() + diasFaltantes);
+    
+    el('proyeccionAhorro').innerHTML = `
+        <p><strong>Meta:</strong> $ ${meta.toLocaleString()}</p>
+        <p><strong>Ahorrado:</strong> $ ${totalAhorrado.toLocaleString()}</p>
+        <p><strong>Promedio diario:</strong> $ ${promedioDiario.toFixed(0).toLocaleString()}</p>
+        <p style="font-size:1.1rem; font-weight:700; margin-top:0.5rem;">
+            📅 Si sigues así, alcanzas tu meta el:
+            <br>${diasFaltantes === Infinity ? 'Aún no hay suficiente historial' : fechaMeta.toLocaleDateString('es-CO')}
+        </p>
+        <p style="color:var(--texto-claro); margin-top:0.5rem;">
+            (Basado en ${diasTranscurridos} días de ahorro)
+        </p>
+    `;
+}
+
+// ========== RESUMEN SEMANAL ==========
+async function cargarResumenSemanal() {
+    if (!usuarioActual) return;
+    const hoy = new Date();
+    const hace7Dias = new Date(hoy);
+    hace7Dias.setDate(hoy.getDate() - 7);
+    
+    const snap = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('fecha', '>=', hace7Dias)
+        .get();
+    
+    let ing = 0, gas = 0;
+    snap.forEach(d => {
+        const m = d.data();
+        if (m.tipo === 'ingreso') ing += m.monto;
+        else gas += m.monto;
+    });
+    
+    el('resumenSemanal').innerHTML = `
+        <p style="font-size:1.05rem;">Del último semana:</p>
+        <p>💰 Ingresos: <span class="positivo">$ ${ing.toLocaleString()}</span></p>
+        <p>📉 Gastos: <span class="negativo">$ ${gas.toLocaleString()}</span></p>
+        <p style="font-weight:700; margin-top:0.5rem;">
+            Saldo semanal: ${ing - gas >= 0 ? '✅' : '⚠️'} $ ${(ing - gas).toLocaleString()}
+        </p>
+    `;
+}
+
+// ========== RECORDATORIO DE HÁBITO ==========
+el('btnRecordatorioHabito').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    try {
+        if (Notification.permission === 'granted') {
+            new Notification('💪 ¡Hola!', {
+                body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!',
+                icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico'
+            });
+            alert('🔔 Recordatorio enviado a tu dispositivo ✅');
+        } else if (Notification.permission !== 'denied') {
+            const permiso = await Notification.requestPermission();
+            if (permiso === 'granted') {
+                alert('✅ Permiso concedido — te recordaré diariamente');
+            }
+        } else {
+            alert('⚠️ Las notificaciones están bloqueadas en tu navegador');
+        }
+    } catch (e) {
+        alert('No se pudo enviar el recordatorio 😅');
+    }
+});
+
+// ========== COMPARTIR ==========
+el('btnCompartirWhatsapp').addEventListener('click', () => {
+    const texto = encodeURIComponent(
+        `💰 Mi Progreso Financiero\n` +
+        `Usuario: ${nombreUsuarioGuardado}\n` +
+        `🔥 Racha: ${rachaActual} días seguidos\n` +
+        `Mira mi avance aquí: ${window.location.href}`
+    );
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
+});
+
+el('btnCopiarEnlace').addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('✅ Enlace copiado al portapapeles');
+    } catch (e) {
+        alert('No se pudo copiar automáticamente — selecciona y copia la dirección tú mismo');
+    }
+});
+
+// ========== ACTUALIZAR CARGAR CONTABLE PARA INCLUIR ALERTA E ICONOS ==========
+const cargarContableOriginal = cargarContable;
+cargarContable = async function () {
+    await cargarContableOriginal();
+    const mes = el('mesSeleccionado').value;
+    const movSnap = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('mes', '==', mes).get();
+    
+    let totalIngresos = 0, totalGastos = 0;
+    movSnap.forEach(doc => {
+        const m = doc.data();
+        if (m.tipo === 'ingreso') totalIngresos += m.monto;
+        else totalGastos += m.monto;
+    });
+    verificarAlertaSaldo(totalIngresos - totalGastos);
+    
+    // Actualizar lista con iconos y botones editar
+    const lista = el('listaMovimientos');
+    lista.innerHTML = '';
+    const movSnap2 = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('mes', '==', mes).orderBy('fecha', 'desc').get();
+    
+    movSnap2.forEach(doc => {
+        const m = doc.data();
+        lista.innerHTML += `
+            <div class="movimiento aparecer escala-hover">
+                <div class="info-mov">
+                    <div class="fecha">${formatearFecha(m.fecha)}</div>
+                    <div class="descripcion">
+                        <span class="icono-categoria">${iconoCategoria(m.categoria)}</span>
+                        ${m.descripcion}
+                    </div>
+                    <div class="categoria-pequeña">${m.categoria}</div>
+                </div>
+                <div class="valor-botones">
+                    <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
+                        ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
+                    </div>
+                    <div class="acciones">
+                        <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
+                        <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+    });
+};
+
+// ========== ACTUALIZAR CARGAR AHORRO PARA INCLUIR EDITAR ==========
+const cargarAhorroOriginal = cargarAhorro;
+cargarAhorro = async function () {
+    await cargarAhorroOriginal();
+    const depSnap = await db.collection('ahorro_depositos')
+        .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'desc').get();
+    
+    const listaDep = el('listaDepositos');
+    listaDep.innerHTML = '';
+    depSnap.forEach(doc => {
+        const d = doc.data();
+        const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
+        const lugarTexto = { nequi: '📱 Nequi', banco: '🏦 Cuenta Bancaria', efectivo: '💵 Efectivo' }[d.lugar] || d.lugar;
+        listaDep.innerHTML += `
+            <div class="movimiento aparecer escala-hover">
+                <div class="info-mov">
+                    <div class="fecha">${fecha.toLocaleDateString()}</div>
+                    <div class="descripcion">${lugarTexto}</div>
+                </div>
+                <div class="valor-botones">
+                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                    <div class="acciones">
+                        <button class="btn-accion btn-editar btn-editar-deposito" data-id="${doc.id}" title="Editar">✏️</button>
+                        <button class="btn-accion btn-eliminar eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+    });
+    
+    cargarProyeccion();
+};
+
+// ========== ACTUALIZAR CARGA DATOS ==========
+const cargarDatosOriginal = cargarDatos;
+cargarDatos = async function () {
+    await cargarDatosOriginal();
+    cargarResumenSemanal();
+    cargarProyeccion();
+};
+
 // ========== CARGA INICIAL ==========
 async function cargarDatos() {
     await cargarContable();
