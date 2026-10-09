@@ -138,9 +138,6 @@ if (btnCerrar) {
     btnCerrar.addEventListener('click', cerrarSesion);
 }
 
-
-});
-
 // ========== NAVEGACIÓN DE PESTAÑAS ==========
 document.addEventListener('click', e => {
     if (e.target.classList.contains('pestaña')) {
