@@ -803,3 +803,25 @@ button:has-text("Enviarme recordatorio de hábito"):hover,
     font-weight: 600;
     margin: 0.5rem 0 1rem;
 }
+/* ========== BOTÓN RECORDATORIO DE HÁBITO ========== */
+.boton-recordatorio {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+    color: #856404;
+    border: 2px solid #ffc107;
+    padding: 0.85rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.25);
+}
+
+.boton-recordatorio:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.35);
+    background: linear-gradient(135deg, #ffeeba 0%, #ffd460 100%);
+}
