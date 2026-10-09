@@ -12,13 +12,11 @@
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-
 <!-- PANTALLA DE CARGA -->
     <div id="pantallaCarga" class="pantalla-carga">
         <div class="spinner"></div>
         <p>Cargando tu información...</p>
     </div>
-
 <!-- PANTALLA DE LOGIN -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
@@ -28,53 +26,51 @@
         
         <div class="grupo-input">
             <label for="correoLogin">📧 Correo electrónico</label>
-            <input type="email" "correoLogin" placeholder="tu@correo.com">
+            <input type="email" id="correoLogin" placeholder="tu@correo.com">
         </div>
         
         <div class="grupo-input">
             <label for="claveLogin">🔒 Contraseña</label>
-            <input type="password" "claveLogin" placeholder="Escribe tu contraseña">
+            <input type="password" id="claveLogin" placeholder="Escribe tu contraseña">
         </div>
         
-        <p "mensajeError" class="error"></p>
+        <p id="mensajeError" class="error"></p>
         
         <div class="fila-botones">
-            <button "btnIngresar" class="boton-principal">✅ Ingresar</button>
-            <button "btnRegistrar" class="boton-secundario">✨ Crear cuenta</button>
+            <button id="btnIngresar" class="boton-principal">✅ Ingresar</button>
+            <button id="btnRegistrar" class="boton-secundario">✨ Crear cuenta</button>
         </div>
     </div>
 </div>
-
 <!-- PANTALLA PRINCIPAL -->
-<div "pantallaPrincipal" style="display: none !important;">
+<div id="pantallaPrincipal" style="display: none !important;">
     <header class="cabecera">
-        <h2 "nombreUsuario">👋 Hola</h2>
+        <h2 id="nombreUsuario">👋 Hola</h2>
         
        <div class="acciones-usuario">
-            <button class="btn-cambiar-nombre" "btnEditarNombre">✏️ Cambiar nombre</button>
-            <button class="btn-cerrar-sesion" "btnCerrarSesion">Cerrar sesión</button>
+            <button id="btnEditarNombre" class="btn-cambiar-nombre">✏️ Cambiar nombre</button>
+            <button id="btnCerrarSesion" class="btn-cerrar-sesion">Cerrar sesión</button>
         </div>
-    </div>
     </header>
-
+    
     <!-- Modal: Cambiar / Crear Nombre -->
-<div "modalNombre" class="modal-fondo oculto">
+<div id="modalNombre" class="modal-fondo oculto">
     <div class="modal-contenido">
-        <h3 "tituloModalNombre">👤 Tu nombre</h3>
+        <h3 id="tituloModalNombre">👤 Tu nombre</h3>
         <input 
             type="text" 
-            "inputNombreUsuario" 
+            id="inputNombreUsuario" 
             placeholder="Escribe tu nombre..."
             maxlength="30"
         >
         <div class="botones-modal">
-            <button "btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
-            <button "btnGuardarNombre" class="btn btn-guardar">Guardar</button>
+            <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
+            <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
         </div>
     </div>
 </div>
     
-<div "alertaSaldo" class="alerta-saldo oculto"></div>
+<div id="alertaSaldo" class="alerta-saldo oculto"></div>
     
   
     <!-- Pestañas -->
@@ -85,27 +81,24 @@
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
         <button class="pestaña" data-pagina="exportar">📤 Exportar</button>
     </nav>
-
     <!-- Página Contable -->
-    <section "contable" class="pagina">
+    <section id="contable" class="pagina">
         <h1 class="titulo-principal">📊 Control de Gastos e Ingresos</h1>
-
         <div class="bloque">
             <h3 class="subtitulo">📅 Seleccionar Mes</h3>
-            <select "mesSeleccionado" class="entrada">
+            <select id="mesSeleccionado" class="entrada">
                 <option value="2026-10" selected>Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
                 <option value="2027-01">Enero 2027</option>
             </select>
         </div>
-
         <div class="bloque">
-    <h3>📊 Comparar Meses</h3>
+    <h3 class="subtitulo">📊 Comparar Meses</h3>
     <div class="fila-doble">
         <div>
             <label>Mes 1:</label>
-            <select "mesComparar1" onchange="cargarComparacion()">
+            <select id="mesComparar1" onchange="cargarComparacion()">
                 <option value="2026-10">Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
@@ -113,91 +106,82 @@
         </div>
         <div>
             <label>Mes 2:</label>
-            <select "mesComparar2" onchange="cargarComparacion()">
+            <select id="mesComparar2" onchange="cargarComparacion()">
                 <option value="2026-10">Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
             </select>
         </div>
     </div>
-    <div "resultadoComparacion" style="margin-top: 1.5rem;"></div>
+    <div id="resultadoComparacion" style="margin-top: 1.5rem;"></div>
 </div>
-
 <div class="bloque">
-    <h3>📈 Proyección de Ahorro</h3>
-    <div "proyeccionAhorro"></div>
+    <h3 class="subtitulo">📈 Proyección de Ahorro</h3>
+    <div id="proyeccionAhorro"></div>
 </div>
-
 <div class="bloque">
-    <h3>📋 Resumen Semanal</h3>
-    <div "resumenSemanal"></div>
-    <button "btnRecordatorioHabito" class="boton-recordatorio" style="margin-top: 1rem;">🔔 Enviarme recordatorio de hábito</button>
+    <h3 class="subtitulo">📋 Resumen Semanal</h3>
+    <div id="resumenSemanal"></div>
+    <button id="btnRecordatorioHabito" class="boton-recordatorio" style="margin-top: 1rem;">🔔 Enviarme recordatorio de hábito</button>
 </div>
-
 <div class="bloque">
-    <h3>📲 Compartir mi Progreso</h3>
+    <h3 class="subtitulo">📲 Compartir mi Progreso</h3>
     <div class="botones-compartir">
-        <button "btnCompartirWhatsapp" class="btn btn-whatsapp">📱 Compartir por WhatsApp</button>
-        <button "btnCopiarEnlace" class="btn btn-copiar">📋 Copiar enlace</button>
+        <button id="btnCompartirWhatsapp" class="btn btn-whatsapp">📱 Compartir por WhatsApp</button>
+        <button id="btnCopiarEnlace" class="btn btn-copiar">📋 Copiar enlace</button>
     </div>
 </div>
-
        <div class="bloque">
     <h3 class="subtitulo">+ Registrar Movimiento</h3>
     
     <div class="selector-tipo">
        <button class="btn-tipo btn-ingreso" data-tipo="ingreso">🟢 Ingreso</button>
-    <button class="btn-tipo btn-gasto" data-tipo="gasto">🔴 Gasto</button>
+       <button class="btn-tipo btn-gasto" data-tipo="gasto">🔴 Gasto</button>
     </div>
-
     <div class="campos-formulario">
-        <input type="text" class="campo-dato" placeholder="Descripción">
-        <input type="number" class="campo-dato" placeholder="Monto $">
-        <select class="campo-dato">
-            <option>Seleccionar categoría</option>
+        <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción">
+        <select id="categoriaMov" class="campo-dato">
+            <option value="">Seleccionar categoría</option>
         </select>
+        <input type="number" id="montoMov" class="campo-dato" placeholder="Monto $">
     </div>
-
     <button id="btnGuardarMov" class="btn-guardar-movimiento">Guardar</button>
 </div>
-
         <div class="bloque">
             <h3 class="subtitulo">📈 Resumen del Mes</h3>
             <div class="resumen-horizontal">
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Ingresos</p>
-                    <p class="valor positivo" "totalIngresos">$ 0</p>
+                    <p class="valor positivo" id="totalIngresos">$ 0</p>
                 </div>
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Gastos</p>
-                    <p class="valor negativo" "totalGastos">$ 0</p>
+                    <p class="valor negativo" id="totalGastos">$ 0</p>
                 </div>
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Saldo</p>
-                    <p class="valor" "saldoTotal">$ 0</p>
+                    <p class="valor" id="saldoTotal">$ 0</p>
                 </div>
             </div>
         </div>
-
         <div class="bloque">
             <h3 class="subtitulo">📋 Movimientos</h3>
-            <div "listaMovimientos"></div>
+            <div id="listaMovimientos"></div>
         </div>
-
        <div class="bloque">
   <div class="cabecera-seccion">
     <h3 class="subtitulo">📁 Categorías</h3>
     <button id="btnAbrirCat" class="boton-icono">+ Nueva</button>
   </div>
-
   <div id="formNuevaCat" class="oculto">
     <input type="text" id="nombreCat" placeholder="Nombre de categoría" class="entrada">
     <button id="btnGuardarCat" class="boton-principal">Guardar Categoría</button>
   </div>
-
   <div id="listaCategorias"></div>
 </div>
-
+    </section>
+    
+    <!-- Ahorro -->
     <section id="ahorro" class="pagina oculto">
         <h1 class="titulo-principal">💰 Ahorro Programado</h1>
         <div class="bloque">
@@ -261,20 +245,17 @@
         </div>
     </section>
     
-
     <!-- Hábitos -->
     <section id="habitos" class="pagina oculto">
         <h1 class="titulo-principal">💪 Mis Hábitos</h1>
-
         <div class="bloque">
             <h3 class="subtitulo">➕ Nuevo Hábito</h3>
             <input type="text" id="nombreHabito" placeholder="Nombre del hábito" class="entrada">
             <button id="btnCrearHabito" class="boton-principal">Crear Hábito</button>
         </div>
-
         <div id="listaHabitos"></div>
     </section>
-
+    
     <!-- Logros -->
     <section id="logros" class="pagina oculto">
         <h1 class="titulo-principal">🏆 Mis Logros</h1>
@@ -291,11 +272,10 @@
             <div id="lista-logros"></div>
         </div>
     </section>
-
+    
     <!-- Exportar y Compartir -->
     <section id="exportar" class="pagina oculto">
         <h1 class="titulo-principal">📤 Exportar y Compartir</h1>
-
         <div class="bloque">
             <h3 class="subtitulo">📄 Extracto Mensual (PDF)</h3>
             <p style="color: #636e72; margin-bottom: 15px;">Genera un documento con tu resumen contable y de ahorro del mes.</p>
@@ -307,7 +287,6 @@
             </select>
             <button id="btnGenerarPDF" class="boton-principal" style="max-width: 300px;">📄 Generar Extracto PDF</button>
         </div>
-
         <div class="bloque">
             <h3 class="subtitulo">🖼️ Tarjeta para Compartir</h3>
             <p style="color: #636e72; margin-bottom: 15px;">Imagen lista para descargar y compartir en redes.</p>
@@ -325,7 +304,6 @@
         <p style="margin:5px 0; color:#666;">Usuario: <span id="pdfNombreUsuario"></span></p>
         <p style="margin:5px 0; color:#666;">Fecha de emisión: <span id="pdfFechaEmision"></span></p>
     </div>
-
     <h2 style="color:#2d3436; font-size:18px; margin:20px 0 10px;">📊 Resumen Contable</h2>
     <table style="width:100%; border-collapse:collapse; margin-bottom:25px;">
         <tr style="background:#f8f9fa;">
@@ -341,7 +319,6 @@
             <td style="padding:12px; border-bottom:1px solid #ddd; text-align:right; font-weight:bold;" id="pdfTablaSaldo">$ 0</td>
         </tr>
     </table>
-
     <h2 style="color:#2d3436; font-size:18px; margin:20px 0 10px;">💰 Ahorro Programado</h2>
     <table style="width:100%; border-collapse:collapse; margin-bottom:25px;">
         <tr><td style="padding:8px 0;"><strong>Meta:</strong></td><td style="text-align:right;" id="pdfMetaAhorro">$ 0</td></tr>
@@ -355,7 +332,6 @@
         <tr><td style="padding:6px 0; color:#00b894;">🟢 Banco</td><td style="text-align:right;" id="pdfBanco">$ 0</td></tr>
         <tr><td style="padding:6px 0; color:#fdcb6e;">🟡 Efectivo</td><td style="text-align:right;" id="pdfEfectivo">$ 0</td></tr>
     </table>
-
     <h2 style="color:#2d3436; font-size:18px; margin:30px 0 10px;">📋 Detalle de Movimientos</h2>
     <table style="width:100%; border-collapse:collapse; font-size:13px;">
         <thead><tr style="background:#f8f9fa;">
@@ -366,7 +342,6 @@
         </tr></thead>
         <tbody id="pdfCuerpoMov"></tbody>
     </table>
-
     <p style="margin-top:40px; padding-top:15px; border-top:1px solid #ddd; font-size:12px; color:#888; text-align:center;">
         Documento generado automáticamente<br>💰 Mis Finanzas · App de Control Financiero
     </p>
@@ -384,12 +359,9 @@
             <p style="margin:15px 0 5px; font-size:14px; opacity:0.9;">🔥 Racha actual</p>
             <p style="font-size:36px; font-weight:bold; margin:0;" id="tarjetaRacha">0 días</p>
         </div>
-
         <h4 style="margin:0 0 12px; font-size:15px;">🏆 Mis Logros</h4>
         <div id="tarjetaListaLogros" style="text-align:left;">
-            <!-- Se llena con JS -->
         </div>
-
         <p style="margin-top:25px; font-style:italic; opacity:0.9; font-size:13px;">
             "La constancia construye la libertad financiera"
         </p>
@@ -424,44 +396,44 @@
 </div>
     
 <!-- MODAL EDITAR MOVIMIENTO -->
-    <div id="modalEditarMov" class="modal-fondo oculto">
-        <div class="modal-contenido">
-            <h3>✏️ Editar Movimiento</h3>
-            <input type="hidden" id="idEditarMov">
-            <div class="grupo-input">
-                <label>Descripción</label>
-                <input type="text" id="descEditarMov">
-            </div>
-            <div class="grupo-input">
-                <label>Categoría</label>
-                <select id="catEditarMov"></select>
-            </div>
-            <div class="grupo-input">
-                <label>Monto</label>
-                <input type="number" id="montoEditarMov">
-            </div>
-            <div class="botones-modal">
-                <button class="btn btn-cancelar" id="btnCancelarEditar">Cancelar</button>
-                <button class="btn btn-guardar" id="btnConfirmarEditar">Guardar Cambios</button>
-            </div>
+<div id="modalEditarMov" class="modal-fondo oculto">
+    <div class="modal-contenido">
+        <h3>✏️ Editar Movimiento</h3>
+        <input type="hidden" id="idEditarMov">
+        <div class="grupo-input">
+            <label>Descripción</label>
+            <input type="text" id="descEditarMov">
+        </div>
+        <div class="grupo-input">
+            <label>Categoría</label>
+            <select id="catEditarMov"></select>
+        </div>
+        <div class="grupo-input">
+            <label>Monto</label>
+            <input type="number" id="montoEditarMov">
+        </div>
+        <div class="botones-modal">
+            <button class="btn btn-cancelar" id="btnCancelarEditar">Cancelar</button>
+            <button class="btn btn-guardar" id="btnConfirmarEditar">Guardar Cambios</button>
         </div>
     </div>
+</div>
 
-    <!-- MODAL EDITAR DEPÓSITO -->
-    <div id="modalEditarDeposito" class="modal-fondo oculto">
-        <div class="modal-contenido">
-            <h3>✏️ Editar Depósito</h3>
-            <input type="hidden" id="idEditarDep">
-            <div class="grupo-input">
-                <label>Monto</label>
-                <input type="number" id="montoEditarDep">
-            </div>
-            <div class="botones-modal">
-                <button class="btn btn-cancelar" id="btnCancelarEditarDep">Cancelar</button>
-                <button class="btn btn-guardar" id="btnConfirmarEditarDep">Guardar Cambios</button>
-            </div>
+<!-- MODAL EDITAR DEPÓSITO -->
+<div id="modalEditarDeposito" class="modal-fondo oculto">
+    <div class="modal-contenido">
+        <h3>✏️ Editar Depósito</h3>
+        <input type="hidden" id="idEditarDep">
+        <div class="grupo-input">
+            <label>Monto</label>
+            <input type="number" id="montoEditarDep">
+        </div>
+        <div class="botones-modal">
+            <button class="btn btn-cancelar" id="btnCancelarEditarDep">Cancelar</button>
+            <button class="btn btn-guardar" id="btnConfirmarEditarDep">Guardar Cambios</button>
         </div>
     </div>
+</div>
 
 <script src="app.js"></script>
 </body>
