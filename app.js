@@ -1153,7 +1153,7 @@ async function cargarContable() {
         lista.innerHTML = ''; // <-- BORRA TODO ANTES DE CARGAR
     }
 
-    try {
+       try {
         const snapshot = await db.collection('movimientos')
             .where('userId', '==', usuarioActual.uid)
             .where('mes', '==', mes)
@@ -1198,28 +1198,31 @@ async function cargarContable() {
         if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
         if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
         if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
+        
         verificarAlertaSaldo(totalIngresos - totalGastos);
 
     } catch (err) {
         console.error('Error cargando contable:', err);
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
-        cargarContableEnEjecucion = false; // ✅ Desbloquear al terminar
+        cargarContableEnEjecucion = false;
+    }
 }
 
         // Actualizar totales
         if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
         if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
         if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
-
+        
         verificarAlertaSaldo(totalIngresos - totalGastos);
 
     } catch (err) {
         console.error('Error cargando contable:', err);
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
+    } finally {
+        cargarContableEnEjecucion = false; // Desbloquear al terminar
     }
 }
-
 // ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
 document.addEventListener('click', async e => {
     // Eliminar
