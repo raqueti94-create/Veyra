@@ -1186,60 +1186,28 @@ setTimeout(() => {
     if (carga) carga.classList.add('oculto');
 }, 3000);
 
-// Seleccionar INGRESO
-document.querySelector('.btn-tipo-ingreso').addEventListener('click', function(){
-    document.querySelector('.btn-tipo-gasto').classList.remove('activo');
-    this.classList.add('activo');
-    tipoSeleccionado = 'ingreso';
-});
-
-// Seleccionar GASTO
-document.querySelector('.btn-tipo-gasto').addEventListener('click', function(){
-    document.querySelector('.btn-tipo-ingreso').classList.remove('activo');
-    this.classList.add('activo');
-    tipoSeleccionado = 'gasto';
-});
-
-// Valor por defecto al cargar
-document.addEventListener('DOMContentLoaded', function(){
-    const btnIngreso = document.querySelector('.btn-tipo-ingreso');
-    const btnGasto = document.querySelector('.btn-tipo-gasto');
-    
-    if (!btnIngreso || !btnGasto) return;
-    
-    let tipoSeleccionado = 'ingreso';
-    btnIngreso.classList.add('activo');
-    
-    btnIngreso.addEventListener('click', function(){
-        btnGasto.classList.remove('activo');
-        this.classList.add('activo');
-        tipoSeleccionado = 'ingreso';
-    });
-    
-    btnGasto.addEventListener('click', function(){
-        btnIngreso.classList.remove('activo');
-        this.classList.add('activo');
-        tipoSeleccionado = 'gasto';
-    });
-});
+// === BOTONES INGRESO / GASTO — VERSIÓN CORRECTA ===
 document.addEventListener('DOMContentLoaded', function() {
     const btnIngreso = document.querySelector('.btn-tipo-ingreso');
     const btnGasto = document.querySelector('.btn-tipo-gasto');
     
-    if (!btnIngreso || !btnGasto) return;
+    if (!btnIngreso || !btnGasto) {
+        console.log('Botones listos para cargar');
+        return;
+    }
     
-    let tipoSeleccionado = 'ingreso';
+    // Sincroniza con la variable que ya existe en tu código
     btnIngreso.classList.add('activo');
     
     btnIngreso.addEventListener('click', function() {
         btnGasto.classList.remove('activo');
         this.classList.add('activo');
-        tipoSeleccionado = 'ingreso';
+        tipoMovimiento = 'ingreso';
     });
     
     btnGasto.addEventListener('click', function() {
         btnIngreso.classList.remove('activo');
         this.classList.add('activo');
-        tipoSeleccionado = 'gasto';
+        tipoMovimiento = 'gasto';
     });
 });
