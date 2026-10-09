@@ -28,53 +28,53 @@
         
         <div class="grupo-input">
             <label for="correoLogin">📧 Correo electrónico</label>
-            <input type="email" id="correoLogin" placeholder="tu@correo.com">
+            <input type="email" "correoLogin" placeholder="tu@correo.com">
         </div>
         
         <div class="grupo-input">
             <label for="claveLogin">🔒 Contraseña</label>
-            <input type="password" id="claveLogin" placeholder="Escribe tu contraseña">
+            <input type="password" "claveLogin" placeholder="Escribe tu contraseña">
         </div>
         
-        <p id="mensajeError" class="error"></p>
+        <p "mensajeError" class="error"></p>
         
         <div class="fila-botones">
-            <button id="btnIngresar" class="boton-principal">✅ Ingresar</button>
-            <button id="btnRegistrar" class="boton-secundario">✨ Crear cuenta</button>
+            <button "btnIngresar" class="boton-principal">✅ Ingresar</button>
+            <button "btnRegistrar" class="boton-secundario">✨ Crear cuenta</button>
         </div>
     </div>
 </div>
 
 <!-- PANTALLA PRINCIPAL -->
-<div id="pantallaPrincipal" style="display: none !important;">
+<div "pantallaPrincipal" style="display: none !important;">
     <header class="cabecera">
-        <h2 id="nombreUsuario">👋 Hola</h2>
+        <h2 "nombreUsuario">👋 Hola</h2>
         
        <div class="acciones-usuario">
-            <button class="btn-cambiar-nombre" id="btnEditarNombre">✏️ Cambiar nombre</button>
-            <button class="btn-cerrar-sesion" id="btnCerrarSesion">Cerrar sesión</button>
+            <button class="btn-cambiar-nombre" "btnEditarNombre">✏️ Cambiar nombre</button>
+            <button class="btn-cerrar-sesion" "btnCerrarSesion">Cerrar sesión</button>
         </div>
     </div>
     </header>
 
     <!-- Modal: Cambiar / Crear Nombre -->
-<div id="modalNombre" class="modal-fondo oculto">
+<div "modalNombre" class="modal-fondo oculto">
     <div class="modal-contenido">
-        <h3 id="tituloModalNombre">👤 Tu nombre</h3>
+        <h3 "tituloModalNombre">👤 Tu nombre</h3>
         <input 
             type="text" 
-            id="inputNombreUsuario" 
+            "inputNombreUsuario" 
             placeholder="Escribe tu nombre..."
             maxlength="30"
         >
         <div class="botones-modal">
-            <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
-            <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
+            <button "btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
+            <button "btnGuardarNombre" class="btn btn-guardar">Guardar</button>
         </div>
     </div>
 </div>
     
-<div id="alertaSaldo" class="alerta-saldo oculto"></div>
+<div "alertaSaldo" class="alerta-saldo oculto"></div>
     
   
     <!-- Pestañas -->
@@ -87,12 +87,12 @@
     </nav>
 
     <!-- Página Contable -->
-    <section id="contable" class="pagina">
+    <section "contable" class="pagina">
         <h1 class="titulo-principal">📊 Control de Gastos e Ingresos</h1>
 
         <div class="bloque">
             <h3 class="subtitulo">📅 Seleccionar Mes</h3>
-            <select id="mesSeleccionado" class="entrada">
+            <select "mesSeleccionado" class="entrada">
                 <option value="2026-10" selected>Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
@@ -105,7 +105,7 @@
     <div class="fila-doble">
         <div>
             <label>Mes 1:</label>
-            <select id="mesComparar1" onchange="cargarComparacion()">
+            <select "mesComparar1" onchange="cargarComparacion()">
                 <option value="2026-10">Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
@@ -113,32 +113,32 @@
         </div>
         <div>
             <label>Mes 2:</label>
-            <select id="mesComparar2" onchange="cargarComparacion()">
+            <select "mesComparar2" onchange="cargarComparacion()">
                 <option value="2026-10">Octubre 2026</option>
                 <option value="2026-11">Noviembre 2026</option>
                 <option value="2026-12">Diciembre 2026</option>
             </select>
         </div>
     </div>
-    <div id="resultadoComparacion" style="margin-top: 1.5rem;"></div>
+    <div "resultadoComparacion" style="margin-top: 1.5rem;"></div>
 </div>
 
 <div class="bloque">
     <h3>📈 Proyección de Ahorro</h3>
-    <div id="proyeccionAhorro"></div>
+    <div "proyeccionAhorro"></div>
 </div>
 
 <div class="bloque">
     <h3>📋 Resumen Semanal</h3>
-    <div id="resumenSemanal"></div>
-    <button id="btnRecordatorioHabito" class="boton-recordatorio" style="margin-top: 1rem;">🔔 Enviarme recordatorio de hábito</button>
+    <div "resumenSemanal"></div>
+    <button "btnRecordatorioHabito" class="boton-recordatorio" style="margin-top: 1rem;">🔔 Enviarme recordatorio de hábito</button>
 </div>
 
 <div class="bloque">
     <h3>📲 Compartir mi Progreso</h3>
     <div class="botones-compartir">
-        <button id="btnCompartirWhatsapp" class="btn btn-whatsapp">📱 Compartir por WhatsApp</button>
-        <button id="btnCopiarEnlace" class="btn btn-copiar">📋 Copiar enlace</button>
+        <button "btnCompartirWhatsapp" class="btn btn-whatsapp">📱 Compartir por WhatsApp</button>
+        <button "btnCopiarEnlace" class="btn btn-copiar">📋 Copiar enlace</button>
     </div>
 </div>
 
@@ -158,7 +158,7 @@
         </select>
     </div>
 
-    <button class="btn-guardar-movimiento">Guardar</button>
+    <button id="btnGuardarMov" class="btn-guardar-movimiento">Guardar</button>
 </div>
 
         <div class="bloque">
@@ -166,53 +166,53 @@
             <div class="resumen-horizontal">
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Ingresos</p>
-                    <p class="valor positivo" id="totalIngresos">$ 0</p>
+                    <p class="valor positivo" "totalIngresos">$ 0</p>
                 </div>
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Gastos</p>
-                    <p class="valor negativo" id="totalGastos">$ 0</p>
+                    <p class="valor negativo" "totalGastos">$ 0</p>
                 </div>
                 <div class="tarjeta-resumen">
                     <p class="etiqueta">Saldo</p>
-                    <p class="valor" id="saldoTotal">$ 0</p>
+                    <p class="valor" "saldoTotal">$ 0</p>
                 </div>
             </div>
         </div>
 
         <div class="bloque">
             <h3 class="subtitulo">📋 Movimientos</h3>
-            <div id="listaMovimientos"></div>
+            <div "listaMovimientos"></div>
         </div>
 
         <div class="bloque">
             <div class="cabecera-seccion">
                 <h3 class="subtitulo">📂 Categorías</h3>
-                <button id="btnAbrirCat" class="boton-icono">➕ Nueva</button>
+                <button "btnAbrirCat" class="boton-icono">➕ Nueva</button>
             </div>
-            <div id="formNuevaCat" class="oculto">
-                <input type="text" id="nombreCat" placeholder="Nombre de categoría" class="entrada">
-                <button id="btnGuardarCat" class="boton-principal">Guardar Categoría</button>
+            <div "formNuevaCat" class="oculto">
+                <input type="text" "nombreCat" placeholder="Nombre de categoría" class="entrada">
+                <button "btnGuardarCat" class="boton-principal">Guardar Categoría</button>
             </div>
-            <div id="listaCategorias"></div>
+            <div "listaCategorias"></div>
         </div>
     </section>
 
     <!-- Ahorro Programado -->
-    <section id="ahorro" class="pagina oculto">
+    <section "ahorro" class="pagina oculto">
         <h1 class="titulo-principal">💰 Ahorro Programado</h1>
 
         <div class="bloque">
             <h3 class="subtitulo">📈 Progreso de tu Meta</h3>
             <div class="fila-meta">
                 <div class="columna-meta">
-                    <p><strong>Meta:</strong> <span id="metaTotal">$ 0</span></p>
-                    <p><strong>Ahorrado:</strong> <span id="totalAhorrado" class="positivo">$ 0</span></p>
-                    <p><strong>Falta:</strong> <span id="faltaParaMeta">$ 0</span></p>
+                    <p><strong>Meta:</strong> <span "metaTotal">$ 0</span></p>
+                    <p><strong>Ahorrado:</strong> <span "totalAhorrado" class="positivo">$ 0</span></p>
+                    <p><strong>Falta:</strong> <span "faltaParaMeta">$ 0</span></p>
                     <div class="barra-contenedor">
-                        <div id="barraAhorro" class="barra-progreso verde"></div>
+                        <div "barraAhorro" class="barra-progreso verde"></div>
                     </div>
-                    <p id="porcentajeAhorro" class="texto-centrado">0.0%</p>
-                    <p id="alertaMeta" class="texto-centrado oculto">🎉 ¡Meta alcanzada!</p>
+                    <p "porcentajeAhorro" class="texto-centrado">0.0%</p>
+                    <p "alertaMeta" class="texto-centrado oculto">🎉 ¡Meta alcanzada!</p>
                 </div>
 
                 <div class="columna-grafico">
@@ -220,23 +220,23 @@
                     <div class="contenedor-grafico-circular">
                         <svg viewBox="0 0 100 100" class="grafico-circular">
                             <circle cx="50" cy="50" r="40" fill="none" stroke="#e0e0e0" stroke-width="12" />
-                            <circle id="arcNequi" cx="50" cy="50" r="40" fill="none" stroke="#6c5ce7" stroke-width="12" 
+                            <circle "arcNequi" cx="50" cy="50" r="40" fill="none" stroke="#6c5ce7" stroke-width="12" 
                                     stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
-                            <circle id="arcBanco" cx="50" cy="50" r="40" fill="none" stroke="#00b894" stroke-width="12" 
+                            <circle "arcBanco" cx="50" cy="50" r="40" fill="none" stroke="#00b894" stroke-width="12" 
                                     stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
-                            <circle id="arcEfectivo" cx="50" cy="50" r="40" fill="none" stroke="#fdcb6e" stroke-width="12" 
+                            <circle "arcEfectivo" cx="50" cy="50" r="40" fill="none" stroke="#fdcb6e" stroke-width="12" 
                                     stroke-dasharray="0 251.2" transform="rotate(-90 50 50)" />
                         </svg>
                     </div>
                     <div class="leyenda-grafico">
                         <div class="item-leyenda">
-                            <span class="color-nequi"></span> Nequi: <strong id="valorNequi">$ 0</strong>
+                            <span class="color-nequi"></span> Nequi: <strong "valorNequi">$ 0</strong>
                         </div>
                         <div class="item-leyenda">
-                            <span class="color-banco"></span> Banco: <strong id="valorBanco">$ 0</strong>
+                            <span class="color-banco"></span> Banco: <strong "valorBanco">$ 0</strong>
                         </div>
                         <div class="item-leyenda">
-                            <span class="color-efectivo"></span> Efectivo: <strong id="valorEfectivo">$ 0</strong>
+                            <span class="color-efectivo"></span> Efectivo: <strong "valorEfectivo">$ 0</strong>
                         </div>
                     </div>
                 </div>
@@ -245,23 +245,23 @@
 
         <div class="bloque">
             <h3 class="subtitulo">💾 Guardar Dinero</h3>
-            <input type="number" id="metaAhorro" placeholder="Meta total a alcanzar $" class="entrada">
-            <select id="lugarAhorro" class="entrada">
+            <input type="number" "metaAhorro" placeholder="Meta total a alcanzar $" class="entrada">
+            <select "lugarAhorro" class="entrada">
                 <option value="">Seleccionar medio</option>
                 <option value="nequi">Nequi</option>
                 <option value="banco">Cuenta Bancaria</option>
                 <option value="efectivo">Efectivo</option>
             </select>
-            <div id="campoBanco" class="oculto">
-                <input type="text" id="nombreBanco" placeholder="Nombre del banco" class="entrada">
+            <div "campoBanco" class="oculto">
+                <input type="text" "nombreBanco" placeholder="Nombre del banco" class="entrada">
             </div>
-            <input type="number" id="montoGuardar" placeholder="Monto a depositar $" class="entrada">
-            <button id="btnGuardarAhorro" class="boton-principal">💾 Guardar</button>
+            <input type="number" "montoGuardar" placeholder="Monto a depositar $" class="entrada">
+            <button "btnGuardarAhorro" class="boton-principal">💾 Guardar</button>
         </div>
 
         <div class="bloque">
             <h3 class="subtitulo">📋 Historial de Depósitos</h3>
-            <div id="listaDepositos"></div>
+            <div "listaDepositos"></div>
         </div>
     </section>
 
