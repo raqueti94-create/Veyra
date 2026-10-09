@@ -325,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     el('mesSeleccionado').addEventListener('change', cargarContable);
 }); // ✅ Cierra el DOMContentLoaded
+
 async function cargarContable() {
     if (!usuarioActual) return;
     const mes = el('mesSeleccionado').value;
@@ -377,51 +378,36 @@ async function cargarContable() {
 }
 
 // ========== CATEGORÍAS ==========
-el('btnAbrirCat').addEventListener('click', () => {
-    el('formNuevaCat').classList.toggle('oculto');
-});
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón Abrir Categorías
+    const btnAbrirCat = el('btnAbrirCat');
+    if (btnAbrirCat) {
+        btnAbrirCat.addEventListener('click', () => {
+            el('formNuevaCat').classList.toggle('oculto');
+        });
+    }
 
-el('btnGuardarCat').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    const nombre = el('nombreCat').value.trim();
-    if (!nombre) return alert('Escribe un nombre');
-    try {
-        await db.collection('categorias').add({ userId: usuarioActual.uid, nombre });
-        el('nombreCat').value = '';
-        el('formNuevaCat').classList.add('oculto');
-        cargarCategorias();
-    } catch (err) { console.error(err); }
-});
-
-async function cargarCategorias() {
-    if (!usuarioActual) return;
-    const catSnap = await db.collection('categorias')
-        .where('userId', '==', usuarioActual.uid).get();
-    const select = el('categoriaMov');
-    select.innerHTML = '<option value="">Seleccionar categoría</option>';
-    const lista = el('listaCategorias');
-    lista.innerHTML = '';
-    catSnap.forEach(doc => {
-        const c = doc.data();
-        select.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-        lista.innerHTML += `
-            <div class="categoria">
-                <span class="icono">📁</span>
-                <span>${c.nombre}</span>
-                <div style="margin-left:auto">
-                    <button class="btn-accion eliminar-cat" data-id="${doc.id}">🗑️</button>
-                </div>
-            </div>`;
-    });
-    document.querySelectorAll('.eliminar-cat').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar categoría?')) {
-                await db.collection('categorias').doc(btn.dataset.id).delete();
+    // Botón Guardar Categoría
+    const btnGuardarCat = el('btnGuardarCat');
+    if (btnGuardarCat) {
+        btnGuardarCat.addEventListener('click', async () => {
+            if (!usuarioActual) return;
+            const nombre = el('nombreCat').value.trim();
+            if (!nombre) return alert('Escribe un nombre');
+            try {
+                await db.collection('categorias').add({
+                    userId: usuarioActual.uid,
+                    nombre: nombre
+                });
+                el('nombreCat').value = '';
+                el('formNuevaCat').classList.add('oculto');
                 cargarCategorias();
+            } catch (err) {
+                console.error(err);
             }
         });
-    });
-}
+    }
+});
 
 // ========== PESTAÑA AHORRO ==========
 el('lugarAhorro').addEventListener('change', () => {
