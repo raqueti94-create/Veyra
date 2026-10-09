@@ -142,19 +142,24 @@
     </div>
 </div>
 
-        <div class="bloque">
-            <h3 class="subtitulo">➕ Registrar Movimiento</h3>
-          <div class="selector-tipo">
-    <button class="btn-tipo-ingreso">💵 Ingreso</button>
-    <button class="btn-tipo-gasto">💸 Gasto</button>
-</div>
+       <div class="bloque">
+    <h3 class="subtitulo">+ Registrar Movimiento</h3>
+    
+    <div class="selector-tipo">
+        <button class="btn-tipo-ingreso">🟢 Ingreso</button>
+        <button class="btn-tipo-gasto">🔴 Gasto</button>
+    </div>
 
-<div class="campos-formulario">
-    <input type="text" placeholder="Descripción" class="campo-dato">
-    <input type="number" placeholder="Monto $" class="campo-dato">
-    <select class="campo-dato">
-        <option>Seleccionar categoría</option>
-    </select>
+    <!-- Aquí van tus campos de formulario -->
+    <div class="campos-formulario">
+        <input type="text" class="campo-dato" placeholder="Descripción">
+        <input type="number" class="campo-dato" placeholder="Monto $">
+        <select class="campo-dato" id="selectCategoria">
+            <option>Seleccionar categoría</option>
+        </select>
+    </div>
+
+    <button class="btn-guardar-movimiento">Guardar</button>
 </div>
 
         <div class="bloque">
