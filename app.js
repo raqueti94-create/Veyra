@@ -138,30 +138,40 @@ firebase.auth().onAuthStateChanged((usuario) => {
         if (pantallaPrincipal) pantallaPrincipal.style.display = 'none';
     }
 });
-// ========== LOGIN Y REGISTRO ==========
-el('btnIngresar').addEventListener('click', async () => {
-    try {
-        el('mensajeError').textContent = '';
-        await auth.signInWithEmailAndPassword(
-            el('correoLogin').value,
-            el('claveLogin').value
-        );
-    } catch (err) {
-        el('mensajeError').textContent = 'Correo o contraseña incorrectos';
-        console.error(err);
+// ===== LOGIN Y REGISTRO =====
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón Ingresar
+    const btnIngresar = el('btnIngresar');
+    if (btnIngresar) {
+        btnIngresar.addEventListener('click', async () => {
+            try {
+                el('mensajeError').textContent = '';
+                await auth.signInWithEmailAndPassword(
+                    el('correoLogin').value,
+                    el('claveLogin').value
+                );
+            } catch (err) {
+                el('mensajeError').textContent = 'Correo o contraseña incorrectos';
+                console.error(err);
+            }
+        });
     }
-});
 
-el('btnRegistrar').addEventListener('click', async () => {
-    try {
-        el('mensajeError').textContent = '';
-        await auth.createUserWithEmailAndPassword(
-            el('correoLogin').value,
-            el('claveLogin').value
-        );
-    } catch (err) {
-        el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
-        console.error(err);
+    // Botón Registrar
+    const btnRegistrar = el('btnRegistrar');
+    if (btnRegistrar) {
+        btnRegistrar.addEventListener('click', async () => {
+            try {
+                el('mensajeError').textContent = '';
+                await auth.createUserWithEmailAndPassword(
+                    el('correoLogin').value,
+                    el('claveLogin').value
+                );
+            } catch (err) {
+                el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
+                console.error(err);
+            }
+        });
     }
 });
 
