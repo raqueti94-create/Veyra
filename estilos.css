@@ -59,7 +59,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* ========== OCULTAR/MOSTRAR ========== */
 .oculto { display: none !important; }
 
 /* ========== ANIMACIONES ========== */
@@ -179,7 +178,7 @@ body {
     padding: 1.5rem;
     border-radius: 16px;
     box-shadow: var(--sombra);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -190,30 +189,22 @@ body {
     font-size: 1.3rem;
     color: var(--primario);
 }
-.btn-cerrar {
+.btn-cerrar, .boton-icono, button:not(.btn):not(.pestaña) {
     background: none;
     border: none;
     color: var(--texto-claro);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.95rem;
     padding: 0.5rem 1rem;
     border-radius: 8px;
     transition: var(--transicion);
 }
-.btn-cerrar:hover {
+.btn-cerrar:hover, .boton-icono:hover {
     background: #f1f2f6;
     color: var(--peligro);
 }
-.editar-nombre {
-    background: none;
-    border: none;
-    color: var(--primario);
-    cursor: pointer;
-    font-size: 0.9rem;
-    margin-left: 0.5rem;
-}
 
-/* ========== ALERTAS DE SALDO ========== */
+/* ========== ALERTA DE SALDO ========== */
 .alerta-saldo {
     padding: 1rem 1.25rem;
     border-radius: 12px;
@@ -235,8 +226,8 @@ body {
     color: #d35400;
 }
 
-/* ========== PESTAÑAS ========== */
-.contenedor-pestanas {
+/* ========== PESTAÑAS / NAVEGACIÓN ========== */
+.navegacion {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -261,11 +252,8 @@ body {
 .pestaña:hover:not(.activa) {
     background: rgba(255,255,255,0.35);
 }
-.pagina {
-    animation: aparecer 0.4s ease forwards;
-}
 
-/* ========== TARJETAS Y BLOQUES ========== */
+/* ========== BLOQUES Y TARJETAS ========== */
 .bloque {
     background: white;
     border-radius: 16px;
@@ -279,15 +267,11 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 1.25rem;
 }
 .fila-doble {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-.fila-tripe {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
 .valor-grande {
@@ -297,21 +281,18 @@ body {
 .positivo { color: var(--exito); }
 .negativo { color: var(--peligro); }
 
-/* ========== CATEGORÍAS CON ICONOS ========== */
-.icono-categoria {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #f1f2f6;
-    margin-right: 0.75rem;
-    font-size: 1rem;
+/* ========== FORMULARIOS DENTRO DE LA APP ========== */
+select, input[type="number"], input[type="text"] {
+    border-radius: 10px;
+    border: 2px solid var(--borde);
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: var(--transicion);
 }
-.categoria-con-icono {
-    display: flex;
-    align-items: center;
+select:focus, input:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
 }
 
 /* ========== MOVIMIENTOS ========== */
@@ -374,32 +355,7 @@ body {
     color: #a71d2a;
 }
 
-/* ========== BARRA DE PROGRESO ========== */
-.contenedor-barra {
-    height: 12px;
-    background: #e1e5e9;
-    border-radius: 6px;
-    overflow: hidden;
-    margin: 1rem 0;
-}
-.barra {
-    height: 100%;
-    background: linear-gradient(90deg, var(--exito), #55efc4);
-    width: 0%;
-    border-radius: 6px;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 /* ========== HÁBITOS ========== */
-.habito-tarjeta {
-    margin-bottom: 1.5rem;
-}
-.cabecera-habito {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
 .dias-habito {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -425,13 +381,6 @@ body {
 }
 .dia-habito.hoy {
     border: 2px solid var(--primario);
-}
-.nombre-dia {
-    font-size: 0.75rem;
-    margin-bottom: 0.3rem;
-}
-.numero-dia {
-    font-weight: 700;
 }
 
 /* ========== MODALES ========== */
@@ -494,9 +443,15 @@ body {
     background: #0069d9;
 }
 
+/* ========== BOTONES GENERALES ========== */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ========== RESPONSIVO — MÓVIL PERFECTO ========== */
 @media (max-width: 768px) {
-    .fila-doble, .fila-tripe {
+    .fila-doble {
         grid-template-columns: 1fr;
     }
     .pestaña {
@@ -527,14 +482,4 @@ body {
         width: 100%;
         justify-content: space-between;
     }
-}
-
-/* ========== TARJETA IMAGEN ========== */
-#tarjetaImagen {
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    padding: 2rem;
-    border-radius: 20px;
-    color: white;
-    max-width: 400px;
-    margin: 0 auto;
 }
