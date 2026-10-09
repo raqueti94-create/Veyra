@@ -190,25 +190,29 @@ if (btnCerrar) {
         
         if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
         
+        // ✅ Ocultar TODO antes de cerrar
+        const pantallaPrincipal = document.getElementById('pantallaPrincipal');
+        if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
+        
+        const modal = document.getElementById('modalNombre');
+        if (modal) modal.classList.add('oculto');
+        
         try {
-            const usuario = firebase.auth().currentUser;
-            if (!usuario) {
-                console.log('ℹ️ No hay sesión activa');
-                window.location.reload();
-                return;
-            }
-            
             await firebase.auth().signOut();
             console.log('✅ Sesión cerrada');
+            
+            // ✅ Ir a la pantalla de ingreso sin esperar recarga
             window.location.reload();
             
         } catch (error) {
             console.error('❌ Error al cerrar sesión:', error);
             alert('No se pudo cerrar sesión: ' + error.message);
+            
+            // Si falla, volvemos a mostrar todo
+            if (pantallaPrincipal) pantallaPrincipal.classList.remove('oculto');
         }
     });
 }
-
 // =========================================
 // BOTÓN CANCELAR MODAL
 // =========================================
