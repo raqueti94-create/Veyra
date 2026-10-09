@@ -23,7 +23,6 @@ body {
     color: var(--texto);
     line-height: 1.6;
 }
-
 /* ========== PANTALLA DE CARGA ========== */
 .pantalla-carga {
     position: fixed;
@@ -65,7 +64,6 @@ body {
     position: absolute !important;
     pointer-events: none !important;
 }
-
 /* ========== ANIMACIONES ========== */
 .aparecer {
     animation: aparecer 0.4s ease forwards;
@@ -81,7 +79,6 @@ body {
 .escala-hover:hover {
     transform: scale(1.02);
 }
-
 /* ========== PANTALLA LOGIN ========== */
 .pantalla-login {
     display: flex;
@@ -197,7 +194,6 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(108, 92, 231, 0.35);
 }
-
 /* ========== PANTALLA PRINCIPAL ========== */
 .pantalla-principal {
     max-width: 1200px;
@@ -234,7 +230,6 @@ body {
     background: #f1f2f6;
     color: var(--peligro);
 }
-
 /* ========== ALERTAS ========== */
 .alerta-saldo {
     padding: 1rem 1.25rem;
@@ -268,7 +263,6 @@ body {
     color: #155724;
     margin-bottom: 1rem;
 }
-
 /* ========== PESTAÑAS ========== */
 .navegacion {
     display: flex;
@@ -295,7 +289,6 @@ body {
 .pestaña:hover:not(.activa) {
     background: rgba(255,255,255,0.35);
 }
-
 /* ========== BLOQUES Y TARJETAS ========== */
 .bloque {
     background: white;
@@ -323,7 +316,6 @@ body {
 }
 .positivo { color: var(--exito); }
 .negativo { color: var(--peligro); }
-
 /* ========== FORMULARIOS ========== */
 select, input[type="number"], input[type="text"] {
     border-radius: 10px;
@@ -337,7 +329,6 @@ select:focus, input:focus {
     border-color: var(--primario);
     box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
 }
-
 /* ========== MOVIMIENTOS ========== */
 .movimiento {
     display: flex;
@@ -397,7 +388,6 @@ select:focus, input:focus {
     background: #f8d7da;
     color: #a71d2a;
 }
-
 /* ========== HÁBITOS ========== */
 .dias-habito {
     display: grid;
@@ -425,8 +415,7 @@ select:focus, input:focus {
 .dia-habito.hoy {
     border: 2px solid var(--primario);
 }
-
-/* ========== BOTÓN RECORDATORIO — DESTACADO ========== */
+/* ========== BOTÓN RECORDATORIO ========== */
 .boton-recordatorio {
     display: inline-flex !important;
     align-items: center !important;
@@ -449,7 +438,7 @@ select:focus, input:focus {
     background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%) !important;
 }
 
-/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
+/* ========== SELECTOR TIPO: INGRESO / GASTO — ESTILO COMPARTIDO ========== */
 .selector-tipo {
     display: flex !important;
     gap: 1rem !important;
@@ -494,7 +483,6 @@ select:focus, input:focus {
     color: var(--peligro) !important;
     background: #fff0f0 !important;
 }
-
 /* ========== CAMPOS DE FORMULARIO ========== */
 .campos-formulario {
     display: flex !important;
@@ -511,7 +499,6 @@ select:focus, input:focus {
     border-radius: 12px !important;
     font-size: 0.95rem !important;
 }
-
 /* ========== BOTÓN GUARDAR MOVIMIENTO ========== */
 .btn-guardar-movimiento {
     margin-top: 1.5rem !important;
@@ -531,7 +518,6 @@ select:focus, input:focus {
     transform: translateY(-3px) !important;
     box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
 }
-
 /* ========== COMPARTIR ========== */
 .botones-compartir {
     display: flex;
@@ -577,7 +563,6 @@ select:focus, input:focus {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(0, 123, 255, 0.45);
 }
-
 /* ========== CIERRE DE SESIÓN ========== */
 .btn-cerrar-sesion,
 .btn-cambiar-nombre {
@@ -604,7 +589,6 @@ select:focus, input:focus {
     gap: 0.8rem;
     margin-top: 0.5rem;
 }
-
 /* ========== MODALES ========== */
 .modal-fondo {
     position: fixed;
@@ -663,7 +647,6 @@ button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
-
 /* ========== RESPONSIVO ========== */
 @media (max-width: 768px) {
     .fila-doble {
