@@ -325,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     el('mesSeleccionado').addEventListener('change', cargarContable);
 }); // ✅ Cierra el DOMContentLoaded
-
 async function cargarContable() {
     if (!usuarioActual) return;
     const mes = el('mesSeleccionado').value;
