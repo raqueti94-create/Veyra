@@ -159,10 +159,14 @@ el('btnRegistrar').addEventListener('click', async () => {
     }
 });
 
-// Botón Cambiar Nombre → Abre el modal
+// =========================================
+// BOTÓN CAMBIAR NOMBRE
+// =========================================
 const btnEditar = document.getElementById('btnEditarNombre');
 if (btnEditar) {
     btnEditar.addEventListener('click', () => {
+        console.log('✅ Clic en Cambiar Nombre');
+        
         const modal = document.getElementById('modalNombre');
         if (modal) modal.classList.remove('oculto');
         
@@ -170,11 +174,44 @@ if (btnEditar) {
         if (titulo) titulo.textContent = '✏️ Cambiar tu nombre';
         
         const input = document.getElementById('inputNombreUsuario');
-        if (input && nombreUsuarioGuardado) input.value = nombreUsuarioGuardado;
+        if (input && nombreUsuarioGuardado) {
+            input.value = nombreUsuarioGuardado;
+        }
     });
 }
 
-// Botón Cancelar → Cierra el modal
+// =========================================
+// BOTÓN CERRAR SESIÓN
+// =========================================
+const btnCerrar = document.getElementById('btnCerrarSesion');
+if (btnCerrar) {
+    btnCerrar.addEventListener('click', async () => {
+        console.log('✅ Clic en Cerrar Sesión');
+        
+        if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
+        
+        try {
+            const usuario = firebase.auth().currentUser;
+            if (!usuario) {
+                console.log('ℹ️ No hay sesión activa');
+                window.location.reload();
+                return;
+            }
+            
+            await firebase.auth().signOut();
+            console.log('✅ Sesión cerrada');
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('❌ Error al cerrar sesión:', error);
+            alert('No se pudo cerrar sesión: ' + error.message);
+        }
+    });
+}
+
+// =========================================
+// BOTÓN CANCELAR MODAL
+// =========================================
 const btnCancelar = document.getElementById('btnCancelarNombre');
 if (btnCancelar) {
     btnCancelar.addEventListener('click', () => {
@@ -183,38 +220,34 @@ if (btnCancelar) {
     });
 }
 
-// Botón Guardar → Guarda el nombre
+// =========================================
+// BOTÓN GUARDAR NOMBRE
+// =========================================
 const btnGuardar = document.getElementById('btnGuardarNombre');
 if (btnGuardar) {
     btnGuardar.addEventListener('click', async () => {
-        console.log('👉 Clic en Guardar'); // ✅ Aparece al hacer clic
-        
         const input = document.getElementById('inputNombreUsuario');
         const nuevoNombre = input ? input.value.trim() : '';
-        console.log('👉 Nombre a guardar:', nuevoNombre);
-
+        
         if (!nuevoNombre) {
             alert('Escribe un nombre válido ✍️');
             return;
         }
         
         const usuario = firebase.auth().currentUser;
-        console.log('👉 Usuario activo:', usuario ? 'Sí' : 'NO');
-
         if (!usuario) {
             alert('No hay sesión activa — recarga la página');
             return;
         }
         
         try {
-            console.log('👉 Guardando en Firestore...');
             await db.collection('usuarios').doc(usuario.uid).set(
                 { nombre: nuevoNombre },
                 { merge: true }
             );
             
             nombreUsuarioGuardado = nuevoNombre;
-            console.log('✅ Guardado correctamente');
+            console.log('✅ Nombre guardado:', nuevoNombre);
             
             const elNombre = document.getElementById('nombreUsuario');
             if (elNombre) elNombre.textContent = `👋 Hola, ${nuevoNombre}`;
@@ -223,7 +256,7 @@ if (btnGuardar) {
             if (modal) modal.classList.add('oculto');
             
         } catch (error) {
-            console.error('❌ Error completo:', error);
+            console.error('❌ Error guardando:', error);
             alert('Error: ' + error.message);
         }
     });
