@@ -36,6 +36,11 @@
         <button class="btn-cerrar">Cerrar sesión</button>
     </header>
 
+    <!-- Botón editar nombre -->
+    <div id="editarNombreContenedor" class="oculto" style="padding: 0 15px 10px; text-align: right;">
+        <button id="btnEditarNombre" class="boton-icono" style="background: rgba(255,255,255,0.2); color: white;">✏️ Cambiar nombre</button>
+    </div>
+
     <!-- Pestañas -->
     <nav class="navegacion">
         <button class="pestaña activa" data-pagina="contable">Contable</button>
@@ -88,6 +93,7 @@
                     <p class="valor" id="saldoTotal">$ 0</p>
                 </div>
             </div>
+        </div>
 
         <div class="bloque">
             <h3 class="subtitulo">📋 Movimientos</h3>
@@ -194,7 +200,7 @@
         <div class="bloque">
             <h3 class="subtitulo">🔥 Racha General</h3>
             <p class="numero-grande" id="diasActivos">0 días en racha</p>
-            <p style="margin-top: 12px; color: var(--texto-claro); font-size: 0.9rem; line-height: 1.5;">
+            <p style="margin-top: 12px; color: #636e72; font-size: 0.9rem; line-height: 1.5;">
                 ⚠️ Para mantener la racha activa, debes cumplir <strong>todos</strong> los hábitos creados cada día.
                 Si fallas uno solo, la racha se reinicia desde cero. 💪
             </p>
@@ -215,6 +221,19 @@
         <div class="fila-botones">
             <button id="btnCancelarModal" class="boton-secundario">Cancelar</button>
             <button id="btnConfirmarModal" class="boton-principal">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nombre de Usuario -->
+<div id="modalNombre" class="modal oculto">
+    <div class="contenido-modal">
+        <h3 id="tituloModalNombre">👤 Crea tu nombre</h3>
+        <p style="color: #636e72; margin-bottom: 15px;">Elige cómo quieres que te llamemos</p>
+        <input type="text" id="inputNombreUsuario" placeholder="Tu nombre o apodo" class="entrada" maxlength="20">
+        <div class="fila-botones">
+            <button id="btnCancelarNombre" class="boton-secundario oculto">Cancelar</button>
+            <button id="btnGuardarNombre" class="boton-principal">Guardar</button>
         </div>
     </div>
 </div>
