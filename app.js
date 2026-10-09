@@ -1,3 +1,8 @@
+// ==================================================
+// PARTE 1: CONFIGURACIÓN, AUXILIARES, AUTENTICACIÓN
+// GUARDAR COMO: parte1.js o pegar al inicio del HTML
+// ==================================================
+
 // ========== CONFIGURACIÓN FIREBASE ==========
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
@@ -8,20 +13,22 @@ const firebaseConfig = {
     appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
     measurementId: "G-KW7ZE24BQ8"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-// Función auxiliar para seleccionar elementos
-function el(id) {
-    return document.getElementById(id);
-}
+
+// ========== HERRAMIENTAS BÁSICAS ==========
+function el(id) { return document.getElementById(id); }
 const { jsPDF } = window.jspdf;
 
 // ========== VARIABLES GLOBALES ==========
 let usuarioActual = null;
 let nombreUsuarioGuardado = '';
 let rachaActual = 0;
+let tipoMovimiento = 'ingreso';
+let modoEdicionMov = null;
+let modoEdicionDep = null;
+let cargarContableEnEjecucion = false;
 
 const LOGROS = [
     { dias: 1,   nombre: "Primer paso dado ✅",   emoji: "🔥", descripcion: "¡Empezaste con fuerza!" },
@@ -29,6 +36,13 @@ const LOGROS = [
     { dias: 14,  nombre: "Caminante constante 🚶", emoji: "🏅", descripcion: "2 semanas seguidas" },
     { dias: 30,  nombre: "Maestro de la constancia 🏆", emoji: "👑", descripcion: "¡Todo un mes!" }
 ];
+
+const ICONOS_CATEGORIA = {
+    'Salario': '💼', 'Ventas': '🛒', 'Comida': '🍔', 'Transporte': '🚗',
+    'Entretenimiento': '🎮', 'Servicios': '💡', 'Vivienda': '🏠', 'Salud': '🏥',
+    'Educación': '📚', 'Ropa': '👕', 'Ahorro': '💰', 'Otro': '📌',
+    'Sin categoría': '📁'
+};
 
 // ========== FUNCIONES AUXILIARES ==========
 function obtenerFechaHoy() {
@@ -38,17 +52,41 @@ function obtenerFechaHoy() {
 function formatearFecha(fecha) {
     if (!fecha) return '';
     const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
-    return d.toLocaleDateString('es-CO');
+    return d.toLocaleDateString('es-CO', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
 }
 
 function mesSeleccionadoTexto(valor) {
     const mapa = {
-        '2026-10': 'Octubre 2026',
-        '2026-11': 'Noviembre 2026',
-        '2026-12': 'Diciembre 2026',
-        '2027-01': 'Enero 2027'
+        '2026-10': 'Octubre 2026', '2026-11': 'Noviembre 2026',
+        '2026-12': 'Diciembre 2026', '2027-01': 'Enero 2027'
     };
     return mapa[valor] || valor;
+}
+
+function iconoCategoria(nombre) {
+    return ICONOS_CATEGORIA[nombre] || '📁';
+}
+
+function verificarAlertaSaldo(saldo) {
+    const alerta = el('alertaSaldo');
+    if (!alerta) return;
+    alerta.classList.remove('oculto');
+    if (saldo < 0) {
+        alerta.textContent = `⚠️ ¡Cuidado! Tienes saldo negativo: $ ${saldo.toLocaleString()}`;
+        alerta.style.background = '#ffebee';
+        alerta.style.color = '#c62828';
+    } else if (saldo === 0) {
+        alerta.textContent = 'ℹ️ Tu saldo es cero';
+        alerta.style.background = '#f5f5f5';
+        alerta.style.color = '#666';
+    } else {
+        alerta.textContent = `✅ ¡Bien! Tu saldo es: $ ${saldo.toLocaleString()}`;
+        alerta.style.background = '#e8f5e9';
+        alerta.style.color = '#2e7d32';
+    }
 }
 
 // ========== NOMBRE DE USUARIO ==========
@@ -57,24 +95,13 @@ async function cargarNombreUsuario(uid) {
         const doc = await db.collection('usuarios').doc(uid).get();
         if (doc.exists && doc.data().nombre) {
             nombreUsuarioGuardado = doc.data().nombre;
-            
             const elNombre = el('nombreUsuario');
             if (elNombre) elNombre.textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
-            
-            const elEditar = el('editarNombreContenedor');
-            if (elEditar) elEditar.classList.remove('oculto');
-            
-            // Ocultar modal cuando ya tiene nombre
-            const elModal = el('modalNombre');
-            if (elModal) elModal.classList.add('oculto');
-            
+            el('editarNombreContenedor')?.classList.remove('oculto');
+            el('modalNombre')?.classList.add('oculto');
         } else {
-            const elModal = el('modalNombre');
-            if (elModal) elModal.classList.remove('oculto');
-            
-            const elBtnCancelar = el('btnCancelarNombre');
-            if (elBtnCancelar) elBtnCancelar.classList.add('oculto');
-            
+            el('modalNombre')?.classList.remove('oculto');
+            el('btnCancelarNombre')?.classList.add('oculto');
             const elTitulo = el('tituloModalNombre');
             if (elTitulo) elTitulo.textContent = '👤 Crea tu nombre de usuario';
         }
@@ -85,194 +112,35 @@ async function cargarNombreUsuario(uid) {
 
 async function guardarNombreUsuario(uid, nombre) {
     try {
-        await db.collection('usuarios').doc(uid).set(
-            { nombre: nombre },
-            { merge: true }
-        );
-        
+        await db.collection('usuarios').doc(uid).set({ nombre }, { merge: true });
         nombreUsuarioGuardado = nombre;
-        console.log('✅ Nombre guardado');
-
-        // Actualizar nombre en pantalla
-        const elNombre = document.getElementById('nombreUsuario');
-        if (elNombre) {
-            elNombre.textContent = `👋 Hola, ${nombre}`;
-        }
-
-        // Cerrar modal
-        const elModal = document.getElementById('modalNombre');
-        if (elModal) {
-            elModal.classList.add('oculto');
-        }
-
-        // Mostrar contenedor de editar si existe
-        const elEditar = document.getElementById('editarNombreContenedor');
-        if (elEditar) {
-            elEditar.classList.remove('oculto');
-        }
-
+        if (el('nombreUsuario')) el('nombreUsuario').textContent = `👋 Hola, ${nombre}`;
+        el('modalNombre')?.classList.add('oculto');
+        el('editarNombreContenedor')?.classList.remove('oculto');
     } catch (error) {
-        console.error('❌ Error guardando:', error);
+        console.error('Error guardando:', error);
         alert('No se pudo guardar: ' + error.message);
     }
 }
 
 // ========== AUTENTICACIÓN ==========
 firebase.auth().onAuthStateChanged((usuario) => {
-    const pantallaLogin = document.getElementById('pantallaLogin');
-    const pantallaPrincipal = document.getElementById('pantallaPrincipal');
-
+    const login = el('pantallaLogin');
+    const app = el('pantallaPrincipal');
     usuarioActual = usuario;
-
     if (usuario) {
         console.log('✅ Conectado:', usuario.email);
-        // Ocultar login — Mostrar app
-        if (pantallaLogin) pantallaLogin.style.display = 'none';
-        if (pantallaPrincipal) pantallaPrincipal.style.display = 'block';
+        if (login) login.style.display = 'none';
+        if (app) app.style.display = 'block';
         cargarNombreUsuario(usuario.uid);
         cargarDatos();
     } else {
         console.log('🔒 Sin sesión');
-        // Mostrar login — Ocultar app
-        if (pantallaLogin) pantallaLogin.style.display = 'flex';
-        if (pantallaPrincipal) pantallaPrincipal.style.display = 'none';
+        if (login) login.style.display = 'flex';
+        if (app) app.style.display = 'none';
     }
 });
-// ===== LOGIN Y REGISTRO =====
-document.addEventListener('DOMContentLoaded', function() {
-    // Botón Ingresar
-    const btnIngresar = el('btnIngresar');
-    if (btnIngresar) {
-        btnIngresar.addEventListener('click', async () => {
-            try {
-                el('mensajeError').textContent = '';
-                await auth.signInWithEmailAndPassword(
-                    el('correoLogin').value,
-                    el('claveLogin').value
-                );
-            } catch (err) {
-                el('mensajeError').textContent = 'Correo o contraseña incorrectos';
-                console.error(err);
-            }
-        });
-    }
 
-    // Botón Registrar
-    const btnRegistrar = el('btnRegistrar');
-    if (btnRegistrar) {
-        btnRegistrar.addEventListener('click', async () => {
-            try {
-                el('mensajeError').textContent = '';
-                await auth.createUserWithEmailAndPassword(
-                    el('correoLogin').value,
-                    el('claveLogin').value
-                );
-            } catch (err) {
-                el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
-                console.error(err);
-            }
-        });
-    }
-});
-// =========================================
-// BOTÓN CAMBIAR NOMBRE
-// =========================================
-const btnEditar = document.getElementById('btnEditarNombre');
-if (btnEditar) {
-    btnEditar.addEventListener('click', () => {
-        console.log('✅ Clic en Cambiar Nombre');
-        
-        const modal = document.getElementById('modalNombre');
-        if (modal) modal.classList.remove('oculto');
-        
-        const titulo = document.getElementById('tituloModalNombre');
-        if (titulo) titulo.textContent = '✏️ Cambiar tu nombre';
-        
-        const input = document.getElementById('inputEditarNombreUsuario');
-        if (input && nombreUsuarioGuardado) {
-            input.value = nombreUsuarioGuardado;
-        }
-    });
-}
-
-// =========================================
-// BOTÓN CERRAR SESIÓN
-// =========================================
-const btnCerrar = document.getElementById('btnCerrarSesion');
-if (btnCerrar) {
-    btnCerrar.addEventListener('click', async () => {
-        console.log('✅ Clic en Cerrar Sesión');
-        
-        if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
-        
-        // Ocultar pantalla principal ANTES de recargar
-        const pantallaPrincipal = document.getElementById('pantallaPrincipal');
-        if (pantallaPrincipal) pantallaPrincipal.classList.add('oculto');
-        
-        // Cerrar sesión y recargar
-        try {
-            await firebase.auth().signOut();
-            console.log('✅ Sesión cerrada');
-            window.location.reload();
-        } catch (error) {
-            console.error('❌ Error:', error);
-            alert('Error: ' + error.message);
-            if (pantallaPrincipal) pantallaPrincipal.classList.remove('oculto');
-        }
-    });
-}
-// =========================================
-// BOTÓN CANCELAR MODAL
-// =========================================
-const btnCancelar = document.getElementById('btnCancelarNombre');
-if (btnCancelar) {
-    btnCancelar.addEventListener('click', () => {
-        const modal = document.getElementById('modalNombre');
-        if (modal) modal.classList.add('oculto');
-    });
-}
-
-// =========================================
-// BOTÓN GUARDAR NOMBRE
-// =========================================
-const btnGuardar = document.getElementById('btnGuardarNombre');
-if (btnGuardar) {
-    btnGuardar.addEventListener('click', async () => {
-        const input = document.getElementById('inputNombreUsuario');
-        const nuevoNombre = input ? input.value.trim() : '';
-        
-        if (!nuevoNombre) {
-            alert('Escribe un nombre válido ✍️');
-            return;
-        }
-        
-        const usuario = firebase.auth().currentUser;
-        if (!usuario) {
-            alert('No hay sesión activa — recarga la página');
-            return;
-        }
-        
-        try {
-            await db.collection('usuarios').doc(usuario.uid).set(
-                { nombre: nuevoNombre },
-                { merge: true }
-            );
-            
-            nombreUsuarioGuardado = nuevoNombre;
-            console.log('✅ Nombre guardado:', nuevoNombre);
-            
-            const elNombre = document.getElementById('nombreUsuario');
-            if (elNombre) elNombre.textContent = `👋 Hola, ${nuevoNombre}`;
-            
-            const modal = document.getElementById('modalNombre');
-            if (modal) modal.classList.add('oculto');
-            
-        } catch (error) {
-            console.error('❌ Error guardando:', error);
-            alert('Error: ' + error.message);
-        }
-    });
-}
 // ========== NAVEGACIÓN DE PESTAÑAS ==========
 document.addEventListener('click', e => {
     if (e.target.classList.contains('pestaña')) {
@@ -280,18 +148,16 @@ document.addEventListener('click', e => {
         e.target.classList.add('activa');
         const pagina = e.target.dataset.pagina;
         document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
-        el(pagina).classList.remove('oculto');
+        el(pagina)?.classList.remove('oculto');
         if (pagina === 'contable') cargarContable();
         if (pagina === 'ahorro') cargarAhorro();
         if (pagina === 'habitos') cargarHabitos();
         if (pagina === 'logros') cargarLogros();
-        if (pagina === 'exportar') cargarVistaPreviaTarjeta();
+        if (pagina === 'exportar') { cargarVistaPreviaTarjeta(); cargarComparacion(); cargarProyeccion(); cargarResumenSemanal(); }
     }
 });
 
-// ========== PESTAÑA CONTABLE ==========
-let tipoMovimiento = 'ingreso';
-
+// ========== CAMBIAR TIPO DE MOVIMIENTO ==========
 document.addEventListener('click', e => {
     if (e.target.classList.contains('btn-tipo')) {
         document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('activa'));
@@ -300,170 +166,165 @@ document.addEventListener('click', e => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const btnGuardar = el('btnGuardarMov');
-    const selectMes = el('mesSeleccionado');
-
-    // === BOTÓN GUARDAR MOVIMIENTO — UNA SOLA VEZ ===
-    if (btnGuardar) {
-        btnGuardar.addEventListener('click', async () => {
-            if (!usuarioActual) return;
-
-            const descripcion = el('descripcionMov');
-            const categoria = el('categoriaMov');
-            const monto = el('montoMov');
-            const mes = el('mesSeleccionado');
-
-            const datos = {
-                userId: usuarioActual.uid,
-                tipo: tipoMovimiento,
-                descripcion: descripcion?.value || 'Sin descripción',
-                categoria: categoria?.value || 'Sin categoría',
-                monto: parseFloat(monto?.value) || 0,
-                mes: mes?.value || '',
-                fecha: new Date()
-            };
-
-            if (!datos.monto) {
-                return alert('Escribe un monto válido');
-            }
-
-            try {
-                await db.collection('movimientos').add(datos);
-                
-                // Limpiar campos
-                if (descripcion) descripcion.value = '';
-                if (monto) monto.value = '';
-
-                // ✅ CARGAR UNA SOLA VEZ
-                cargarContable();
-
-            } catch (err) {
-                console.error('Error guardando:', err);
-                alert('No se pudo guardar el movimiento');
-            }
-        });
-    }
-
-    // === CAMBIO DE MES — UNA SOLA VEZ ===
-    if (selectMes) {
-        // Quitar eventos anteriores duplicados
-        selectMes.removeEventListener('change', cargarContable);
-        // Agregar UNA SOLA VEZ
-        selectMes.addEventListener('change', cargarContable);
-    }
+// ========== CARGA INICIAL Y PANTALLA ==========
+window.addEventListener('load', () => {
+    setTimeout(() => el('pantallaCarga')?.classList.add('oculto'), 600);
 });
+setTimeout(() => el('pantallaCarga')?.classList.add('oculto'), 3000);
 
-// ========== CATEGORÍAS ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // Botón Abrir Categorías
-    const btnAbrirCat = el('btnAbrirCat');
-    if (btnAbrirCat) {
-        btnAbrirCat.addEventListener('click', () => {
-            el('formNuevaCat').classList.toggle('oculto');
-        });
-    }
+// ==================================================
+// FIN PARTE 1 — Pegar Parte 2 a continuación
+// ==================================================
+// ==================================================
+// PARTE 2: FUNCIONES DE CARGA, EVENTOS, MÓDULOS
+// GUARDAR COMO: parte2.js o pegar después de la Parte 1
+// ==================================================
 
-    // Botón Guardar Categoría
-    const btnGuardarCat = el('btnGuardarCat');
-    if (btnGuardarCat) {
-        btnGuardarCat.addEventListener('click', async () => {
-            if (!usuarioActual) return;
-            const nombre = el('nombreCat').value.trim();
-            if (!nombre) return alert('Escribe un nombre');
-            try {
-                await db.collection('categorias').add({
-                    userId: usuarioActual.uid,
-                    nombre: nombre
-                });
-                el('nombreCat').value = '';
-                el('formNuevaCat').classList.add('oculto');
-                cargarCategorias();
-            } catch (err) {
-                console.error(err);
-            }
-        });
+// ========== CARGAR DATOS GENERALES ==========
+async function cargarDatos() {
+    await cargarContable();
+    await cargarAhorro();
+    await cargarHabitos();
+    await cargarLogros();
+    cargarResumenSemanal();
+    cargarProyeccion();
+}
+
+// ========== PESTAÑA CONTABLE ==========
+async function cargarContable() {
+    console.log('🔄 Ejecutando cargarContable');
+    
+    const lista = el('listaMovimientos');
+    if (lista) lista.innerHTML = '';
+    
+    if (cargarContableEnEjecucion) {
+        console.log('⛔ Llamada duplicada BLOQUEADA');
+        return;
     }
-});
+    if (!usuarioActual) return;
+    cargarContableEnEjecucion = true;
+
+    const mes = el('mesSeleccionado')?.value || '';
+    const totalIngresosEl = el('totalIngresos');
+    const totalGastosEl = el('totalGastos');
+    const saldoTotalEl = el('saldoTotal');
+
+    await cargarCategorias();
+
+    try {
+        const snapshot = await db.collection('movimientos')
+            .where('userId', '==', usuarioActual.uid)
+            .where('mes', '==', mes)
+            .orderBy('fecha', 'desc')
+            .get();
+
+        let totalIngresos = 0, totalGastos = 0;
+        if (snapshot.empty) {
+            if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
+        } else {
+            snapshot.forEach(doc => {
+                const m = doc.data();
+                if (m.tipo === 'ingreso') totalIngresos += m.monto;
+                else totalGastos += m.monto;
+                if (lista) {
+                    lista.innerHTML += `
+                    <div class="movimiento aparecer escala-hover">
+                        <div class="info-mov">
+                            <div class="fecha">${formatearFecha(m.fecha)}</div>
+                            <div class="descripcion"><span class="icono-categoria">${iconoCategoria(m.categoria)}</span> ${m.descripcion}</div>
+                            <div class="categoria-pequeña">${m.categoria}</div>
+                        </div>
+                        <div class="valor-botones">
+                            <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
+                                ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
+                            </div>
+                            <div class="acciones">
+                                <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
+                                <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+        }
+
+        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
+        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
+        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
+        verificarAlertaSaldo(totalIngresos - totalGastos);
+
+    } catch (err) {
+        console.error('Error cargando contable:', err);
+        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
+    } finally {
+        cargarContableEnEjecucion = false;
+    }
+}
+
+// ========== CARGAR CATEGORÍAS ==========
+async function cargarCategorias() {
+    if (!usuarioActual) return;
+    const lista = el('listaCategorias');
+    const selectMov = el('categoriaMov');
+    const selectEditarCat = el('catEditarMov');
+    if (!lista) return;
+
+    try {
+        const snapshot = await db.collection('categorias')
+            .where('userId', '==', usuarioActual.uid)
+            .get();
+        lista.innerHTML = '';
+        if (selectMov) selectMov.innerHTML = '<option value="">Seleccionar categoría</option>';
+        if (selectEditarCat) selectEditarCat.innerHTML = '<option value="">Seleccionar categoría</option>';
+
+        if (snapshot.empty) {
+            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Aún no tienes categorías. Crea la primera arriba ⬆️</p>';
+            return;
+        }
+        snapshot.forEach(doc => {
+            const cat = doc.data();
+            const id = doc.id;
+            lista.innerHTML += `
+                <div class="tarjeta-categoria">
+                    <span class="nombre-cat">${cat.nombre}</span>
+                    <div class="acciones-cat">
+                        <button class="btn-editar-cat" data-id="${id}" data-nombre="${cat.nombre}">✏️</button>
+                        <button class="btn-eliminar-cat" data-id="${id}">🗑️</button>
+                    </div>
+                </div>`;
+            if (selectMov) selectMov.innerHTML += `<option value="${cat.nombre}">${cat.nombre}</option>`;
+            if (selectEditarCat) selectEditarCat.innerHTML += `<option value="${cat.nombre}">${cat.nombre}</option>`;
+        });
+    } catch (err) {
+        console.error('Error cargando categorías:', err);
+        if (lista) lista.innerHTML = '<p class="error">Error al cargar categorías</p>';
+    }
+}
 
 // ========== PESTAÑA AHORRO ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const lugarAhorro = el('lugarAhorro');
-    const campoBanco = el('campoBanco');
-    const btnGuardarAhorro = el('btnGuardarAhorro');
-    
-    if (lugarAhorro && campoBanco) {
-        lugarAhorro.addEventListener('change', () => {
-            campoBanco.classList.toggle('oculto', lugarAhorro.value !== 'banco');
-        });
-    }
-
-    if (btnGuardarAhorro) {
-        btnGuardarAhorro.addEventListener('click', async () => {
-            if (!usuarioActual) return;
-            const meta = parseFloat(el('metaAhorro').value) || 0;
-            const lugar = el('lugarAhorro').value;
-            const monto = parseFloat(el('montoGuardar').value) || 0;
-            const nombreBanco = el('nombreBanco').value.trim();
-            
-            if (!meta) return alert('Establece una meta');
-            if (!lugar) return alert('Selecciona dónde lo guardas');
-            if (!monto) return alert('Escribe el monto');
-            
-            try {
-                await db.collection('ahorro_config').doc(usuarioActual.uid).set({
-                    meta, 
-                    nombreBanco: lugar === 'banco' ? nombreBanco : ''
-                }, { merge: true });
-                
-                await db.collection('ahorro_depositos').add({
-                    userId: usuarioActual.uid, 
-                    monto, 
-                    lugar, 
-                    fecha: new Date()
-                });
-                
-                el('montoGuardar').value = '';
-                el('lugarAhorro').value = '';
-                el('nombreBanco').value = '';
-                campoBanco?.classList.add('oculto');
-                cargarAhorro();
-            } catch (err) { 
-                console.error(err); 
-                alert('Error guardando'); 
-            }
-        });
-    }
-});
-
 async function cargarAhorro() {
     if (!usuarioActual) return;
     const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
     const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
     const depSnap = await db.collection('ahorro_depositos')
         .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'desc').get();
-    
+
     let totalAhorrado = 0, totalNequi = 0, totalBanco = 0, totalEfectivo = 0;
     const listaDep = el('listaDepositos');
     if (listaDep) listaDep.innerHTML = '';
-    
+
     depSnap.forEach(doc => {
         const d = doc.data();
         totalAhorrado += d.monto;
         if (d.lugar === 'nequi') totalNequi += d.monto;
         else if (d.lugar === 'banco') totalBanco += d.monto;
         else if (d.lugar === 'efectivo') totalEfectivo += d.monto;
-        
+
         const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
-        const lugarTexto = { 
-            nequi: 'Nequi', 
-            banco: 'Cuenta Bancaria', 
-            efectivo: 'Efectivo' 
-        }[d.lugar] || d.lugar;
-        
+        const lugarTexto = { nequi: '📱 Nequi', banco: '🏦 Cuenta Bancaria', efectivo: '💵 Efectivo' }[d.lugar] || d.lugar;
         if (listaDep) {
             listaDep.innerHTML += `
-                <div class="movimiento">
+                <div class="movimiento aparecer escala-hover">
                     <div class="info-mov">
                         <div class="fecha">${fecha.toLocaleDateString()}</div>
                         <div class="descripcion">${lugarTexto}</div>
@@ -471,17 +332,17 @@ async function cargarAhorro() {
                     <div class="valor-botones">
                         <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
                         <div class="acciones">
-                            <button class="btn-accion eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                            <button class="btn-accion btn-editar btn-editar-deposito" data-id="${doc.id}" title="Editar">✏️</button>
+                            <button class="btn-accion btn-eliminar eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
                         </div>
                     </div>
                 </div>`;
         }
     });
-    
+
     const falta = Math.max(0, meta - totalAhorrado);
     const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
     const circunferencia = 2 * Math.PI * 40;
-    
     const actualizarArco = (id, valor, desplazamiento = 0) => {
         const porc = totalAhorrado > 0 ? valor / totalAhorrado : 0;
         const longitud = porc * circunferencia;
@@ -491,16 +352,13 @@ async function cargarAhorro() {
             elem.style.strokeDashoffset = `${-desplazamiento}`;
         }
     };
-    
+
     actualizarArco('arcNequi', totalNequi, 0);
     el('valorNequi') && (el('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`);
-    
     actualizarArco('arcBanco', totalBanco, totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0);
     el('valorBanco') && (el('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`);
-    
     actualizarArco('arcEfectivo', totalEfectivo, totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0);
     el('valorEfectivo') && (el('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`);
-    
     el('metaTotal') && (el('metaTotal').textContent = `$ ${meta.toLocaleString()}`);
     el('totalAhorrado') && (el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`);
     el('faltaParaMeta') && (el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`);
@@ -508,37 +366,18 @@ async function cargarAhorro() {
     el('barraAhorro') && (el('barraAhorro').style.width = `${porcentaje}%`);
     el('alertaMeta') && el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
     el('metaAhorro') && meta > 0 && (el('metaAhorro').value = meta);
-    
-    document.querySelectorAll('.eliminar-deposito').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar este depósito?')) {
-                await db.collection('ahorro_depositos').doc(btn.dataset.id).delete();
-                cargarAhorro();
-            }
-        });
-    });
 }
-// ========== PESTAÑA HÁBITOS ==========
-el('btnCrearHabito').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    const nombre = el('nombreHabito').value.trim();
-    if (!nombre) return alert('Escribe el nombre del hábito');
-    try {
-        await db.collection('habitos').add({ userId: usuarioActual.uid, nombre, fechaCreacion: new Date() });
-        el('nombreHabito').value = '';
-        cargarHabitos();
-    } catch (err) { console.error(err); }
-});
 
+// ========== PESTAÑA HÁBITOS ==========
 async function cargarHabitos() {
     if (!usuarioActual) return;
-    const habSnap = await db.collection('habitos')
-        .where('userId', '==', usuarioActual.uid).orderBy('fechaCreacion', 'desc').get();
+    const habSnap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).orderBy('fechaCreacion', 'desc').get();
     const lista = el('listaHabitos');
+    if (!lista) return;
     lista.innerHTML = '';
     const hoy = obtenerFechaHoy();
     const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    
+
     habSnap.forEach(doc => {
         const h = doc.data();
         const habitoId = doc.id;
@@ -566,32 +405,6 @@ async function cargarHabitos() {
                 <div class="dias-habito">${diasHtml}</div>
             </div>`;
     });
-    
-    document.querySelectorAll('.dia-habito').forEach(dia => {
-        dia.addEventListener('click', async () => {
-            if (!usuarioActual) return;
-            const habId = dia.dataset.habito;
-            const fecha = dia.dataset.fecha;
-            const ref = db.collection('habitos').doc(habId);
-            const snap = await ref.get();
-            const dias = snap.data()?.diasCumplidos || {};
-            if (dias[fecha]) delete dias[fecha];
-            else dias[fecha] = true;
-            await ref.update({ diasCumplidos: dias });
-            await cargarHabitos();
-            await cargarLogros();
-        });
-    });
-    
-    document.querySelectorAll('.eliminar-habito').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar este hábito?')) {
-                await db.collection('habitos').doc(btn.dataset.id).delete();
-                await cargarHabitos();
-                await cargarLogros();
-            }
-        });
-    });
 }
 
 // ========== PESTAÑA LOGROS ==========
@@ -603,11 +416,10 @@ async function cargarLogros() {
     habSnap.forEach(doc => {
         habitos.push({ id: doc.id, ...doc.data() });
         Object.keys(doc.data()?.diasCumplidos || {}).forEach(fecha => {
-            if (!fechasCumplidas[fecha]) fechasCumplidas[fecha] = 0;
-            fechasCumplidas[fecha]++;
+            fechasCumplidas[fecha] = (fechasCumplidas[fecha] || 0) + 1;
         });
     });
-    
+
     rachaActual = 0;
     let hoy = new Date();
     while (true) {
@@ -617,9 +429,10 @@ async function cargarLogros() {
         rachaActual++;
         hoy.setDate(hoy.getDate() - 1);
     }
-    
-    el('diasActivos').textContent = `${rachaActual} días en racha`;
+
+    el('diasActivos') && (el('diasActivos').textContent = `${rachaActual} días en racha`);
     const listaLogros = el('lista-logros');
+    if (!listaLogros) return;
     listaLogros.innerHTML = '';
     LOGROS.forEach(logro => {
         const desbloqueado = rachaActual >= logro.dias;
@@ -634,311 +447,73 @@ async function cargarLogros() {
     });
 }
 
-// ========== EXPORTAR — PDF ==========
-el('btnGenerarPDF').addEventListener('click', async function () {
+// ========== PROYECCIÓN, RESUMEN, COMPARACIÓN ==========
+async function cargarProyeccion() {
     if (!usuarioActual) return;
-    const mesValor = el('mesExtracto').value;
-    const mesNombre = mesSeleccionadoTexto(mesValor);
-    
-    const movSnap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mesValor).orderBy('fecha', 'desc').get();
-    
-    let totalIngresos = 0, totalGastos = 0;
-    const movimientos = [];
-    movSnap.forEach(doc => {
-        const m = doc.data();
-        if (m.tipo === 'ingreso') totalIngresos += m.monto;
-        else totalGastos += m.monto;
-        movimientos.push({
-            fecha: formatearFecha(m.fecha),
-            descripcion: m.descripcion,
-            categoria: m.categoria,
-            monto: m.monto,
-            tipo: m.tipo
-        });
-    });
-    const saldo = totalIngresos - totalGastos;
-    
     const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
     const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).get();
-    
-    let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
-    depSnap.forEach(d => {
-        const datos = d.data();
-        totalAhorrado += datos.monto;
-        if (datos.lugar === 'nequi') nequi += datos.monto;
-        else if (datos.lugar === 'banco') banco += datos.monto;
-        else if (datos.lugar === 'efectivo') efectivo += datos.monto;
-    });
-    
+    const contenedor = el('proyeccionAhorro');
+    if (!contenedor) return;
+    if (!meta) {
+        contenedor.innerHTML = '<p style="color:#636e72;">Establece una meta de ahorro para ver la proyección 🎯</p>';
+        return;
+    }
+    const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).orderBy('fecha', 'asc').get();
+    if (depSnap.empty) {
+        contenedor.innerHTML = '<p style="color:#636e72;">Registra depósitos para calcular cuándo alcanzas tu meta 📈</p>';
+        return;
+    }
+    let totalAhorrado = 0;
+    const primerDia = depSnap.docs[0].data().fecha?.toDate();
+    const diasTranscurridos = Math.max(1, Math.ceil((new Date() - primerDia) / (1000 * 60 * 60 * 24)));
+    depSnap.forEach(d => totalAhorrado += d.data().monto);
+    const promedioDiario = totalAhorrado / diasTranscurridos;
     const falta = Math.max(0, meta - totalAhorrado);
-    const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
-    
-    el('pdfMesPeriodo').textContent = mesNombre;
-    el('pdfNombreUsuario').textContent = nombreUsuarioGuardado;
-    el('pdfFechaEmision').textContent = new Date().toLocaleDateString('es-CO');
-    el('pdfTablaIngresos').textContent = `$ ${totalIngresos.toLocaleString()}`;
-    el('pdfTablaGastos').textContent = `$ ${totalGastos.toLocaleString()}`;
-    el('pdfTablaSaldo').textContent = `$ ${saldo.toLocaleString()}`;
-    el('pdfMetaAhorro').textContent = `$ ${meta.toLocaleString()}`;
-    el('pdfTotalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
-    el('pdfFaltaAhorro').textContent = `$ ${falta.toLocaleString()}`;
-    el('pdfPorcentajeAhorro').textContent = `${porcentaje}%`;
-    el('pdfNequi').textContent = `$ ${nequi.toLocaleString()}`;
-    el('pdfBanco').textContent = `$ ${banco.toLocaleString()}`;
-    el('pdfEfectivo').textContent = `$ ${efectivo.toLocaleString()}`;
-    
-    const cuerpo = el('pdfCuerpoMov');
-    cuerpo.innerHTML = '';
-    if (movimientos.length === 0) {
-        cuerpo.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>';
-    } else {
-        movimientos.forEach(m => {
-            cuerpo.innerHTML += `
-                <tr>
-                    <td style="padding:8px; border-bottom:1px solid #eee;">${m.fecha}</td>
-                    <td style="padding:8px; border-bottom:1px solid #eee;">${m.descripcion}</td>
-                    <td style="padding:8px; border-bottom:1px solid #eee;">${m.categoria}</td>
-                    <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:${m.tipo === 'ingreso' ? '#00b894' : '#e17055'};">
-                        ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                    </td>
-                </tr>`;
-        });
-    }
-    
-    const plantilla = el('plantillaPDF');
-    plantilla.style.display = 'block';
-    plantilla.style.position = 'relative';
-    plantilla.style.left = '0';
-    
-    setTimeout(async () => {
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        await pdf.html(plantilla, {
-            x: 10, y: 10, width: 190, windowWidth: 794, autoPaging: true
-        });
-        pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
-        plantilla.style.display = 'none';
-        plantilla.style.position = 'absolute';
-        plantilla.style.left = '-9999px';
-    }, 300);
-});
-
-// ========== TARJETA IMAGEN ==========
-function cargarVistaPreviaTarjeta() {
-    el('tarjetaNombre').textContent = nombreUsuarioGuardado || 'Usuario';
-    el('tarjetaRacha').textContent = `${rachaActual} días`;
-    const lista = el('tarjetaListaLogros');
-    lista.innerHTML = '';
-    LOGROS.forEach(logro => {
-        const desbloqueado = rachaActual >= logro.dias;
-        lista.innerHTML += `
-            <div style="display:flex; align-items:center; gap:10px; padding:6px 0; opacity:${desbloqueado ? 1 : 0.6};">
-                <span style="font-size:1.1rem;">${desbloqueado ? logro.emoji : '🔒'}</span>
-                <span style="font-size:0.9rem;">${logro.nombre.split(' ').slice(1).join(' ')}</span>
-                ${desbloqueado ? '<span style="margin-left:auto; color:#ffd700;">✓</span>' : ''}
-            </div>`;
-    });
-    el('vistaPreviaTarjeta').innerHTML = el('tarjetaImagen').innerHTML;
+    const diasFaltantes = promedioDiario > 0 ? Math.ceil(falta / promedioDiario) : Infinity;
+    const fechaMeta = new Date(); fechaMeta.setDate(fechaMeta.getDate() + diasFaltantes);
+    contenedor.innerHTML = `
+        <p><strong>Meta:</strong> $ ${meta.toLocaleString()}</p>
+        <p><strong>Ahorrado:</strong> $ ${totalAhorrado.toLocaleString()}</p>
+        <p><strong>Promedio diario:</strong> $ ${promedioDiario.toFixed(0).toLocaleString()}</p>
+        <p style="font-size:1.1rem; font-weight:700; margin-top:0.5rem;">
+            📅 Si sigues así, alcanzas tu meta el:<br>
+            ${diasFaltantes === Infinity ? 'Aún no hay suficiente historial' : fechaMeta.toLocaleDateString('es-CO')}
+        </p>
+        <p style="color:#636e72; margin-top:0.5rem;">(Basado en ${diasTranscurridos} días de ahorro)</p>`;
 }
 
-el('btnGenerarImagen').addEventListener('click', async () => {
+async function cargarResumenSemanal() {
     if (!usuarioActual) return;
-    cargarVistaPreviaTarjeta();
-    const elemento = el('tarjetaImagen');
-    elemento.style.display = 'block';
-    setTimeout(async () => {
-        const lienzo = await html2canvas(elemento, { scale: 2, useCORS: true, background: '#6c5ce7' });
-        elemento.style.display = 'none';
-        const enlace = document.createElement('a');
-        enlace.download = `Progreso_${nombreUsuarioGuardado.replace(/\s/g, '_')}.png`;
-        enlace.href = lienzo.toDataURL('image/png');
-        enlace.click();
-    }, 300);
-});
-
-// ========== EVENTOS MODALES ==========
-document.addEventListener('click', e => {
-    if (e.target.id === 'btnGuardarNombre' && usuarioActual) {
-        guardarNombreUsuario(usuarioActual.uid, el('inputNombreUsuario').value);
-    }
-    if (e.target.id === 'btnEditarNombre') {
-        el('modalNombre').classList.remove('oculto');
-        el('inputNombreUsuario').value = nombreUsuarioGuardado;
-        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
-        el('btnCancelarNombre').classList.remove('oculto');
-    }
-    if (e.target.id === 'btnCancelarNombre') {
-        el('modalNombre').classList.add('oculto');
-        el('inputNombreUsuario').value = '';
-    }
-});
-
-// ========== ICONOS POR CATEGORÍA ==========
-const ICONOS_CATEGORIA = {
-    'Comida': '🍔',
-    'Transporte': '🚗',
-    'Servicios': '💡',
-    'Entretenimiento': '🎮',
-    'Salud': '💊',
-    'Educación': '📚',
-    'Ropa': '👕',
-    'Trabajo': '💼',
-    'Regalo': '🎁',
-    'Nequi': '📱',
-    'Banco': '🏦',
-    'Efectivo': '💵',
-    'Sin categoría': '📁'
-};
-
-function iconoCategoria(nombre) {
-    return ICONOS_CATEGORIA[nombre] || '📁';
+    const hoy = new Date();
+    const hace7Dias = new Date(hoy); hace7Dias.setDate(hoy.getDate() - 7);
+    const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('fecha', '>=', hace7Dias).get();
+    let ing = 0, gas = 0;
+    snap.forEach(d => { const m = d.data(); m.tipo === 'ingreso' ? ing += m.monto : gas += m.monto; });
+    const contenedor = el('resumenSemanal');
+    if (!contenedor) return;
+    contenedor.innerHTML = `
+        <p style="font-size:1.05rem;">Última semana:</p>
+        <p>💰 Ingresos: <span class="positivo">$ ${ing.toLocaleString()}</span></p>
+        <p>📉 Gastos: <span class="negativo">$ ${gas.toLocaleString()}</span></p>
+        <p style="font-weight:700; margin-top:0.5rem;">
+            Saldo semanal: ${ing - gas >= 0 ? '✅' : '⚠️'} $ ${(ing - gas).toLocaleString()}
+        </p>`;
 }
 
-// ========== PANTALLA DE CARGA ==========
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        el('pantallaCarga').classList.add('oculto');
-    }, 600);
-});
-
-// ========== ALERTA DE SALDO BAJO ==========
-function verificarAlertaSaldo(saldo) {
-    const alerta = el('alertaSaldo');
-    let nivel = null, mensaje = '';
-    
-    if (saldo <= 50000 && saldo > 0) {
-        nivel = 'critica';
-        mensaje = '⚠️ Quedan menos de $50.000 — ¡Cuidado con los gastos!';
-    } else if (saldo <= 100000) {
-        nivel = 'critica';
-        mensaje = '⚠️ Quedan menos de $100.000';
-    } else if (saldo <= 250000) {
-        nivel = 'baja';
-        mensaje = '💡 Quedan menos de $250.000';
-    } else if (saldo <= 500000) {
-        nivel = 'baja';
-        mensaje = '💡 Quedan menos de $500.000';
-    }
-    
-    if (nivel) {
-        alerta.className = `alerta-saldo alerta-${nivel}`;
-        alerta.textContent = mensaje;
-        alerta.classList.remove('oculto');
-    } else {
-        alerta.classList.add('oculto');
-    }
-}
-
-// ========== EDITAR MOVIMIENTO ==========
-let modoEdicionMov = null;
-
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('btn-editar-mov')) {
-        const id = e.target.dataset.id;
-        modoEdicionMov = id;
-        // Cargar datos
-        db.collection('movimientos').doc(id).get().then(doc => {
-            const m = doc.data();
-            el('idEditarMov').value = id;
-            el('descEditarMov').value = m.descripcion || '';
-            el('montoEditarMov').value = m.monto || '';
-            // Cargar categorías en select
-            const select = el('catEditarMov');
-            select.innerHTML = '';
-            db.collection('categorias').where('userId', '==', usuarioActual.uid).get().then(snap => {
-                snap.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d.data().nombre;
-                    opt.textContent = d.data().nombre;
-                    if (d.data().nombre === m.categoria) opt.selected = true;
-                    select.appendChild(opt);
-                });
-            });
-        });
-        el('modalEditarMov').classList.remove('oculto');
-    }
-});
-
-el('btnCancelarEditar').addEventListener('click', () => {
-    el('modalEditarMov').classList.add('oculto');
-    modoEdicionMov = null;
-});
-
-el('btnConfirmarEditar').addEventListener('click', async () => {
-    if (!modoEdicionMov) return;
-    try {
-        await db.collection('movimientos').doc(modoEdicionMov).update({
-            descripcion: el('descEditarMov').value || 'Sin descripción',
-            categoria: el('catEditarMov').value || 'Sin categoría',
-            monto: parseFloat(el('montoEditarMov').value) || 0
-        });
-        el('modalEditarMov').classList.add('oculto');
-        modoEdicionMov = null;
-        cargarContable();
-    } catch (err) {
-        alert('Error al editar: ' + err.message);
-    }
-});
-
-// ========== EDITAR DEPÓSITO ==========
-let modoEdicionDep = null;
-
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('btn-editar-deposito')) {
-        const id = e.target.dataset.id;
-        modoEdicionDep = id;
-        db.collection('ahorro_depositos').doc(id).get().then(doc => {
-            el('idEditarDep').value = id;
-            el('montoEditarDep').value = doc.data().monto || '';
-        });
-        el('modalEditarDeposito').classList.remove('oculto');
-    }
-});
-
-el('btnCancelarEditarDep').addEventListener('click', () => {
-    el('modalEditarDeposito').classList.add('oculto');
-    modoEdicionDep = null;
-});
-
-el('btnConfirmarEditarDep').addEventListener('click', async () => {
-    if (!modoEdicionDep) return;
-    try {
-        await db.collection('ahorro_depositos').doc(modoEdicionDep).update({
-            monto: parseFloat(el('montoEditarDep').value) || 0
-        });
-        el('modalEditarDeposito').classList.add('oculto');
-        modoEdicionDep = null;
-        cargarAhorro();
-    } catch (err) {
-        alert('Error al editar: ' + err.message);
-    }
-});
-
-// ========== COMPARAR MESES ==========
 async function cargarComparacion() {
     if (!usuarioActual) return;
-    const m1 = el('mesComparar1').value;
-    const m2 = el('mesComparar2').value;
-    
+    const m1 = el('mesComparar1')?.value;
+    const m2 = el('mesComparar2')?.value;
+    if (!m1 || !m2) return;
     const datosMes = async (mes) => {
-        const snap = await db.collection('movimientos')
-            .where('userId', '==', usuarioActual.uid)
-            .where('mes', '==', mes).get();
+        const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
         let ing = 0, gas = 0;
-        snap.forEach(d => {
-            const m = d.data();
-            if (m.tipo === 'ingreso') ing += m.monto;
-            else gas += m.monto;
-        });
+        snap.forEach(d => { const m = d.data(); m.tipo === 'ingreso' ? ing += m.monto : gas += m.monto; });
         return { ing, gas, saldo: ing - gas };
     };
-    
-    const d1 = await datosMes(m1);
-    const d2 = await datosMes(m2);
-    
+    const [d1, d2] = await Promise.all([datosMes(m1), datosMes(m2)]);
     const res = el('resultadoComparacion');
+    if (!res) return;
     res.innerHTML = `
         <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem;">
             <div style="padding:1rem; background:#f8f9fa; border-radius:10px;">
@@ -958,552 +533,405 @@ async function cargarComparacion() {
             <p><strong>Diferencia entre meses:</strong></p>
             <p>Ingresos: ${d2.ing >= d1.ing ? '↑' : '↓'} $ ${Math.abs(d2.ing - d1.ing).toLocaleString()}</p>
             <p>Gastos: ${d2.gas <= d1.gas ? '↓' : '↑'} $ ${Math.abs(d2.gas - d1.gas).toLocaleString()}</p>
-        </div>
-    `;
+        </div>`;
 }
 
-// ========== PROYECCIÓN DE AHORRO ==========
-async function cargarProyeccion() {
-    if (!usuarioActual) return;
-    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    if (!meta) {
-        el('proyeccionAhorro').innerHTML = '<p style="color:#636e72;">Establece una meta de ahorro para ver la proyección 🎯</p>';
-        return;
-    }
-    
-    const depSnap = await db.collection('ahorro_depositos')
-        .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'asc').get();
-    
-    if (depSnap.empty) {
-        el('proyeccionAhorro').innerHTML = '<p style="color:#636e72;">Registra depósitos para calcular cuándo alcanzas tu meta 📈</p>';
-        return;
-    }
-    
-    let totalAhorrado = 0;
-    const primerDia = depSnap.docs[0].data().fecha?.toDate();
-    const diasTranscurridos = Math.max(1, Math.ceil((new Date() - primerDia) / (1000 * 60 * 60 * 24)));
-    
-    depSnap.forEach(d => totalAhorrado += d.data().monto);
-    
-    const promedioDiario = totalAhorrado / diasTranscurridos;
-    const falta = Math.max(0, meta - totalAhorrado);
-    const diasFaltantes = promedioDiario > 0 ? Math.ceil(falta / promedioDiario) : Infinity;
-    const fechaMeta = new Date();
-    fechaMeta.setDate(fechaMeta.getDate() + diasFaltantes);
-    
-    el('proyeccionAhorro').innerHTML = `
-        <p><strong>Meta:</strong> $ ${meta.toLocaleString()}</p>
-        <p><strong>Ahorrado:</strong> $ ${totalAhorrado.toLocaleString()}</p>
-        <p><strong>Promedio diario:</strong> $ ${promedioDiario.toFixed(0).toLocaleString()}</p>
-        <p style="font-size:1.1rem; font-weight:700; margin-top:0.5rem;">
-            📅 Si sigues así, alcanzas tu meta el:
-            <br>${diasFaltantes === Infinity ? 'Aún no hay suficiente historial' : fechaMeta.toLocaleDateString('es-CO')}
-        </p>
-        <p style="color:var(--texto-claro); margin-top:0.5rem;">
-            (Basado en ${diasTranscurridos} días de ahorro)
-        </p>
-    `;
-}
-
-// ========== RESUMEN SEMANAL ==========
-async function cargarResumenSemanal() {
-    if (!usuarioActual) return;
-    const hoy = new Date();
-    const hace7Dias = new Date(hoy);
-    hace7Dias.setDate(hoy.getDate() - 7);
-    
-    const snap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('fecha', '>=', hace7Dias)
-        .get();
-    
-    let ing = 0, gas = 0;
-    snap.forEach(d => {
-        const m = d.data();
-        if (m.tipo === 'ingreso') ing += m.monto;
-        else gas += m.monto;
-    });
-    
-    el('resumenSemanal').innerHTML = `
-        <p style="font-size:1.05rem;">Del último semana:</p>
-        <p>💰 Ingresos: <span class="positivo">$ ${ing.toLocaleString()}</span></p>
-        <p>📉 Gastos: <span class="negativo">$ ${gas.toLocaleString()}</span></p>
-        <p style="font-weight:700; margin-top:0.5rem;">
-            Saldo semanal: ${ing - gas >= 0 ? '✅' : '⚠️'} $ ${(ing - gas).toLocaleString()}
-        </p>
-    `;
-}
-
-// ========== RECORDATORIO DE HÁBITO ==========
-el('btnRecordatorioHabito').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    try {
-        if (Notification.permission === 'granted') {
-            new Notification('💪 ¡Hola!', {
-                body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!',
-                icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico'
-            });
-            alert('🔔 Recordatorio enviado a tu dispositivo ✅');
-        } else if (Notification.permission !== 'denied') {
-            const permiso = await Notification.requestPermission();
-            if (permiso === 'granted') {
-                alert('✅ Permiso concedido — te recordaré diariamente');
-            }
-        } else {
-            alert('⚠️ Las notificaciones están bloqueadas en tu navegador');
-        }
-    } catch (e) {
-        alert('No se pudo enviar el recordatorio 😅');
-    }
-});
-
-// ========== COMPARTIR ==========
-el('btnCompartirWhatsapp').addEventListener('click', () => {
-    const texto = encodeURIComponent(
-        `💰 Mi Progreso Financiero\n` +
-        `Usuario: ${nombreUsuarioGuardado}\n` +
-        `🔥 Racha: ${rachaActual} días seguidos\n` +
-        `Mira mi avance aquí: ${window.location.href}`
-    );
-    window.open(`https://wa.me/?text=${texto}`, '_blank');
-});
-
-el('btnCopiarEnlace').addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('✅ Enlace copiado al portapapeles');
-    } catch (e) {
-        alert('No se pudo copiar automáticamente — selecciona y copia la dirección tú mismo');
-    }
-});
-
-// ========== FUNCIÓN AUXILIAR: FORMATEAR FECHA ==========
-function formatearFecha(fecha) {
-    if (!fecha) return '';
-    const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
-    return d.toLocaleDateString('es-CO', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// ========== FUNCIÓN AUXILIAR: ÍCONO POR CATEGORÍA ==========
-function iconoCategoria(categoria) {
-    const iconos = {
-        'Salario': '💼',
-        'Ventas': '🛒',
-        'Comida': '🍔',
-        'Transporte': '🚗',
-        'Entretenimiento': '🎮',
-        'Servicios': '💡',
-        'Vivienda': '🏠',
-        'Salud': '🏥',
-        'Educación': '📚',
-        'Ropa': '👕',
-        'Ahorro': '💰',
-        'Otro': '📌'
-    };
-    return iconos[categoria] || '📌';
-}
-
-// ========== FUNCIÓN AUXILIAR: ALERTA DE SALDO ==========
-function verificarAlertaSaldo(saldo) {
-    const alerta = el('alertaSaldo');
-    if (!alerta) return;
-    
-    if (saldo < 0) {
-        alerta.textContent = `⚠️ ¡Cuidado! Tienes saldo negativo: $ ${saldo.toLocaleString()}`;
-        alerta.className = 'alerta-saldo oculto';
-        alerta.classList.remove('oculto');
-        alerta.style.background = '#ffebee';
-        alerta.style.color = '#c62828';
-    } else if (saldo === 0) {
-        alerta.textContent = 'ℹ️ Tu saldo es cero';
-        alerta.className = 'alerta-saldo oculto';
-        alerta.classList.remove('oculto');
-        alerta.style.background = '#f5f5f5';
-        alerta.style.color = '#666';
-    } else {
-        alerta.textContent = `✅ ¡Bien! Tu saldo es: $ ${saldo.toLocaleString()}`;
-        alerta.className = 'alerta-saldo oculto';
-        alerta.classList.remove('oculto');
-        alerta.style.background = '#e8f5e9';
-        alerta.style.color = '#2e7d32';
-    }
-}
-
-    // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
-let cargarContableEnEjecucion = false;
-
-async function cargarContable() {
-    console.log('🔄 Ejecutando cargarContable');
-    
-    // ✅ LIMPIAR PRIMERO — ANTES DE CUALQUIER OTRA COSA
-    const lista = el('listaMovimientos');
-    if (lista) {
-        lista.innerHTML = ''; // BORRAR TODO DE INMEDIATO
-    }
-    
-    // ✅ BLOQUEO DE LLAMADAS DUPLICADAS
-    if (cargarContableEnEjecucion) {
-        console.log('⛔ Llamada duplicada BLOQUEADA — lista ya limpia');
-        return;
-    }
-    
-    if (!usuarioActual) return;
-
-    cargarContableEnEjecucion = true;
-
-    const mes = el('mesSeleccionado')?.value || '';
-    const totalIngresosEl = el('totalIngresos');
-    const totalGastosEl = el('totalGastos');
-    const saldoTotalEl = el('saldoTotal');
-
-    await cargarCategorias();
-
-    try {
-        const snapshot = await db.collection('movimientos')
-            .where('userId', '==', usuarioActual.uid)
-            .where('mes', '==', mes)
-            .orderBy('fecha', 'desc')
-            .get();
-
-        let totalIngresos = 0, totalGastos = 0;
-
-        if (snapshot.empty) {
-            if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
-        } else {
-            snapshot.forEach(doc => {
-                const m = doc.data();
-                if (m.tipo === 'ingreso') totalIngresos += m.monto;
-                else totalGastos += m.monto;
-
-                if (lista) {
-                    lista.innerHTML += `
-                    <div class="movimiento aparecer escala-hover">
-                        <div class="info-mov">
-                            <div class="fecha">${formatearFecha(m.fecha)}</div>
-                            <div class="descripcion">
-                                <span class="icono-categoria">${iconoCategoria(m.categoria)}</span>
-                                ${m.descripcion}
-                            </div>
-                            <div class="categoria-pequeña">${m.categoria}</div>
-                        </div>
-                        <div class="valor-botones">
-                            <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
-                                ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                            </div>
-                            <div class="acciones">
-                                <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
-                                <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
-                            </div>
-                        </div>
-                    </div>`;
-                }
-            });
-        }
-
-        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
-        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
-        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
-        
-        verificarAlertaSaldo(totalIngresos - totalGastos);
-
-    } catch (err) {
-        console.error('Error cargando contable:', err);
-        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
-    } finally {
-        cargarContableEnEjecucion = false;
-    }
-}
-// ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
-document.addEventListener('click', async e => {
-    // Eliminar
-    if (e.target.classList.contains('eliminar-mov')) {
-        if (!confirm('¿Eliminar este movimiento?')) return;
-        const id = e.target.dataset.id;
-        try {
-            await db.collection('movimientos').doc(id).delete();
-            cargarContable();
-        } catch (err) {
-            console.error(err);
-            alert('Error eliminando');
-        }
-    }
-
-    // Editar
-    if (e.target.classList.contains('btn-editar-mov')) {
-        const id = e.target.dataset.id;
-        const modal = el('modalEditarMov');
-        if (!modal) return;
-
-        modal.classList.remove('oculto');
-        el('idEditarMov').value = id;
-    }
-});
-
-// Confirmar edición
-document.addEventListener('DOMContentLoaded', function() {
-    const btnConfirmarEditar = el('btnConfirmarEditar');
-    const btnCancelarEditar = el('btnCancelarEditar');
-    const modalEditarMov = el('modalEditarMov');
-
-    if (btnCancelarEditar) {
-        btnCancelarEditar.addEventListener('click', () => {
-            modalEditarMov?.classList.add('oculto');
-        });
-    }
-
-    if (btnConfirmarEditar) {
-        btnConfirmarEditar.addEventListener('click', async () => {
-            const id = el('idEditarMov')?.value;
-            if (!id || !usuarioActual) return;
-
-            const desc = el('descEditarMov')?.value?.trim();
-            const cat = el('catEditarMov')?.value;
-            const monto = parseFloat(el('montoEditarMov')?.value) || 0;
-
-            if (!monto) return alert('Escribe un monto válido');
-
-            try {
-                await db.collection('movimientos').doc(id).update({
-                    descripcion: desc || 'Sin descripción',
-                    categoria: cat || 'Sin categoría',
-                    monto: monto
-                });
-                modalEditarMov?.classList.add('oculto');
-                cargarContable();
-            } catch (err) {
-                console.error(err);
-                alert('Error actualizando');
-            }
-        });
-    }
-});
-
-// ========== ACTUALIZAR CARGAR AHORRO PARA INCLUIR EDITAR ==========
-const cargarAhorroOriginal = cargarAhorro;
-cargarAhorro = async function () {
-    await cargarAhorroOriginal();
-    const depSnap = await db.collection('ahorro_depositos')
-        .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'desc').get();
-    
-    const listaDep = el('listaDepositos');
-    listaDep.innerHTML = '';
-    depSnap.forEach(doc => {
-        const d = doc.data();
-        const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
-        const lugarTexto = { nequi: '📱 Nequi', banco: '🏦 Cuenta Bancaria', efectivo: '💵 Efectivo' }[d.lugar] || d.lugar;
-        listaDep.innerHTML += `
-            <div class="movimiento aparecer escala-hover">
-                <div class="info-mov">
-                    <div class="fecha">${fecha.toLocaleDateString()}</div>
-                    <div class="descripcion">${lugarTexto}</div>
-                </div>
-                <div class="valor-botones">
-                    <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
-                    <div class="acciones">
-                        <button class="btn-accion btn-editar btn-editar-deposito" data-id="${doc.id}" title="Editar">✏️</button>
-                        <button class="btn-accion btn-eliminar eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
-                    </div>
-                </div>
+// ========== TARJETA Y EXPORTAR ==========
+function cargarVistaPreviaTarjeta() {
+    el('tarjetaNombre') && (el('tarjetaNombre').textContent = nombreUsuarioGuardado || 'Usuario');
+    el('tarjetaRacha') && (el('tarjetaRacha').textContent = `${rachaActual} días`);
+    const lista = el('tarjetaListaLogros');
+    if (!lista) return;
+    lista.innerHTML = '';
+    LOGROS.forEach(logro => {
+        const desbloqueado = rachaActual >= logro.dias;
+        lista.innerHTML += `
+            <div style="display:flex; align-items:center; gap:10px; padding:6px 0; opacity:${desbloqueado ? 1 : 0.6};">
+                <span style="font-size:1.1rem;">${desbloqueado ? logro.emoji : '🔒'}</span>
+                <span style="font-size:0.9rem;">${logro.nombre.split(' ').slice(1).join(' ')}</span>
+                ${desbloqueado ? '<span style="margin-left:auto; color:#ffd700;">✓</span>' : ''}
             </div>`;
     });
-    
-    cargarProyeccion();
-};
+    if (el('vistaPreviaTarjeta') && el('tarjetaImagen')) {
+        el('vistaPreviaTarjeta').innerHTML = el('tarjetaImagen').innerHTML;
+    }
+}
 
-// ========== ACTUALIZAR CARGA DATOS ==========
-const cargarDatosOriginal = cargarDatos;
-cargarDatos = async function () {
-    await cargarDatosOriginal();
-    cargarResumenSemanal();
-    cargarProyeccion();
-};
+// ========== EVENTOS ÚNICOS — SIN DUPLICADOS ==========
+document.addEventListener('DOMContentLoaded', function() {
+    // Login / Registro
+    el('btnIngresar')?.addEventListener('click', async () => {
+        try {
+            el('mensajeError').textContent = '';
+            await auth.signInWithEmailAndPassword(el('correoLogin').value, el('claveLogin').value);
+        } catch (err) {
+            el('mensajeError').textContent = 'Correo o contraseña incorrectos';
+        }
+    });
+    el('btnRegistrar')?.addEventListener('click', async () => {
+        try {
+            el('mensajeError').textContent = '';
+            await auth.createUserWithEmailAndPassword(el('correoLogin').value, el('claveLogin').value);
+        } catch (err) {
+            el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
+        }
+    });
 
-// ========== OCULTAR PANTALLA DE CARGA ==========
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const carga = document.getElementById('pantallaCarga');
-        if (carga) carga.classList.add('oculto');
-    }, 800);
+    // Guardar movimiento
+    el('btnGuardarMov')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const desc = el('descripcionMov');
+        const cat = el('categoriaMov');
+        const monto = el('montoMov');
+        const mes = el('mesSeleccionado');
+        const montoValor = parseFloat(monto?.value) || 0;
+        if (!montoValor) return alert('Escribe un monto válido');
+        try {
+            await db.collection('movimientos').add({
+                userId: usuarioActual.uid, tipo: tipoMovimiento,
+                descripcion: desc?.value || 'Sin descripción',
+                categoria: cat?.value || 'Sin categoría',
+                monto: montoValor, mes: mes?.value || '', fecha: new Date()
+            });
+            if (desc) desc.value = '';
+            if (monto) monto.value = '';
+            cargarContable();
+        } catch (err) {
+            console.error('Error guardando:', err);
+            alert('No se pudo guardar el movimiento');
+        }
+    });
+
+    // Cambio de mes
+    const selectMes = el('mesSeleccionado');
+    if (selectMes) {
+        selectMes.removeEventListener('change', cargarContable);
+        selectMes.addEventListener('change', cargarContable);
+    }
+
+    // Categorías
+    el('btnAbrirCat')?.addEventListener('click', () => {
+        el('formNuevaCat')?.classList.toggle('oculto');
+    });
+    el('btnGuardarCat')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const nombre = el('nombreCat')?.value?.trim();
+        if (!nombre) return alert('Escribe un nombre');
+        try {
+            await db.collection('categorias').add({ userId: usuarioActual.uid, nombre, fecha: new Date() });
+            el('nombreCat').value = '';
+            el('formNuevaCat')?.classList.add('oculto');
+            cargarCategorias();
+        } catch (err) { console.error(err); }
+    });
+
+    // Ahorro
+    el('lugarAhorro')?.addEventListener('change', () => {
+        el('campoBanco')?.classList.toggle('oculto', el('lugarAhorro').value !== 'banco');
+    });
+    el('btnGuardarAhorro')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const meta = parseFloat(el('metaAhorro').value) || 0;
+        const lugar = el('lugarAhorro').value;
+        const monto = parseFloat(el('montoGuardar').value) || 0;
+        const nombreBanco = el('nombreBanco').value.trim();
+        if (!meta) return alert('Establece una meta');
+        if (!lugar) return alert('Selecciona dónde lo guardas');
+        if (!monto) return alert('Escribe el monto');
+        try {
+            await db.collection('ahorro_config').doc(usuarioActual.uid).set(
+                { meta, nombreBanco: lugar === 'banco' ? nombreBanco : '' }, { merge: true }
+            );
+            await db.collection('ahorro_depositos').add({
+                userId: usuarioActual.uid, monto, lugar, fecha: new Date()
+            });
+            el('montoGuardar').value = ''; el('lugarAhorro').value = ''; el('nombreBanco').value = '';
+            el('campoBanco')?.classList.add('oculto');
+            cargarAhorro();
+        } catch (err) { console.error(err); alert('Error guardando'); }
+    });
+
+    // Hábito
+    el('btnCrearHabito')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const nombre = el('nombreHabito').value.trim();
+        if (!nombre) return alert('Escribe el nombre del hábito');
+        try {
+            await db.collection('habitos').add({ userId: usuarioActual.uid, nombre, fechaCreacion: new Date() });
+            el('nombreHabito').value = '';
+            cargarHabitos();
+        } catch (err) { console.error(err); }
+    });
+
+    // Editar movimiento
+    el('btnConfirmarEditar')?.addEventListener('click', async () => {
+        const id = el('idEditarMov')?.value;
+        if (!id || !usuarioActual) return;
+        try {
+            await db.collection('movimientos').doc(id).update({
+                descripcion: el('descEditarMov').value || 'Sin descripción',
+                categoria: el('catEditarMov').value || 'Sin categoría',
+                monto: parseFloat(el('montoEditarMov').value) || 0
+            });
+            el('modalEditarMov')?.classList.add('oculto');
+            cargarContable();
+        } catch (err) { alert('Error al editar: ' + err.message); }
+    });
+    el('btnCancelarEditar')?.addEventListener('click', () => {
+        el('modalEditarMov')?.classList.add('oculto');
+    });
+
+    // Editar depósito
+    el('btnConfirmarEditarDep')?.addEventListener('click', async () => {
+        if (!modoEdicionDep) return;
+        try {
+            await db.collection('ahorro_depositos').doc(modoEdicionDep).update({
+                monto: parseFloat(el('montoEditarDep').value) || 0
+            });
+            el('modalEditarDeposito')?.classList.add('oculto');
+            modoEdicionDep = null;
+            cargarAhorro();
+        } catch (err) { alert('Error al editar: ' + err.message); }
+    });
+    el('btnCancelarEditarDep')?.addEventListener('click', () => {
+        el('modalEditarDeposito')?.classList.add('oculto');
+        modoEdicionDep = null;
+    });
+
+    // Cambiar / Guardar nombre
+    el('btnEditarNombre')?.addEventListener('click', () => {
+        el('modalNombre')?.classList.remove('oculto');
+        el('inputNombreUsuario').value = nombreUsuarioGuardado;
+        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
+        el('btnCancelarNombre')?.classList.remove('oculto');
+    });
+    el('btnCancelarNombre')?.addEventListener('click', () => {
+        el('modalNombre')?.classList.add('oculto');
+        el('inputNombreUsuario').value = '';
+    });
+    el('btnGuardarNombre')?.addEventListener('click', async () => {
+        const nombre = el('inputNombreUsuario').value.trim();
+        if (!nombre) return alert('Escribe un nombre válido ✍️');
+        const usuario = firebase.auth().currentUser;
+        if (!usuario) return alert('No hay sesión activa — recarga la página');
+        await guardarNombreUsuario(usuario.uid, nombre);
+    });
+
+    // Cerrar sesión
+    el('btnCerrarSesion')?.addEventListener('click', async () => {
+        if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
+        try {
+            await firebase.auth().signOut();
+            window.location.reload();
+        } catch (error) { alert('Error: ' + error.message); }
+    });
+
+    // Exportar PDF
+    el('btnGenerarPDF')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const mesValor = el('mesExtracto').value;
+        const mesNombre = mesSeleccionadoTexto(mesValor);
+        const movSnap = await db.collection('movimientos')
+            .where('userId', '==', usuarioActual.uid).where('mes', '==', mesValor).orderBy('fecha', 'desc').get();
+        let totalIngresos = 0, totalGastos = 0;
+        const movimientos = [];
+        movSnap.forEach(doc => {
+            const m = doc.data();
+            m.tipo === 'ingreso' ? totalIngresos += m.monto : totalGastos += m.monto;
+            movimientos.push({ fecha: formatearFecha(m.fecha), descripcion: m.descripcion, categoria: m.categoria, monto: m.monto, tipo: m.tipo });
+        });
+        const saldo = totalIngresos - totalGastos;
+        const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
+        const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
+        const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).get();
+        let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
+        depSnap.forEach(d => {
+            const datos = d.data();
+            totalAhorrado += datos.monto;
+            if (datos.lugar === 'nequi') nequi += datos.monto;
+            else if (datos.lugar === 'banco') banco += datos.monto;
+            else if (datos.lugar === 'efectivo') efectivo += datos.monto;
+        });
+        const falta = Math.max(0, meta - totalAhorrado);
+        const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
+        el('pdfMesPeriodo').textContent = mesNombre;
+        el('pdfNombreUsuario').textContent = nombreUsuarioGuardado;
+        el('pdfFechaEmision').textContent = new Date().toLocaleDateString('es-CO');
+        el('pdfTablaIngresos').textContent = `$ ${totalIngresos.toLocaleString()}`;
+        el('pdfTablaGastos').textContent = `$ ${totalGastos.toLocaleString()}`;
+        el('pdfTablaSaldo').textContent = `$ ${saldo.toLocaleString()}`;
+        el('pdfMetaAhorro').textContent = `$ ${meta.toLocaleString()}`;
+        el('pdfTotalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`;
+        el('pdfFaltaAhorro').textContent = `$ ${falta.toLocaleString()}`;
+        el('pdfPorcentajeAhorro').textContent = `${porcentaje}%`;
+        el('pdfNequi').textContent = `$ ${nequi.toLocaleString()}`;
+        el('pdfBanco').textContent = `$ ${banco.toLocaleString()}`;
+        el('pdfEfectivo').textContent = `$ ${efectivo.toLocaleString()}`;
+        const cuerpo = el('pdfCuerpoMov');
+        cuerpo.innerHTML = '';
+        if (movimientos.length === 0) {
+            cuerpo.innerHTML = '<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>';
+        } else {
+            movimientos.forEach(m => {
+                cuerpo.innerHTML += `
+                    <tr>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.fecha}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.descripcion}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.categoria}</td>
+                        <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:${m.tipo === 'ingreso' ? '#00b894' : '#e17055'};">
+                            ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
+                        </td>
+                    </tr>`;
+            });
+        }
+        const plantilla = el('plantillaPDF');
+        plantilla.style.display = 'block';
+        setTimeout(async () => {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            await pdf.html(plantilla, { x: 10, y: 10, width: 190, windowWidth: 794, autoPaging: true });
+            pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
+            plantilla.style.display = 'none';
+        }, 300);
+    });
+
+    // Generar imagen tarjeta
+    el('btnGenerarImagen')?.addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        cargarVistaPreviaTarjeta();
+        const elemento = el('tarjetaImagen');
+        elemento.style.display = 'block';
+        setTimeout(async () => {
+            const lienzo = await html2canvas(elemento, { scale: 2, useCORS: true });
+            elemento.style.display = 'none';
+            const enlace = document.createElement('a');
+            enlace.download = `Progreso_${nombreUsuarioGuardado.replace(/\s/g, '_')}.png`;
+            enlace.href = lienzo.toDataURL('image/png');
+            enlace.click();
+        }, 300);
+    });
+
+    // Recordatorio
+    el('btnRecordatorioHabito')?.addEventListener('click', async () => {
+        try {
+            if (Notification.permission === 'granted') {
+                new Notification('💪 ¡Hola!', {
+                    body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!',
+                    icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico'
+                });
+                alert('🔔 Recordatorio enviado ✅');
+            } else if (Notification.permission !== 'denied') {
+                const permiso = await Notification.requestPermission();
+                if (permiso === 'granted') alert('✅ Permiso concedido');
+            } else {
+                alert('⚠️ Las notificaciones están bloqueadas');
+            }
+        } catch { alert('No se pudo enviar 😅'); }
+    });
+
+    // Compartir
+    el('btnCompartirWhatsapp')?.addEventListener('click', () => {
+        const texto = encodeURIComponent(
+            `💰 Mi Progreso Financiero\nUsuario: ${nombreUsuarioGuardado}\n🔥 Racha: ${rachaActual} días\nMira mi avance: ${window.location.href}`
+        );
+        window.open(`https://wa.me/?text=${texto}`, '_blank');
+    });
+    el('btnCopiarEnlace')?.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            alert('✅ Enlace copiado');
+        } catch { alert('Copia la dirección manualmente'); }
+    });
+
+    // Comparar
+    el('btnCompararMeses')?.addEventListener('click', cargarComparacion);
 });
 
-// ========== CARGA INICIAL ==========
-async function cargarDatos() {
-    await cargarContable();
-    await cargarAhorro();
-    await cargarHabitos();
-    await cargarLogros();
-}
-// Forzar ocultar carga después de 3 segundos
-setTimeout(() => {
-    const carga = document.getElementById('pantallaCarga');
-    if (carga) carga.classList.add('oculto');
-}, 3000);
-
-// === BOTONES INGRESO / GASTO — VERSIÓN CORRECTA ===
-document.addEventListener('DOMContentLoaded', function() {
-  el('btnGuardarMov').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    
-    const montoValor = parseFloat(el('montoMov').value) || 0;
-    if (!montoValor) return alert('Escribe un monto válido');
-
-    const datos = {
-        userId: usuarioActual.uid,
-        tipo: tipoMovimiento,
-        descripcion: el('descripcionMov').value || 'Sin descripción',
-        categoria: el('categoriaMov').value || 'Sin categoría',
-        monto: montoValor,
-        mes: el('mesSeleccionado').value,
-        fecha: new Date()
-    };
-
-    try {
-        await db.collection('movimientos').add(datos);
-        
-        // LIMPIAR CAMPOS
-        el('descripcionMov').value = '';
-        el('montoMov').value = '';
-
-        // ✅ UNA SOLA LLAMADA — NO REPETIR
+// ========== DELEGACIÓN DE EVENTOS DINÁMICOS ==========
+document.addEventListener('click', async e => {
+    // Eliminar movimiento
+    if (e.target.classList.contains('eliminar-mov')) {
+        if (!confirm('¿Eliminar este movimiento?')) return;
+        await db.collection('movimientos').doc(e.target.dataset.id).delete();
         cargarContable();
+    }
 
-    } catch (err) {
-        console.error(err);
-        alert('Error guardando movimiento');
+    // Abrir editar movimiento
+    if (e.target.classList.contains('btn-editar-mov')) {
+        const id = e.target.dataset.id;
+        el('modalEditarMov')?.classList.remove('oculto');
+        el('idEditarMov').value = id;
+        const select = el('catEditarMov');
+        select.innerHTML = '<option value="">Seleccionar categoría</option>';
+        const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
+        snap.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.data().nombre;
+            opt.textContent = d.data().nombre;
+            select.appendChild(opt);
+        });
+        const doc = await db.collection('movimientos').doc(id).get();
+        const m = doc.data();
+        el('descEditarMov').value = m.descripcion || '';
+        el('montoEditarMov').value = m.monto || '';
+        el('catEditarMov').value = m.categoria || '';
+    }
+
+    // Eliminar categoría
+    if (e.target.classList.contains('btn-eliminar-cat')) {
+        if (!confirm('¿Eliminar esta categoría?')) return;
+        await db.collection('categorias').doc(e.target.dataset.id).delete();
+        cargarCategorias();
+    }
+
+    // Editar categoría
+    if (e.target.classList.contains('btn-editar-cat')) {
+        const id = e.target.dataset.id;
+        const nombreActual = e.target.dataset.nombre;
+        const nuevoNombre = prompt('Nuevo nombre de categoría:', nombreActual);
+        if (!nuevoNombre || nuevoNombre.trim() === '') return;
+        if (nuevoNombre.trim() === nombreActual) return;
+        await db.collection('categorias').doc(id).update({ nombre: nuevoNombre.trim() });
+        cargarCategorias();
+    }
+
+    // Eliminar depósito
+    if (e.target.classList.contains('eliminar-deposito')) {
+        if (!confirm('¿Eliminar este depósito?')) return;
+        await db.collection('ahorro_depositos').doc(e.target.dataset.id).delete();
+        cargarAhorro();
+    }
+
+    // Editar depósito
+    if (e.target.classList.contains('btn-editar-deposito')) {
+        modoEdicionDep = e.target.dataset.id;
+        el('modalEditarDeposito')?.classList.remove('oculto');
+        const doc = await db.collection('ahorro_depositos').doc(modoEdicionDep).get();
+        el('montoEditarDep').value = doc.data().monto || '';
+    }
+
+    // Eliminar hábito
+    if (e.target.classList.contains('eliminar-habito')) {
+        if (!confirm('¿Eliminar este hábito? Se perderá su historial ✍️')) return;
+        await db.collection('habitos').doc(e.target.dataset.id).delete();
+        cargarHabitos();
+        cargarLogros();
+    }
+
+    // Marcar/desmarcar día de hábito
+    if (e.target.classList.contains('dia-habito')) {
+        const habitoId = e.target.dataset.habito;
+        const fecha = e.target.dataset.fecha;
+        const doc = await db.collection('habitos').doc(habitoId).get();
+        if (!doc.exists) return;
+        const datos = doc.data();
+        const dias = datos.diasCumplidos || {};
+        dias[fecha] = !dias[fecha];
+        await db.collection('habitos').doc(habitoId).update({ diasCumplidos: dias });
+        cargarHabitos();
+        cargarLogros();
     }
 });
-// ========== CARGAR CATEGORÍAS ==========
-async function cargarCategorias() {
-    if (!usuarioActual) return;
 
-    const lista = el('listaCategorias');
-    const selectMov = el('categoriaMov');
-    const selectEditarCat = el('catEditarMov');
-    
-    if (!lista) return;
-    
-    lista.innerHTML = '<p class="texto-centrado">Cargando categorías...</p>';
-    
-    try {
-        const snapshot = await db.collection('categorias')
-            .where('userId', '==', usuarioActual.uid)
-            .get();
-
-        lista.innerHTML = '';
-        
-        // Limpiar y llenar selectores
-        if (selectMov) selectMov.innerHTML = '<option value="">Seleccionar categoría</option>';
-        if (selectEditarCat) selectEditarCat.innerHTML = '<option value="">Seleccionar categoría</option>';
-
-        if (snapshot.empty) {
-            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Aún no tienes categorías. Crea la primera arriba ⬆️</p>';
-            return;
-        }
-
-        snapshot.forEach(doc => {
-            const cat = doc.data();
-            const id = doc.id;
-            
-            // Tarjeta en lista
-            const tarjeta = document.createElement('div');
-            tarjeta.className = 'tarjeta-categoria';
-            tarjeta.innerHTML = `
-                <span class="nombre-cat">${cat.nombre}</span>
-                <div class="acciones-cat">
-                    <button class="btn-editar-cat" data-id="${id}" data-nombre="${cat.nombre}">✏️</button>
-                    <button class="btn-eliminar-cat" data-id="${id}">🗑️</button>
-                </div>
-            `;
-            lista.appendChild(tarjeta);
-
-            // Opción en selectores
-            const opcion = document.createElement('option');
-            opcion.value = cat.nombre;
-            opcion.textContent = cat.nombre;
-            if (selectMov) selectMov.appendChild(opcion);
-            
-            const opcion2 = document.createElement('option');
-            opcion2.value = cat.nombre;
-            opcion2.textContent = cat.nombre;
-            if (selectEditarCat) selectEditarCat.appendChild(opcion2);
-        });
-
-    } catch (err) {
-        console.error('Error cargando categorías:', err);
-        if (lista) lista.innerHTML = '<p class="error">Error al cargar categorías</p>';
-    }
-}
-
-// ========== GUARDAR NUEVA CATEGORÍA ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const btnAbrirCat = el('btnAbrirCat');
-    const btnGuardarCat = el('btnGuardarCat');
-    const formNuevaCat = el('formNuevaCat');
-    
-    if (btnAbrirCat) {
-        btnAbrirCat.addEventListener('click', () => {
-            formNuevaCat?.classList.toggle('oculto');
-        });
-    }
-    
-    if (btnGuardarCat) {
-        btnGuardarCat.addEventListener('click', async () => {
-            if (!usuarioActual) return;
-            const nombre = el('nombreCat')?.value?.trim();
-            if (!nombre) return alert('Escribe un nombre de categoría');
-            
-            try {
-                await db.collection('categorias').add({
-                    userId: usuarioActual.uid,
-                    nombre: nombre,
-                    fecha: new Date()
-                });
-                el('nombreCat').value = '';
-                formNuevaCat?.classList.add('oculto');
-                cargarCategorias();
-            } catch (err) {
-                console.error(err);
-                alert('Error guardando categoría');
-            }
-        });
-    }
-
-    // Delegación: Editar / Eliminar categoría
-    document.addEventListener('click', async e => {
-        if (e.target.classList.contains('btn-eliminar-cat')) {
-            if (!confirm('¿Eliminar esta categoría?')) return;
-            const id = e.target.dataset.id;
-            try {
-                await db.collection('categorias').doc(id).delete();
-                cargarCategorias();
-            } catch (err) {
-                console.error(err);
-                alert('Error eliminando categoría');
-            }
-        }
-        
-        if (e.target.classList.contains('btn-editar-cat')) {
-            const id = e.target.dataset.id;
-            const nombreActual = e.target.dataset.nombre;
-            const nuevoNombre = prompt('Nuevo nombre:', nombreActual);
-            if (!nuevoNombre || nuevoNombre.trim() === '') return;
-            
-            try {
-                await db.collection('categorias').doc(id).update({
-                    nombre: nuevoNombre.trim()
-                });
-                cargarCategorias();
-            } catch (err) {
-                console.error(err);
-                alert('Error al editar');
-            }
-        }
-    }); // ← Cierra el listener de delegación
-}); // ← Cierra DOMContentLoaded
+// ==================================================
+// FIN DEL CÓDIGO — TODO COMPLETO ✅
+// ==================================================
