@@ -126,8 +126,8 @@ el('btnRegistrar').addEventListener('click', async () => {
     }
 });
 
-document.querySelector('.btn-cerrar').addEventListener('click', () => {
-    auth.signOut();
+document.querySelector('.btn-cerrar-sesion').addEventListener('click', () => {
+    cerrarSesion();
 });
 
 // ========== NAVEGACIÓN DE PESTAÑAS ==========
