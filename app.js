@@ -84,17 +84,36 @@ async function cargarNombreUsuario(uid) {
 }
 
 async function guardarNombreUsuario(uid, nombre) {
-    if (!nombre.trim()) return alert('Por favor escribe un nombre');
     try {
-        await db.collection('usuarios').doc(uid).set({ nombre: nombre.trim() }, { merge: true });
-        nombreUsuarioGuardado = nombre.trim();
-        el('nombreUsuario').textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
-        el('modalNombre').classList.add('oculto');
-        el('editarNombreContenedor').classList.remove('oculto');
-        el('inputNombreUsuario').value = '';
-    } catch (err) {
-        console.error('Error guardando nombre:', err);
-        alert('No se pudo guardar el nombre, intenta de nuevo');
+        await db.collection('usuarios').doc(uid).set(
+            { nombre: nombre },
+            { merge: true }
+        );
+        
+        nombreUsuarioGuardado = nombre;
+        console.log('✅ Nombre guardado');
+
+        // Actualizar nombre en pantalla
+        const elNombre = document.getElementById('nombreUsuario');
+        if (elNombre) {
+            elNombre.textContent = `👋 Hola, ${nombre}`;
+        }
+
+        // Cerrar modal
+        const elModal = document.getElementById('modalNombre');
+        if (elModal) {
+            elModal.classList.add('oculto');
+        }
+
+        // Mostrar contenedor de editar si existe
+        const elEditar = document.getElementById('editarNombreContenedor');
+        if (elEditar) {
+            elEditar.classList.remove('oculto');
+        }
+
+    } catch (error) {
+        console.error('❌ Error guardando:', error);
+        alert('No se pudo guardar: ' + error.message);
     }
 }
 
