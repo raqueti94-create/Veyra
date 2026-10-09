@@ -57,12 +57,26 @@ async function cargarNombreUsuario(uid) {
         const doc = await db.collection('usuarios').doc(uid).get();
         if (doc.exists && doc.data().nombre) {
             nombreUsuarioGuardado = doc.data().nombre;
-            el('nombreUsuario').textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
-            el('editarNombreContenedor').classList.remove('oculto');
+            
+            const elNombre = el('nombreUsuario');
+            if (elNombre) elNombre.textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
+            
+            const elEditar = el('editarNombreContenedor');
+            if (elEditar) elEditar.classList.remove('oculto');
+            
+            // Ocultar modal cuando ya tiene nombre
+            const elModal = el('modalNombre');
+            if (elModal) elModal.classList.add('oculto');
+            
         } else {
-            el('modalNombre').classList.remove('oculto');
-            el('btnCancelarNombre').classList.add('oculto');
-            el('tituloModalNombre').textContent = '👤 Crea tu nombre de usuario';
+            const elModal = el('modalNombre');
+            if (elModal) elModal.classList.remove('oculto');
+            
+            const elBtnCancelar = el('btnCancelarNombre');
+            if (elBtnCancelar) elBtnCancelar.classList.add('oculto');
+            
+            const elTitulo = el('tituloModalNombre');
+            if (elTitulo) elTitulo.textContent = '👤 Crea tu nombre de usuario';
         }
     } catch (err) {
         console.error('Error cargando nombre:', err);
