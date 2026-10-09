@@ -1202,28 +1202,20 @@ document.querySelector('.btn-tipo-gasto').addEventListener('click', function(){
 
 // Valor por defecto al cargar
 document.addEventListener('DOMContentLoaded', function(){
-    
     const btnIngreso = document.querySelector('.btn-tipo-ingreso');
     const btnGasto = document.querySelector('.btn-tipo-gasto');
     
-    // Solo continúa si los botones existen
-    if (!btnIngreso || !btnGasto) {
-        console.log('Botones no encontrados en el HTML');
-        return;
-    }
+    if (!btnIngreso || !btnGasto) return;
     
-    // Valor por defecto
     let tipoSeleccionado = 'ingreso';
     btnIngreso.classList.add('activo');
     
-    // Ingreso seleccionado
     btnIngreso.addEventListener('click', function(){
         btnGasto.classList.remove('activo');
         this.classList.add('activo');
         tipoSeleccionado = 'ingreso';
     });
     
-    // Gasto seleccionado
     btnGasto.addEventListener('click', function(){
         btnIngreso.classList.remove('activo');
         this.classList.add('activo');
