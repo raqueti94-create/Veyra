@@ -342,57 +342,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-async function cargarContable() {
-    if (!usuarioActual) return;
-    const mes = el('mesSeleccionado').value;
-    const movSnap = await db.collection('movimientos')
-        .where('userId', '==', usuarioActual.uid)
-        .where('mes', '==', mes)
-        .orderBy('fecha', 'desc')
-        .get();
-    
-    let totalIngresos = 0, totalGastos = 0;
-    const lista = el('listaMovimientos');
-    lista.innerHTML = '';
-    
-    movSnap.forEach(doc => {
-        const m = doc.data();
-        if (m.tipo === 'ingreso') totalIngresos += m.monto;
-        else totalGastos += m.monto;
-        lista.innerHTML += `
-            <div class="movimiento">
-                <div class="info-mov">
-                    <div class="fecha">${formatearFecha(m.fecha)}</div>
-                    <div class="descripcion">${m.descripcion}</div>
-                    <div class="categoria-pequeña">${m.categoria}</div>
-                </div>
-                <div class="valor-botones">
-                    <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
-                        ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                    </div>
-                    <div class="acciones">
-                        <button class="btn-accion eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
-                    </div>
-                </div>
-            </div>`;
-    });
-    
-    const saldo = totalIngresos - totalGastos;
-    el('totalIngresos').textContent = `$ ${totalIngresos.toLocaleString()}`;
-    el('totalGastos').textContent = `$ ${totalGastos.toLocaleString()}`;
-    el('saldoTotal').textContent = `$ ${saldo.toLocaleString()}`;
-    
-    document.querySelectorAll('.eliminar-mov').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (confirm('¿Eliminar este movimiento?')) {
-                await db.collection('movimientos').doc(btn.dataset.id).delete();
-                cargarContable();
-            }
-        });
-    });
-    cargarCategorias();
-}
-
 // ========== CATEGORÍAS ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Botón Abrir Categorías
@@ -1401,8 +1350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(err);
             alert('Error guardando movimiento');
         }
-    }); // ✅ ← AQUÍ VA EL CIERRE QUE FALTABA
-
+    });
     el('mesSeleccionado').addEventListener('change', cargarContable);
 });
 // ========== CARGAR CATEGORÍAS ==========
