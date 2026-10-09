@@ -7,6 +7,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -47,6 +49,7 @@
         <button class="pestaña" data-pagina="ahorro">💰 Ahorro</button>
         <button class="pestaña" data-pagina="habitos">💪 Hábitos</button>
         <button class="pestaña" data-pagina="logros">🏆 Logros</button>
+        <button class="pestaña" data-pagina="exportar">📤 Exportar</button>
     </nav>
 
     <!-- Página Contable -->
@@ -210,6 +213,110 @@
             <div id="lista-logros"></div>
         </div>
     </section>
+
+    <!-- Exportar y Compartir -->
+    <section id="exportar" class="pagina oculto">
+        <h1 class="titulo-principal">📤 Exportar y Compartir</h1>
+
+        <div class="bloque">
+            <h3 class="subtitulo">📄 Extracto Mensual (PDF)</h3>
+            <p style="color: #636e72; margin-bottom: 15px;">Genera un documento con tu resumen contable y de ahorro del mes.</p>
+            <select id="mesExtracto" class="entrada" style="max-width: 250px; margin-bottom: 15px;">
+                <option value="2026-10" selected>Octubre 2026</option>
+                <option value="2026-11">Noviembre 2026</option>
+                <option value="2026-12">Diciembre 2026</option>
+                <option value="2027-01">Enero 2027</option>
+            </select>
+            <button id="btnGenerarPDF" class="boton-principal" style="max-width: 300px;">📄 Generar Extracto PDF</button>
+        </div>
+
+        <div class="bloque">
+            <h3 class="subtitulo">🖼️ Tarjeta para Compartir</h3>
+            <p style="color: #636e72; margin-bottom: 15px;">Imagen lista para descargar y compartir en redes.</p>
+            <div id="vistaPreviaTarjeta" style="margin: 20px auto; max-width: 400px;"></div>
+            <button id="btnGenerarImagen" class="boton-principal" style="max-width: 300px;">📥 Descargar Imagen</button>
+        </div>
+    </section>
+</div>
+
+<!-- Plantilla PDF oculta -->
+<div id="plantillaPDF" style="display:none; position:absolute; left:-9999px; width:210mm; background:#fff; padding:20mm; font-family:Arial,sans-serif;">
+    <div style="border-bottom:2px solid #6c5ce7; padding-bottom:15px; margin-bottom:20px;">
+        <h1 style="color:#6c5ce7; margin:0; font-size:22px;">💰 MIS FINANZAS — EXTRACTO MENSUAL</h1>
+        <p style="margin:5px 0; color:#666;">Periodo: <span id="pdfMesPeriodo"></span></p>
+        <p style="margin:5px 0; color:#666;">Usuario: <span id="pdfNombreUsuario"></span></p>
+        <p style="margin:5px 0; color:#666;">Fecha de emisión: <span id="pdfFechaEmision"></span></p>
+    </div>
+
+    <h2 style="color:#2d3436; font-size:18px; margin:20px 0 10px;">📊 Resumen Contable</h2>
+    <table style="width:100%; border-collapse:collapse; margin-bottom:25px;">
+        <tr style="background:#f8f9fa;">
+            <td style="padding:12px; border-bottom:1px solid #ddd;"><strong>Ingresos</strong></td>
+            <td style="padding:12px; border-bottom:1px solid #ddd; text-align:right; color:#00b894; font-weight:bold;" id="pdfTablaIngresos">$ 0</td>
+        </tr>
+        <tr>
+            <td style="padding:12px; border-bottom:1px solid #ddd;"><strong>Gastos</strong></td>
+            <td style="padding:12px; border-bottom:1px solid #ddd; text-align:right; color:#e17055; font-weight:bold;" id="pdfTablaGastos">$ 0</td>
+        </tr>
+        <tr style="background:#f0f0f0;">
+            <td style="padding:12px; border-bottom:1px solid #ddd;"><strong>Saldo</strong></td>
+            <td style="padding:12px; border-bottom:1px solid #ddd; text-align:right; font-weight:bold;" id="pdfTablaSaldo">$ 0</td>
+        </tr>
+    </table>
+
+    <h2 style="color:#2d3436; font-size:18px; margin:20px 0 10px;">💰 Ahorro Programado</h2>
+    <table style="width:100%; border-collapse:collapse; margin-bottom:25px;">
+        <tr><td style="padding:8px 0;"><strong>Meta:</strong></td><td style="text-align:right;" id="pdfMetaAhorro">$ 0</td></tr>
+        <tr><td style="padding:8px 0;"><strong>Ahorrado:</strong></td><td style="text-align:right; color:#00b894; font-weight:bold;" id="pdfTotalAhorrado">$ 0</td></tr>
+        <tr><td style="padding:8px 0;"><strong>Falta:</strong></td><td style="text-align:right; color:#e17055;" id="pdfFaltaAhorro">$ 0</td></tr>
+        <tr><td style="padding:8px 0;"><strong>Progreso:</strong></td><td style="text-align:right;" id="pdfPorcentajeAhorro">0%</td></tr>
+    </table>
+    <h3 style="font-size:15px; margin:15px 0 8px;">Distribución por cuenta</h3>
+    <table style="width:100%; border-collapse:collapse;">
+        <tr><td style="padding:6px 0; color:#6c5ce7;">🟣 Nequi</td><td style="text-align:right;" id="pdfNequi">$ 0</td></tr>
+        <tr><td style="padding:6px 0; color:#00b894;">🟢 Banco</td><td style="text-align:right;" id="pdfBanco">$ 0</td></tr>
+        <tr><td style="padding:6px 0; color:#fdcb6e;">🟡 Efectivo</td><td style="text-align:right;" id="pdfEfectivo">$ 0</td></tr>
+    </table>
+
+    <h2 style="color:#2d3436; font-size:18px; margin:30px 0 10px;">📋 Detalle de Movimientos</h2>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead><tr style="background:#f8f9fa;">
+            <th style="padding:10px; text-align:left; border-bottom:2px solid #ddd;">Fecha</th>
+            <th style="padding:10px; text-align:left; border-bottom:2px solid #ddd;">Descripción</th>
+            <th style="padding:10px; text-align:left; border-bottom:2px solid #ddd;">Categoría</th>
+            <th style="padding:10px; text-align:right; border-bottom:2px solid #ddd;">Monto</th>
+        </tr></thead>
+        <tbody id="pdfCuerpoMov"></tbody>
+    </table>
+
+    <p style="margin-top:40px; padding-top:15px; border-top:1px solid #ddd; font-size:12px; color:#888; text-align:center;">
+        Documento generado automáticamente<br>💰 Mis Finanzas · App de Control Financiero
+    </p>
+</div>
+
+<!-- Plantilla Tarjeta Imagen -->
+<div id="tarjetaImagen" style="display:none; position:absolute; left:-9999px; width:400px; background:linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); border-radius:16px; padding:30px; font-family:Arial,sans-serif; color:#fff; box-shadow:0 8px 24px rgba(0,0,0,0.15);">
+    <div style="text-align:center;">
+        <div style="font-size:32px; margin-bottom:5px;">💰</div>
+        <h3 style="margin:0; font-size:20px;">Mis Finanzas</h3>
+        <p style="opacity:0.8; margin:5px 0 20px; font-size:14px;">Control & Disciplina</p>
+        
+        <div style="background:rgba(255,255,255,0.15); border-radius:12px; padding:20px; margin-bottom:20px;">
+            <p style="margin:0; font-size:16px;">👋 Hola, <strong id="tarjetaNombre">Usuario</strong></p>
+            <p style="margin:15px 0 5px; font-size:14px; opacity:0.9;">🔥 Racha actual</p>
+            <p style="font-size:36px; font-weight:bold; margin:0;" id="tarjetaRacha">0 días</p>
+        </div>
+
+        <h4 style="margin:0 0 12px; font-size:15px;">🏆 Mis Logros</h4>
+        <div id="tarjetaListaLogros" style="text-align:left;">
+            <!-- Se llena con JS -->
+        </div>
+
+        <p style="margin-top:25px; font-style:italic; opacity:0.9; font-size:13px;">
+            "La constancia construye la libertad financiera"
+        </p>
+        <p style="margin-top:15px; font-size:12px; opacity:0.7;">🔗 MisFinanzas.app</p>
+    </div>
 </div>
 
 <!-- Modal Editar -->
