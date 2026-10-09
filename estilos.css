@@ -77,7 +77,7 @@ body {
     transform: scale(1.02);
 }
 
-/* ========== PANTALLA LOGIN — DISEÑO RENOVADO ========== */
+/* ========== PANTALLA LOGIN — VERSIÓN MEJORADA ========== */
 .pantalla-login {
     display: flex;
     align-items: center;
@@ -89,27 +89,30 @@ body {
 
 .caja-login {
     background: white;
-    padding: 2.5rem 2rem;
+    padding: 3rem 2rem;
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
     animation: aparecer 0.5s ease forwards;
     transform: translateY(20px);
     opacity: 0;
 }
 
+/* 💰 ÍCONO — MÁS GRANDE Y CENTRADO */
 .icono-app {
-    font-size: 3.5rem;
+    font-size: 4.5rem;
     text-align: center;
     margin-bottom: 0.5rem;
+    display: block;
 }
 
+/* 📝 TODOS LOS TEXTOS CENTRADOS */
 .caja-login h1 {
     text-align: center;
     color: var(--primario);
-    margin-bottom: 0.3rem;
-    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    font-size: 2.2rem;
     font-weight: 700;
 }
 
@@ -117,11 +120,12 @@ body {
     text-align: center;
     color: var(--texto-claro);
     margin-bottom: 2rem;
-    font-size: 1rem;
+    font-size: 1.05rem;
 }
 
 .grupo-input {
     margin-bottom: 1.5rem;
+    text-align: center; /* Centra etiquetas */
 }
 
 .grupo-input label {
@@ -130,6 +134,7 @@ body {
     font-weight: 600;
     color: var(--texto);
     font-size: 0.95rem;
+    text-align: left; /* Deja la etiqueta alineada con el campo */
 }
 
 .grupo-input input {
@@ -140,6 +145,7 @@ body {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: #fafbfc;
+    text-align: left;
 }
 
 .grupo-input input:focus {
@@ -150,6 +156,17 @@ body {
     transform: translateY(-2px);
 }
 
+.error {
+    color: var(--peligro);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-weight: 500;
+    min-height: 1.5rem;
+    font-size: 0.95rem;
+}
+
+/* 🔘 BOTONES — GRANDES, VISIBLES Y CON ESTILO */
 .fila-botones {
     display: flex;
     flex-direction: column;
@@ -158,55 +175,45 @@ body {
 }
 
 .boton-principal {
-    padding: 1rem;
+    width: 100%;
+    padding: 1.1rem;
     border: none;
     border-radius: 14px;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     color: white;
-    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.35);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
 }
 
 .boton-principal:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(108, 92, 231, 0.45);
-}
-
-.boton-principal:active {
-    transform: translateY(0);
+    box-shadow: 0 12px 30px rgba(108, 92, 231, 0.5);
 }
 
 .boton-secundario {
-    padding: 1rem;
-    border: 2px solid var(--primario);
+    width: 100%;
+    padding: 1.1rem;
+    border: 2px solid #6c5ce7;
     border-radius: 14px;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1.1rem;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    background: transparent;
-    color: var(--primario);
+    background: white;
+    color: #6c5ce7;
 }
 
 .boton-secundario:hover {
-    background: var(--primario);
+    background: #6c5ce7;
     color: white;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(108, 92, 231, 0.35);
 }
 
-.error {
-    color: var(--peligro);
-    margin-top: 1rem;
-    text-align: center;
-    font-weight: 500;
-    min-height: 1.5rem;
-    font-size: 0.95rem;
-}
-
-/* ========== RESPONSIVO ========== */
+/* 📱 RESPONSIVO */
 @media (max-width: 480px) {
     .caja-login {
         padding: 2rem 1.5rem;
@@ -214,11 +221,17 @@ body {
     }
     
     .icono-app {
-        font-size: 3rem;
+        font-size: 3.8rem;
     }
     
     .caja-login h1 {
-        font-size: 1.7rem;
+        font-size: 1.8rem;
+    }
+    
+    .boton-principal,
+    .boton-secundario {
+        padding: 1rem;
+        font-size: 1rem;
     }
 }
 
