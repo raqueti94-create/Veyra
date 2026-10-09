@@ -1215,7 +1215,7 @@ async function cargarContable() {
         if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
         verificarAlertaSaldo(totalIngresos - totalGastos);
 
-    } catch (err) {
+     } catch (err) {
         console.error('Error cargando contable:', err);
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
