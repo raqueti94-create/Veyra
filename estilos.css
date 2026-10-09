@@ -82,7 +82,7 @@ body {
     transform: scale(1.02);
 }
 
-/* ========== PANTALLA LOGIN — DISEÑO RENOVADO ========== */
+/* ========== PANTALLA LOGIN ========== */
 .pantalla-login {
     display: flex;
     align-items: center;
@@ -235,7 +235,7 @@ body {
     color: var(--peligro);
 }
 
-/* ========== ALERTA DE SALDO ========== */
+/* ========== ALERTAS ========== */
 .alerta-saldo {
     padding: 1rem 1.25rem;
     border-radius: 12px;
@@ -269,7 +269,7 @@ body {
     margin-bottom: 1rem;
 }
 
-/* ========== PESTAÑAS / NAVEGACIÓN ========== */
+/* ========== PESTAÑAS ========== */
 .navegacion {
     display: flex;
     flex-wrap: wrap;
@@ -449,7 +449,90 @@ select:focus, input:focus {
     background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%) !important;
 }
 
-/* ========== COMPARTIR — BOTONES ESTILIZADOS ========== */
+/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
+.selector-tipo {
+    display: flex !important;
+    gap: 1rem !important;
+    justify-content: flex-start !important;
+    margin: 1.5rem 0 1.25rem !important;
+    width: 100% !important;
+}
+.btn-tipo-ingreso,
+.btn-tipo-gasto {
+    flex: 0 0 auto !important;
+    min-width: 140px !important;
+    padding: 1rem 1.5rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 14px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+    color: var(--texto-claro) !important;
+    text-align: center !important;
+}
+.btn-tipo-ingreso.activo {
+    border-color: var(--exito) !important;
+    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
+}
+.btn-tipo-gasto.activo {
+    border-color: var(--peligro) !important;
+    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
+}
+.btn-tipo-ingreso:not(.activo):hover {
+    border-color: var(--exito) !important;
+    color: var(--exito) !important;
+    background: #e8f5e9 !important;
+}
+.btn-tipo-gasto:not(.activo):hover {
+    border-color: var(--peligro) !important;
+    color: var(--peligro) !important;
+    background: #fff0f0 !important;
+}
+
+/* ========== CAMPOS DE FORMULARIO ========== */
+.campos-formulario {
+    display: flex !important;
+    gap: 0.8rem !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+}
+.campo-dato {
+    flex: 1 !important;
+    min-width: 150px !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
+}
+
+/* ========== BOTÓN GUARDAR MOVIMIENTO ========== */
+.btn-guardar-movimiento {
+    margin-top: 1.5rem !important;
+    padding: 1rem 2rem !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
+    width: 100% !important;
+}
+.btn-guardar-movimiento:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
+}
+
+/* ========== COMPARTIR ========== */
 .botones-compartir {
     display: flex;
     gap: 1rem;
@@ -611,6 +694,13 @@ button:disabled {
         width: 100%;
         justify-content: space-between;
     }
+    .selector-tipo {
+        flex-direction: column;
+    }
+    .btn-tipo-ingreso,
+    .btn-tipo-gasto {
+        width: 100%;
+    }
 }
 @media (max-width: 480px) {
     .caja-login {
@@ -628,118 +718,4 @@ button:disabled {
         padding: 1rem;
         font-size: 1rem;
     }
-}
-
-/* ========== SELECTOR TIPO — INGRESO / GASTO ========== */
-.selector-tipo {
-    display: flex !important;
-    gap: 1rem !important;
-    justify-content: flex-start !important;
-    margin: 1.5rem 0 1.25rem !important;
-    width: 100% !important;
-}
-
-.btn-tipo-ingreso,
-.btn-tipo-gasto {
-    flex: 0 0 auto !important;
-    min-width: 140px !important;
-    padding: 0.9rem 1.5rem !important;
-    border: 2px solid var(--borde) !important;
-    border-radius: 14px !important;
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    background: white !important;
-    color: var(--texto-claro) !important;
-    text-align: center !important;
-}
-
-/* ✅ INGRESO SELECCIONADO */
-.btn-tipo-ingreso.activo {
-    border-color: var(--exito) !important;
-    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
-}
-
-/* ✅ GASTO SELECCIONADO */
-.btn-tipo-gasto.activo {
-    border-color: var(--peligro) !important;
-    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
-}
-
-/* 🔹 NO SELECCIONADO — EFECTO AL PASAR */
-.btn-tipo-ingreso:not(.activo):hover {
-    border-color: var(--exito) !important;
-    color: var(--exito) !important;
-    background: #e8f5e9 !important;
-}
-
-.btn-tipo-gasto:not(.activo):hover {
-    border-color: var(--peligro) !important;
-    color: var(--peligro) !important;
-    background: #fff0f0 !important;
-}
-
-/* ========== CAMPOS DE DATOS ========== */
-.campos-formulario {
-    display: flex !important;
-    gap: 0.8rem !important;
-    flex-wrap: wrap !important;
-    margin-bottom: 1.5rem !important;
-    width: 100% !important;
-}
-
-.campo-dato {
-    flex: 1 !important;
-    min-width: 150px !important;
-    padding: 0.9rem 1rem !important;
-    border: 2px solid var(--borde) !important;
-    border-radius: 12px !important;
-    font-size: 0.95rem !important;
-}
-
-/* ========== BOTÓN GUARDAR — SEPARADO ========== */
-.btn-guardar-movimiento {
-    margin-top: 1rem !important;
-    padding: 1rem 2rem !important;
-    border: none !important;
-    border-radius: 14px !important;
-    font-size: 1.05rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
-    color: white !important;
-    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
-    width: 100% !important;
-}
-
-.btn-guardar-movimiento:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
-}
-
-/* ========== BOTÓN GUARDAR ========== */
-.btn-guardar-movimiento {
-    margin-top: 0.75rem; /* Separación respecto a los campos */
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 14px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: white;
-    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35);
-    width: 100%;
-}
-
-.btn-guardar-movimiento:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45);
 }
