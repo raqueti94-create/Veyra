@@ -1188,26 +1188,29 @@ setTimeout(() => {
 
 // === BOTONES INGRESO / GASTO — VERSIÓN CORRECTA ===
 document.addEventListener('DOMContentLoaded', function() {
-    const btnIngreso = document.querySelector('.btn-tipo-ingreso');
-    const btnGasto = document.querySelector('.btn-tipo-gasto');
-    
-    if (!btnIngreso || !btnGasto) {
-        console.log('Botones listos para cargar');
-        return;
-    }
-    
-    // Sincroniza con la variable que ya existe en tu código
-    btnIngreso.classList.add('activo');
-    
-    btnIngreso.addEventListener('click', function() {
-        btnGasto.classList.remove('activo');
-        this.classList.add('activo');
-        tipoMovimiento = 'ingreso';
+    // ✅ Ahora SÍ existe el elemento antes de buscarlo
+    el('btnGuardarMov').addEventListener('click', async () => {
+        if (!usuarioActual) return;
+        const datos = {
+            userId: usuarioActual.uid,
+            tipo: tipoMovimiento,
+            descripcion: el('descripcionMov').value || 'Sin descripción',
+            categoria: el('categoriaMov').value || 'Sin categoría',
+            monto: parseFloat(el('montoMov').value) || 0,
+            mes: el('mesSeleccionado').value,
+            fecha: new Date()
+        };
+        if (!datos.monto) return alert('Escribe un monto válido');
+        try {
+            await db.collection('movimientos').add(datos);
+            el('descripcionMov').value = '';
+            el('montoMov').value = '';
+            cargarContable();
+        } catch (err) {
+            console.error(err);
+            alert('Error guardando movimiento');
+        }
     });
-    
-    btnGasto.addEventListener('click', function() {
-        btnIngreso.classList.remove('activo');
-        this.classList.add('activo');
-        tipoMovimiento = 'gasto';
-    });
+
+    el('mesSeleccionado').addEventListener('change', cargarContable);
 });
