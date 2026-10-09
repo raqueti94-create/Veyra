@@ -1149,11 +1149,33 @@ async function cargarContable() {
     await cargarCategorias();
 
     // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
+    let cargarContableEnEjecucion = false;
+
+async function cargarContable() {
+    console.log('🔄 Ejecutando cargarContable');
+    
+    if (cargarContableEnEjecucion) {
+        console.log('⛔ Llamada duplicada BLOQUEADA');
+        return;
+    }
+    
+    if (!usuarioActual) return;
+
+    cargarContableEnEjecucion = true;
+
+    const mes = el('mesSeleccionado')?.value || '';
+    const lista = el('listaMovimientos');
+    const totalIngresosEl = el('totalIngresos');
+    const totalGastosEl = el('totalGastos');
+    const saldoTotalEl = el('saldoTotal');
+
+    await cargarCategorias();
+
     if (lista) {
-        lista.innerHTML = ''; // <-- BORRA TODO ANTES DE CARGAR
+        lista.innerHTML = '';
     }
 
-       try {
+    try {
         const snapshot = await db.collection('movimientos')
             .where('userId', '==', usuarioActual.uid)
             .where('mes', '==', mes)
@@ -1206,21 +1228,6 @@ async function cargarContable() {
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
         cargarContableEnEjecucion = false;
-    }
-}
-
-        // Actualizar totales
-        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
-        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
-        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
-
-        verificarAlertaSaldo(totalIngresos - totalGastos);
-
-     } catch (err) {
-        console.error('Error cargando contable:', err);
-        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
-    } finally {
-        cargarContableEnEjecucion = false; // Desbloquear al terminar
     }
 }
 // ========== ACCIONES: EDITAR Y ELIMINAR MOVIMIENTO ==========
