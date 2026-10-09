@@ -126,8 +126,19 @@ el('btnRegistrar').addEventListener('click', async () => {
     }
 });
 
-document.querySelector('.btn-cerrar-sesion').addEventListener('click', () => {
-    cerrarSesion();
+// Botón Cambiar Nombre
+const btnEditar = document.getElementById('btnEditarNombre');
+if (btnEditar) {
+    btnEditar.addEventListener('click', abrirEditarNombre);
+}
+
+// Botón Cerrar Sesión
+const btnCerrar = document.getElementById('btnCerrarSesion');
+if (btnCerrar) {
+    btnCerrar.addEventListener('click', cerrarSesion);
+}
+
+
 });
 
 // ========== NAVEGACIÓN DE PESTAÑAS ==========
