@@ -1498,12 +1498,10 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await db.collection('categorias').doc(id).update({
                     nombre: nuevoNombre.trim()
-                });
-                cargarCategorias();
-            } catch (err) {
-                console.error(err);
-                alert('Error al editar');
-            }
-        }
-    });
+        });
+        cargarCategorias();
+    } catch (err) {
+        console.error(err);
+        alert('Error al editar');
+    }
 });
