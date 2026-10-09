@@ -1254,3 +1254,131 @@ document.addEventListener('DOMContentLoaded', function() {
 
     el('mesSeleccionado').addEventListener('change', cargarContable);
 });
+// ========== CARGAR CATEGORÍAS ==========
+async function cargarCategorias() {
+    if (!usuarioActual) return;
+
+    const lista = el('listaCategorias');
+    const selectMov = el('categoriaMov');
+    const selectEditarCat = el('catEditarMov');
+    
+    if (!lista) return;
+    
+    lista.innerHTML = '<p class="texto-centrado">Cargando categorías...</p>';
+    
+    try {
+        const snapshot = await db.collection('categorias')
+            .where('userId', '==', usuarioActual.uid)
+            .get();
+
+        lista.innerHTML = '';
+        
+        // Limpiar y llenar selectores
+        if (selectMov) selectMov.innerHTML = '<option value="">Seleccionar categoría</option>';
+        if (selectEditarCat) selectEditarCat.innerHTML = '<option value="">Seleccionar categoría</option>';
+
+        if (snapshot.empty) {
+            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Aún no tienes categorías. Crea la primera arriba ⬆️</p>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const cat = doc.data();
+            const id = doc.id;
+            
+            // Tarjeta en lista
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'tarjeta-categoria';
+            tarjeta.innerHTML = `
+                <span class="nombre-cat">${cat.nombre}</span>
+                <div class="acciones-cat">
+                    <button class="btn-editar-cat" data-id="${id}" data-nombre="${cat.nombre}">✏️</button>
+                    <button class="btn-eliminar-cat" data-id="${id}">🗑️</button>
+                </div>
+            `;
+            lista.appendChild(tarjeta);
+
+            // Opción en selectores
+            const opcion = document.createElement('option');
+            opcion.value = cat.nombre;
+            opcion.textContent = cat.nombre;
+            if (selectMov) selectMov.appendChild(opcion);
+            
+            const opcion2 = document.createElement('option');
+            opcion2.value = cat.nombre;
+            opcion2.textContent = cat.nombre;
+            if (selectEditarCat) selectEditarCat.appendChild(opcion2);
+        });
+
+    } catch (err) {
+        console.error('Error cargando categorías:', err);
+        if (lista) lista.innerHTML = '<p class="error">Error al cargar categorías</p>';
+    }
+}
+
+// ========== GUARDAR NUEVA CATEGORÍA ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const btnAbrirCat = el('btnAbrirCat');
+    const btnGuardarCat = el('btnGuardarCat');
+    const formNuevaCat = el('formNuevaCat');
+
+    if (btnAbrirCat) {
+        btnAbrirCat.addEventListener('click', () => {
+            formNuevaCat?.classList.toggle('oculto');
+        });
+    }
+
+    if (btnGuardarCat) {
+        btnGuardarCat.addEventListener('click', async () => {
+            if (!usuarioActual) return;
+            const nombre = el('nombreCat')?.value?.trim();
+            if (!nombre) return alert('Escribe un nombre de categoría');
+
+            try {
+                await db.collection('categorias').add({
+                    userId: usuarioActual.uid,
+                    nombre: nombre,
+                    fecha: new Date()
+                });
+                el('nombreCat').value = '';
+                formNuevaCat?.classList.add('oculto');
+                cargarCategorias(); // ✅ Recarga la lista
+            } catch (err) {
+                console.error(err);
+                alert('Error guardando categoría');
+            }
+        });
+    }
+
+    // Delegación: Editar / Eliminar categoría
+    document.addEventListener('click', async e => {
+        if (e.target.classList.contains('btn-eliminar-cat')) {
+            if (!confirm('¿Eliminar esta categoría?')) return;
+            const id = e.target.dataset.id;
+            try {
+                await db.collection('categorias').doc(id).delete();
+                cargarCategorias();
+            } catch (err) {
+                console.error(err);
+                alert('Error eliminando categoría');
+            }
+        }
+
+        if (e.target.classList.contains('btn-editar-cat')) {
+            const id = e.target.dataset.id;
+            const nombreActual = e.target.dataset.nombre;
+            const nuevoNombre = prompt('Nuevo nombre:', nombreActual);
+            if (!nuevoNombre || nuevoNombre.trim() === '') return;
+            
+            try {
+                await db.collection('categorias').doc(id).update({
+                    nombre: nuevoNombre.trim()
+                });
+                cargarCategorias();
+            } catch (err) {
+                console.error(err);
+                alert('Error al editar');
+            }
+        }
+    });
+});
