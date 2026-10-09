@@ -1125,9 +1125,20 @@ function verificarAlertaSaldo(saldo) {
 }
 
 // ========== CARGAR CONTABLE — VERSIÓN FINAL SIN DUPLICADOS ==========
+let cargarContableEnEjecucion = false; // ✅ BANDERA DE PROTECCIÓN
+
 async function cargarContable() {
-    console.log('🔄 cargarContable se está ejecutando —', new Date().toLocaleTimeString());
+    console.log('🔄 Ejecutando cargarContable');
+    
+    // Si ya está en proceso, no permitir otra llamada
+    if (cargarContableEnEjecucion) {
+        console.log('⛔ Llamada duplicada bloqueada');
+        return;
+    }
+    
     if (!usuarioActual) return;
+
+    cargarContableEnEjecucion = true; // Bloquear
 
     const mes = el('mesSeleccionado')?.value || '';
     const lista = el('listaMovimientos');
@@ -1135,11 +1146,12 @@ async function cargarContable() {
     const totalGastosEl = el('totalGastos');
     const saldoTotalEl = el('saldoTotal');
 
-    // Cargar categorías
     await cargarCategorias();
 
-    // Limpiar lista ANTES de cargar — elimina duplicados
-    if (lista) lista.innerHTML = '<p class="texto-centrado">Cargando movimientos...</p>';
+    // ✅ LIMPIAR ANTES DE TODO — GARANTIZADO
+    if (lista) {
+        lista.innerHTML = ''; // <-- BORRA TODO ANTES DE CARGAR
+    }
 
     try {
         const snapshot = await db.collection('movimientos')
@@ -1149,20 +1161,14 @@ async function cargarContable() {
             .get();
 
         let totalIngresos = 0, totalGastos = 0;
-        
-        // Limpiar definitivamente antes de insertar
-        if (lista) lista.innerHTML = '';
 
         if (snapshot.empty) {
             if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
         } else {
             snapshot.forEach(doc => {
                 const m = doc.data();
-                if (m.tipo === 'ingreso') {
-                    totalIngresos += m.monto;
-                } else {
-                    totalGastos += m.monto;
-                }
+                if (m.tipo === 'ingreso') totalIngresos += m.monto;
+                else totalGastos += m.monto;
 
                 if (lista) {
                     lista.innerHTML += `
@@ -1188,6 +1194,19 @@ async function cargarContable() {
                 }
             });
         }
+
+        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
+        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
+        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
+        verificarAlertaSaldo(totalIngresos - totalGastos);
+
+    } catch (err) {
+        console.error('Error cargando contable:', err);
+        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
+    } finally {
+        cargarContableEnEjecucion = false; // ✅ Desbloquear al terminar
+    }
+}
 
         // Actualizar totales
         if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
