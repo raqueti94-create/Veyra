@@ -126,18 +126,27 @@ el('btnRegistrar').addEventListener('click', async () => {
     }
 });
 
-// Botón Cambiar Nombre
-const btnEditar = document.getElementById('btnEditarNombre');
+// Botón Cambiar Nombre → Abre el modal
+const btnEditar = el('btnEditarNombre');
 if (btnEditar) {
-    btnEditar.addEventListener('click', abrirEditarNombre);
+    btnEditar.addEventListener('click', () => {
+        el('modalNombre').classList.remove('oculto');
+        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
+        el('inputNombreUsuario').value = nombreUsuarioGuardado;
+    });
 }
 
 // Botón Cerrar Sesión
-const btnCerrar = document.getElementById('btnCerrarSesion');
+const btnCerrar = el('btnCerrarSesion');
 if (btnCerrar) {
-    btnCerrar.addEventListener('click', cerrarSesion);
+    btnCerrar.addEventListener('click', async () => {
+        if (confirm('¿Seguro que quieres cerrar sesión?')) {
+            await firebase.auth().signOut();
+            console.log('✅ Sesión cerrada');
+            window.location.reload();
+        }
+    });
 }
-
 // ========== NAVEGACIÓN DE PESTAÑAS ==========
 document.addEventListener('click', e => {
     if (e.target.classList.contains('pestaña')) {
