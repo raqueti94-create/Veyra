@@ -556,10 +556,6 @@ function cargarVistaPreviaTarjeta() {
 // ==================================================
 // PARTE 3: EVENTOS, PDF CORREGIDO Y DELEGACIÓN
 // ==================================================
-
-let modoEdicionMov = null;
-let modoEdicionDep = null;
-
 // ========== INICIO DE EVENTOS ==========
 document.addEventListener('DOMContentLoaded', function() {
     // Login / Registro
