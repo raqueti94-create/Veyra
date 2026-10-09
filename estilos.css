@@ -629,3 +629,96 @@ button:disabled {
         font-size: 1rem;
     }
 }
+
+/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
+.selector-tipo {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0 1.25rem;
+}
+
+.btn-tipo-ingreso,
+.btn-tipo-gasto {
+    flex: 1;
+    padding: 1rem 1.5rem;
+    border: 2px solid var(--borde);
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--texto-claro);
+}
+
+/* ✅ SELECCIONADO — INGRESO */
+.btn-tipo-ingreso.activo {
+    border-color: var(--exito);
+    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35);
+    transform: translateY(-2px);
+}
+
+/* ✅ SELECCIONADO — GASTO */
+.btn-tipo-gasto.activo {
+    border-color: var(--peligro);
+    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35);
+    transform: translateY(-2px);
+}
+
+/* 🔹 NO SELECCIONADO — EFECTO AL PASAR */
+.btn-tipo-ingreso:not(.activo):hover {
+    border-color: var(--exito);
+    color: var(--exito);
+    background: #e8f5e9;
+}
+
+.btn-tipo-gasto:not(.activo):hover {
+    border-color: var(--peligro);
+    color: var(--peligro);
+    background: #fff0f0;
+}
+
+/* ========== FORMULARIO — ESPACIADO CORRECTO ========== */
+.formulario-movimiento {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* Separación entre campos */
+    margin-top: 1rem;
+}
+
+.grupo-filas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.grupo-filas input,
+.grupo-filas select {
+    flex: 1;
+    min-width: 160px;
+}
+
+/* ========== BOTÓN GUARDAR ========== */
+.btn-guardar-movimiento {
+    margin-top: 0.75rem; /* Separación respecto a los campos */
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35);
+    width: 100%;
+}
+
+.btn-guardar-movimiento:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45);
+}
