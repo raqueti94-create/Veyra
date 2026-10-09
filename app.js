@@ -1222,3 +1222,24 @@ document.addEventListener('DOMContentLoaded', function(){
         tipoSeleccionado = 'gasto';
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const btnIngreso = document.querySelector('.btn-tipo-ingreso');
+    const btnGasto = document.querySelector('.btn-tipo-gasto');
+    
+    if (!btnIngreso || !btnGasto) return;
+    
+    let tipoSeleccionado = 'ingreso';
+    btnIngreso.classList.add('activo');
+    
+    btnIngreso.addEventListener('click', function() {
+        btnGasto.classList.remove('activo');
+        this.classList.add('activo');
+        tipoSeleccionado = 'ingreso';
+    });
+    
+    btnGasto.addEventListener('click', function() {
+        btnIngreso.classList.remove('activo');
+        this.classList.add('activo');
+        tipoSeleccionado = 'gasto';
+    });
+});
