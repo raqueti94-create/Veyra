@@ -1185,3 +1185,23 @@ setTimeout(() => {
     const carga = document.getElementById('pantallaCarga');
     if (carga) carga.classList.add('oculto');
 }, 3000);
+
+// Seleccionar INGRESO
+document.querySelector('.btn-tipo-ingreso').addEventListener('click', function(){
+    document.querySelector('.btn-tipo-gasto').classList.remove('activo');
+    this.classList.add('activo');
+    tipoSeleccionado = 'ingreso';
+});
+
+// Seleccionar GASTO
+document.querySelector('.btn-tipo-gasto').addEventListener('click', function(){
+    document.querySelector('.btn-tipo-ingreso').classList.remove('activo');
+    this.classList.add('activo');
+    tipoSeleccionado = 'gasto';
+});
+
+// Valor por defecto al cargar
+document.addEventListener('DOMContentLoaded', function(){
+    document.querySelector('.btn-tipo-ingreso').classList.add('activo');
+    tipoSeleccionado = 'ingreso';
+});
