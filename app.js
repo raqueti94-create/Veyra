@@ -1205,7 +1205,6 @@ async function cargarContable() {
         if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
     } finally {
         cargarContableEnEjecucion = false; // ✅ Desbloquear al terminar
-    }
 }
 
         // Actualizar totales
