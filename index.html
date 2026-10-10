@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Veyra  1 App </title>
+    <title>📊 Control de Gastos e Ingresos</title>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -13,256 +13,506 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     
-    <!-- Librerías para exportar -->
+    <!-- Exportar -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
 
     <style>
-        :root {
-            --primario: #6c5ce7;
-            --exito: #00b894;
-            --peligro: #e17055;
-            --fondo: #f0f4f8;
-            --tarjeta: #ffffff;
-            --texto: #2d3436;
-            --texto-claro: #636e72;
-            --borde: #dfe6e9;
-            --sombra: 0 4px 12px rgba(0,0,0,0.08);
-            --progreso-fondo: #e2e8f0;
-            --progreso-lleno: linear-gradient(90deg, #6c5ce7, #a29bfe);
-        }
-        * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
-        body {background:var(--fondo);color:var(--texto);min-height:100vh}
-        
-        /* Pantallas */
-        .pantalla {display:none;padding:1rem;max-width:900px;margin:0 auto}
-        .pantalla.activa {display:block}
-        .oculto {display:none !important}
-        
-        /* Carga */
-        .pantalla-carga {display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:1rem}
-        .spinner {width:40px;height:40px;border:4px solid var(--borde);border-top-color:var(--primario);border-radius:50%;animation:girar 1s linear infinite}
-        @keyframes girar {to {transform:rotate(360deg)}}
-        
-        /* Login */
-        .caja-login {background:var(--tarjeta);padding:2rem;border-radius:16px;box-shadow:var(--sombra);max-width:420px;margin:3rem auto;text-align:center}
-        .caja-login h1 {color:var(--primario);margin-bottom:0.5rem}
-        .caja-login p {color:var(--texto-claro);margin-bottom:1.5rem}
-        .campo-dato {width:100%;padding:0.9rem 1rem;margin:0.5rem 0;border:2px solid var(--borde);border-radius:10px;font-size:1rem;transition:border 0.2s}
-        .campo-dato:focus {outline:none;border-color:var(--primario)}
-        .btn-principal {width:100%;padding:0.9rem;background:var(--primario);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;transition:transform 0.2s}
-        .btn-principal:hover {transform:translateY(-2px)}
-        .btn-secundario {background:transparent;color:var(--primario);border:none;padding:0.8rem;cursor:pointer;font-size:0.95rem;margin-top:0.5rem}
-        .error {color:var(--peligro);margin-top:1rem;font-weight:500}
-        
-        /* Cabecera */
-        .cabecera {background:var(--tarjeta);padding:1rem 1.5rem;border-radius:16px;box-shadow:var(--sombra);margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
-        .usuario {display:flex;align-items:center;gap:0.8rem}
-        .usuario h2 {font-size:1.1rem;color:var(--primario)}
-        .btn-cerrar {background:transparent;color:var(--peligro);border:2px solid var(--peligro);padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-weight:bold;transition:all 0.2s}
-        .btn-cerrar:hover {background:var(--peligro);color:white}
-        
-        /* Navegación */
-        .navegacion {display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
-        .pestaña {padding:0.8rem 1.2rem;border:none;border-radius:10px;background:var(--tarjeta);color:var(--texto-claro);cursor:pointer;font-weight:500;transition:all 0.2s}
-        .pestaña.activa {background:var(--primario);color:white}
-        
-        /* Bloques */
-        .bloque {background:var(--tarjeta);padding:1.5rem;border-radius:16px;box-shadow:var(--sombra);margin-bottom:1.5rem}
-        .bloque h3 {color:var(--primario);margin-bottom:1rem}
-        
-        /* Botones tipo */
-        .contenedor-tipo {display:flex;gap:0.8rem;margin-bottom:1rem}
-        .btn-tipo {flex:1;padding:0.8rem;border:2px solid var(--borde);background:transparent;border-radius:10px;cursor:pointer;font-weight:bold;transition:all 0.2s}
-        .btn-tipo.activo {border-color:var(--exito);background:rgba(0,184,148,0.1);color:var(--exito)}
-        .btn-tipo:last-child.activo {border-color:var(--peligro);background:rgba(225,112,85,0.1);color:var(--peligro)}
-        
-        /* Botones */
-        .btn-guardar-movimiento {width:100%;padding:0.9rem;background:var(--exito);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:0.5rem;transition:transform 0.2s}
-        .btn-guardar-movimiento:hover {transform:translateY(-2px)}
-        .btn-accion {background:transparent;border:none;cursor:pointer;font-size:1.1rem;padding:0.3rem 0.5rem;border-radius:6px;transition:background 0.2s}
-        .btn-editar:hover {background:rgba(108,92,231,0.1)}
-        .btn-eliminar:hover {background:rgba(225,112,85,0.1)}
-        
-        /* Tarjetas totales */
-        .tarjetas-totales {display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
-        .tarjeta {padding:1.2rem;border-radius:12px}
-        .tarjeta h4 {font-size:0.9rem;color:var(--texto-claro);margin-bottom:0.5rem}
-        .tarjeta .valor {font-size:1.4rem;font-weight:bold}
-        .tarjeta.ingresos {background:rgba(0,184,148,0.1);border-left:4px solid var(--exito)}
-        .tarjeta.gastos {background:rgba(225,112,85,0.1);border-left:4px solid var(--peligro)}
-        .tarjeta.saldo {background:rgba(108,92,231,0.1);border-left:4px solid var(--primario)}
-        
-        /* Movimientos */
-        .movimiento {display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-bottom:1px solid var(--borde);gap:0.8rem;flex-wrap:wrap}
-        .info-mov .descripcion {font-weight:500}
-        .info-mov .fecha {font-size:0.85rem;color:var(--texto-claro)}
-        .valor-botones {display:flex;align-items:center;gap:0.8rem}
-        .valor {font-weight:bold;min-width:120px;text-align:right}
-        .valor.positivo {color:var(--exito)}
-        .valor.negativo {color:var(--peligro)}
-        .acciones {display:flex;gap:0.3rem}
-        
-        /* Gráfico */
-        .contenedor-grafico {height:350px;margin-top:1rem}
-        .contenedor-tipo-grafico {display:flex;gap:0.5rem;margin-bottom:1rem}
-        .btn-tipo-grafico {padding:0.6rem 1rem;border:none;border-radius:8px;background:var(--borde);cursor:pointer}
-        .btn-tipo-grafico.activo {background:var(--primario);color:white}
-        
-        /* Fila botones exportar/compartir */
-        .fila-botones {display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
-        .fila-botones button {padding:0.9rem 1.5rem;border:none;border-radius:10px;font-size:1rem;font-weight:bold;cursor:pointer;transition:transform 0.2s}
-        .fila-botones button:hover {transform:translateY(-2px)}
-        .btn-excel {background:#217346;color:white}
-        .btn-pdf {background:#e17055;color:white}
-        .btn-wsp {background:#25d366;color:white}
-        .btn-copiar {background:#6c5ce7;color:white}
-        
-        /* Metas de Ahorro */
-        .meta {padding:1.2rem 0;border-bottom:1px solid var(--borde);margin-bottom:1rem}
-        .meta-nombre {font-weight:600;font-size:1.05rem;margin-bottom:0.5rem;color:var(--primario)}
-        .meta-montos {display:flex;justify-content:space-between;font-size:0.9rem;margin-bottom:0.4rem}
-        .meta-guardado {color:var(--exito);font-weight:bold}
-        .meta-meta {color:var(--texto-claro)}
-        .barra-fondo {height:20px;background:var(--progreso-fondo);border-radius:10px;overflow:hidden;margin:0.5rem 0}
-        .barra-lleno {height:100%;background:var(--progreso-lleno);border-radius:10px;transition:width 0.6s ease-out;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:0.75rem;min-width:fit-content;padding:0 6px}
-        .meta-acciones {display:flex;gap:0.5rem;margin-top:0.5rem}
-        .btn-agregar-monto {background:var(--exito);color:white;border:none;padding:0.5rem 0.8rem;border-radius:6px;cursor:pointer;font-weight:bold}
-        .btn-eliminar-meta {background:var(--peligro);color:white;border:none;padding:0.5rem 0.8rem;border-radius:6px;cursor:pointer;font-weight:bold}
-        .meta-completada {opacity:0.7}
-        .meta-completada .barra-lleno {background:linear-gradient(90deg, #00b894, #55efc4)}
-        .etiqueta-completada {display:inline-block;background:var(--exito);color:white;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:bold;margin-left:0.5rem}
-        
-        /* Modales */
-        .modal {position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem}
-        .modal-contenido {background:white;padding:2rem;border-radius:16px;max-width:420px;width:100%}
-        .modal-botones {display:flex;gap:0.8rem;margin-top:1.5rem}
-        .modal-botones button {flex:1;padding:0.8rem;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
-        .btn-cancelar {background:var(--borde);color:var(--texto)}
-        .btn-guardar {background:var(--primario);color:white}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+}
+:root {
+    --primario: #6c5ce7;
+    --exito: #00b894;
+    --peligro: #e17055;
+    --fondo: #f8f9fa;
+    --texto: #2d3436;
+    --texto-claro: #636e72;
+    --borde: #e1e5e9;
+    --sombra: 0 4px 20px rgba(0,0,0,0.08);
+    --transicion: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: var(--texto);
+    line-height: 1.6;
+}
+.pantalla-carga {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.pantalla-carga.oculto { opacity: 0; visibility: hidden; }
+.spinner {
+    width: 50px; height: 50px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: girar 1s linear infinite;
+    margin-bottom: 1rem;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+.pantalla-carga p { color: white; font-size: 1.1rem; }
+.oculto { display: none !important; visibility: hidden !important; opacity: 1 !important; height: 0 !important; overflow: hidden !important; position: absolute !important; pointer-events: none !important; }
+.aparecer { animation: aparecer 0.4s ease forwards; opacity: 0; transform: translateY(15px); }
+@keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
+.pantalla-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #fd79a8 100%);
+}
+.caja-login {
+    background: white;
+    padding: 2rem;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 100%; max-width: 420px;
+    animation: aparecer 0.5s ease forwards;
+    transform: translateY(20px); opacity: 0;
+}
+.icono-app { font-size: 4rem; text-align: center; margin-bottom: 0.5rem; display: block; }
+.caja-login h1 { text-align: center; color: var(--primario); margin-bottom: 0.5rem; font-size: 2rem; font-weight: 700; }
+.subtitulo { text-align: center; color: var(--texto-claro); margin-bottom: 1.5rem; font-size: 1rem; }
+.grupo-input { margin-bottom: 1rem; }
+.grupo-input label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: var(--texto); font-size: 0.9rem; }
+.grupo-input input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #fafbfc;
+}
+.grupo-input input:focus {
+    outline: none;
+    border-color: var(--primario);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(108,92,231,0.15);
+}
+.error {
+    color: var(--peligro);
+    margin: 0.8rem 0;
+    text-align: center;
+    font-weight: 500;
+    min-height: 1.5rem;
+}
+.fila-botones { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
+.boton-principal {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(108,92,231,0.4);
+}
+.boton-principal:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(108,92,231,0.5); }
+.boton-secundario {
+    width: 100%;
+    padding: 0.9rem;
+    border: 2px solid #6c5ce7;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    color: #6c5ce7;
+}
+.boton-secundario:hover { background: #6c5ce7; color: white; }
+.pantalla-principal { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+.cabecera {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 16px;
+    box-shadow: var(--sombra);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.cabecera h2 { font-size: 1.1rem; color: var(--primario); }
+.contenedor-botones-cabecera {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+.boton-cabecera {
+    background: transparent;
+    border: 2px solid;
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transicion);
+}
+.btn-cambiar-nombre {
+    border-color: var(--primario);
+    color: var(--primario);
+}
+.btn-cambiar-nombre:hover {
+    background: var(--primario);
+    color: white;
+    transform: translateY(-2px);
+}
+.btn-cerrar-sesion {
+    border-color: var(--peligro);
+    color: var(--peligro);
+}
+.btn-cerrar-sesion:hover {
+    background: var(--peligro);
+    color: white;
+    transform: translateY(-2px);
+}
+.navegacion { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+.pestaña {
+    padding: 0.7rem 1.1rem;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: var(--transicion);
+}
+.pestaña.activa { background: white; color: var(--primario); font-weight: 600; box-shadow: var(--sombra); }
+.pestaña:hover:not(.activa) { background: rgba(255,255,255,0.3); }
+.bloque {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.2rem;
+    box-shadow: var(--sombra);
+}
+.bloque h3 { margin-bottom: 1rem; color: var(--primario); display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; }
+.fila-doble { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.valor-grande { font-size: 1.6rem; font-weight: 700; }
+.positivo { color: var(--exito); }
+.negativo { color: var(--peligro); }
+.selector-tipo {
+    display: flex;
+    gap: 1rem;
+    margin: 1.2rem 0;
+}
+.btn-tipo-ingreso, .btn-tipo-gasto {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--texto-claro);
+}
+.btn-tipo-ingreso.activo { border-color: var(--exito); background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; box-shadow: 0 4px 12px rgba(0,184,148,0.35); }
+.btn-tipo-gasto.activo { border-color: var(--peligro); background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%); color: white; box-shadow: 0 4px 12px rgba(225,112,85,0.35); }
+.btn-tipo-ingreso:not(.activo):hover { border-color: var(--exito); color: var(--exito); background: #e8f5e9; }
+.btn-tipo-gasto:not(.activo):hover { border-color: var(--peligro); color: var(--peligro); background: #fff0f0; }
+.campos-formulario { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.campo-dato { flex: 1; min-width: 140px; padding: 0.85rem 1rem; border: 2px solid var(--borde); border-radius: 10px; font-size: 0.95rem; }
+.btn-guardar-movimiento {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    box-shadow: 0 6px 16px rgba(108,92,231,0.35);
+}
+.btn-guardar-movimiento:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(108,92,231,0.45); }
+.movimiento {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--borde);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.info-mov { flex: 1; min-width: 160px; }
+.descripcion { font-weight: 600; }
+.fecha { font-size: 0.8rem; color: var(--texto-claro); margin-top: 0.2rem; }
+.valor-botones { display: flex; align-items: center; gap: 0.8rem; }
+.valor { font-weight: 700; font-size: 1rem; }
+.acciones { display: flex; gap: 0.4rem; }
+.btn-accion {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    transition: var(--transicion);
+    font-size: 1rem;
+}
+.btn-accion:hover { background: #e1e5e9; }
+.btn-editar:hover { background: #d4edda; color: #155724; }
+.btn-eliminar:hover { background: #f8d7da; color: #a71d2a; }
+.botones-compartir, .botones-exportar { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.btn-whatsapp {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-whatsapp:hover { transform: translateY(-2px); }
+.btn-copiar {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-copiar:hover { transform: translateY(-2px); }
+.btn-excel {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-excel:hover { transform: translateY(-2px); }
+.btn-pdf {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-pdf:hover { transform: translateY(-2px); }
+.enlace-registro {
+    text-align: center;
+    margin-top: 1rem;
+}
+.btn-registro {
+    background: none;
+    border: none;
+    color: var(--primario);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.95rem;
+}
+.modal-fondo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+}
+.modal-fondo.oculto { display: none; }
+.modal-contenido {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.modal-contenido h3 {
+    text-align: center;
+    color: var(--primario);
+    margin-bottom: 1.5rem;
+}
+.modal-contenido input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+}
+.modal-contenido input:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
+}
+.botones-modal {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+}
+.btn-cancelar-modal {
+    background: #e1e5e9;
+    color: var(--texto);
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-guardar-modal {
+    background: var(--primario);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.contenedor-grafico {
+    position: relative;
+    height: 320px;
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+.selector-grafico {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.btn-tipo-grafico {
+    padding: 0.6rem 1rem;
+    border: 2px solid var(--borde);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+    color: var(--texto-claro);
+}
+.btn-tipo-grafico.activo {
+    border-color: var(--primario);
+    background: var(--primario);
+    color: white;
+}
+@media (max-width: 768px) {
+    .fila-doble { grid-template-columns: 1fr; }
+    .selector-tipo { flex-direction: column; }
+    .cabecera { flex-direction: column; text-align: center; }
+    .contenedor-botones-cabecera { width: 100%; justify-content: center; }
+    .contenedor-grafico { height: 260px; }
+}
     </style>
 </head>
 <body>
 
-<!-- PANTALLA DE CARGA -->
-<div class="pantalla pantalla-carga" id="pantallaCarga">
+<div class="pantalla-carga" id="pantallaCarga">
     <div class="spinner"></div>
-    <p>Cargando...</p>
+    <p>Iniciando...</p>
 </div>
 
-<!-- PANTALLA DE INICIO DE SESIÓN -->
-<div class="pantalla" id="pantallaLogin">
+<div class="pantalla-login oculto" id="pantallaLogin">
     <div class="caja-login">
-        <h1 id="tituloLogin">📊 Veyra</h1>
-        <p id="subtituloLogin">Ingresa para continuar</p>
-        
-        <div id="campoNombre" class="oculto">
-            <input type="text" id="inputNombre" class="campo-dato" placeholder="Tu nombre completo">
+        <span class="icono-app">💰</span>
+        <h1 id="tituloLogin">Mis Finanzas</h1>
+        <p class="subtitulo" id="subtituloLogin">Ingresa tus datos para acceder</p>
+
+        <div class="grupo-input">
+            <label for="inputCorreo">Correo electrónico</label>
+            <input type="email" id="inputCorreo" placeholder="tu@correo.com">
         </div>
-        <input type="email" id="inputCorreo" class="campo-dato" placeholder="Correo electrónico">
-        <input type="password" id="inputContraseña" class="campo-dato" placeholder="Contraseña">
-        
-        <button id="btnIngresar" class="btn-principal">Ingresar</button>
-        <p id="errorLogin" class="error"></p>
-        
-        <button id="btnCambiarModo" class="btn-secundario">¿No tienes cuenta? Crear una</button>
+
+        <div class="grupo-input" id="campoNombre">
+            <label for="inputNombre">Tu Nombre</label>
+            <input type="text" id="inputNombre" placeholder="Escribe tu nombre">
+        </div>
+
+        <div class="grupo-input">
+            <label for="inputContraseña">Contraseña</label>
+            <input type="password" id="inputContraseña" placeholder="Mínimo 6 caracteres">
+        </div>
+
+        <p class="error" id="errorLogin"></p>
+
+        <div class="fila-botones">
+            <button class="boton-principal" id="btnIngresar">Ingresar</button>
+        </div>
+
+        <div class="enlace-registro">
+            <button class="btn-registro" id="btnCambiarModo">¿No tienes cuenta? Crear una</button>
+        </div>
     </div>
 </div>
 
-<!-- PANTALLA PRINCIPAL -->
-<div class="pantalla" id="pantallaPrincipal">
-    <!-- Cabecera -->
-    <div class="cabecera">
-        <div class="usuario">
-            <h2 id="nombreUsuario">Usuario</h2>
-            <button id="btnCambiarNombre" title="Cambiar nombre" style="background:none;border:none;cursor:pointer;font-size:1rem;">✏️</button>
+<div class="pantalla-principal oculto" id="pantallaPrincipal">
+    <header class="cabecera">
+        <div>
+            <h2>👋 Bienvenido, <span id="nombreUsuario">Usuario</span></h2>
         </div>
-        <button id="btnCerrarSesion" class="btn-cerrar">Cerrar Sesión</button>
-    </div>
+        <div class="contenedor-botones-cabecera">
+            <button class="boton-cabecera btn-cambiar-nombre" id="btnCambiarNombre">✏️ Cambiar nombre</button>
+            <button class="boton-cabecera btn-cerrar-sesion" id="btnCerrarSesion">🚪 Cerrar sesión</button>
+        </div>
+    </header>
 
-    <!-- Navegación -->
     <nav class="navegacion">
         <button class="pestaña activa" data-pestaña="contable">📒 Contable</button>
-        <button class="pestaña" data-pestaña="ahorro">🎯 Metas de Ahorro</button>
-        <button class="pestaña" data-pestaña="habitos">✅ Hábitos</button>
         <button class="pestaña" data-pestaña="resumen">📊 Resumen</button>
         <button class="pestaña" data-pestaña="exportar">📄 Exportar</button>
+        <button class="pestaña" data-pestaña="compartir">🔗 Compartir</button>
     </nav>
 
-    <!-- PESTAÑA: CONTABLE -->
     <section class="contenido-pestaña" id="pestaña-contable">
         <div class="bloque">
-            <h3>Registrar Movimiento</h3>
-            <div class="contenedor-tipo">
-                <button id="btnIngreso" class="btn-tipo activo">⬆️ Ingreso</button>
-                <button id="btnGasto" class="btn-tipo">⬇️ Gasto</button>
+            <h3>📝 Registrar Movimiento</h3>
+            <div class="selector-tipo">
+                <button type="button" class="btn-tipo-ingreso activo" id="btnIngreso">💰 Ingreso</button>
+                <button type="button" class="btn-tipo-gasto" id="btnGasto">📉 Gasto</button>
             </div>
-            <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción...">
-            <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="1" step="1">
+            <div class="campos-formulario">
+                <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción">
+                <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="0">
+            </div>
             <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
         </div>
-
         <div class="bloque">
-            <h3>Resumen</h3>
-            <div class="tarjetas-totales">
-                <div class="tarjeta ingresos">
-                    <h4>Total Ingresos</h4>
-                    <p class="valor" id="totalIngresos">$0</p>
-                </div>
-                <div class="tarjeta gastos">
-                    <h4>Total Gastos</h4>
-                    <p class="valor" id="totalGastos">$0</p>
-                </div>
-                <div class="tarjeta saldo">
-                    <h4>Saldo Actual</h4>
-                    <p class="valor" id="saldoActual">$0</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bloque">
-            <h3>Movimientos Recientes</h3>
+            <h3>📋 Mis Movimientos</h3>
             <div id="listaMovimientos"></div>
         </div>
     </section>
 
-    <!-- PESTAÑA: METAS DE AHORRO === NUEVA === -->
-    <section class="contenido-pestaña oculto" id="pestaña-ahorro">
-        <div class="bloque">
-            <h3>🎯 Crear Meta de Ahorro</h3>
-            <input type="text" id="nombreMeta" class="campo-dato" placeholder="Nombre de la meta (ej: Carro, Viaje)...">
-            <input type="number" id="montoMeta" class="campo-dato" placeholder="Cuánto necesitas ahorrar" min="100" step="1000">
-            <button id="btnCrearMeta" class="btn-guardar-movimiento">➕ Crear Meta</button>
-        </div>
-
-        <div class="bloque">
-            <h3>📋 Mis Metas</h3>
-            <div id="listaMetas">
-                <p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- PESTAÑA: HÁBITOS -->
-    <section class="contenido-pestaña oculto" id="pestaña-habitos">
-        <div class="bloque">
-            <h3>✅ Mis Hábitos</h3>
-            <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1.2rem;">
-                <input type="text" id="nombreHabito" class="campo-dato" placeholder="Nuevo hábito..." style="flex:1;min-width:180px;">
-                <button id="btnAgregarHabito" class="btn-guardar-movimiento" style="width:auto;padding:0.8rem 1.5rem;">➕ Agregar</button>
-            </div>
-            <div id="listaHabitos"></div>
-        </div>
-    </section>
-
-    <!-- PESTAÑA: RESUMEN / GRÁFICO -->
     <section class="contenido-pestaña oculto" id="pestaña-resumen">
         <div class="bloque">
-            <h3>📊 Evolución Mensual</h3>
-            <div class="contenedor-tipo-grafico">
-                <button class="btn-tipo-grafico activo" data-grafico="mensual">📈 Mensual</button>
-                <button class="btn-tipo-grafico" data-grafico="acumulado">💰 Saldo Acumulado</button>
+            <h3>📊 Resumen</h3>
+            <div class="fila-doble">
+                <div>
+                    <p>Total Ingresos</p>
+                    <p class="valor-grande positivo" id="totalIngresos">$0</p>
+                </div>
+                <div>
+                    <p>Total Gastos</p>
+                    <p class="valor-grande negativo" id="totalGastos">$0</p>
+                </div>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <p>Saldo Actual</p>
+                <p class="valor-grande" id="saldoActual">$0</p>
+            </div>
+        </div>
+        <div class="bloque">
+            <h3>📈 Evolución de Saldo</h3>
+            <div class="selector-grafico">
+                <button class="btn-tipo-grafico activo" data-grafico="mensual">📊 Mensual</button>
+                <button class="btn-tipo-grafico" data-grafico="acumulado">📈 Acumulado</button>
             </div>
             <div class="contenedor-grafico">
                 <canvas id="graficoEvolucion"></canvas>
@@ -270,55 +520,40 @@
         </div>
     </section>
 
-    <!-- PESTAÑA: EXPORTAR -->
     <section class="contenido-pestaña oculto" id="pestaña-exportar">
         <div class="bloque">
-            <h3>📄 Descargar Reportes</h3>
-            <p style="color:var(--texto-claro);margin-bottom:1rem;">Genera un archivo con todos tus movimientos registrados.</p>
-            <div class="fila-botones">
-                <button id="btnExportarExcel" class="btn-excel">📊 Exportar a Excel</button>
-                <button id="btnExportarPDF" class="btn-pdf">📄 Exportar a PDF</button>
+            <h3>📄 Exportar Mis Registros</h3>
+            <p style="margin-bottom: 1rem;">Descarga todos tus movimientos:</p>
+            <div class="botones-exportar">
+                <button class="btn-excel" id="btnExportarExcel">📊 Descargar Excel</button>
+                <button class="btn-pdf" id="btnExportarPDF">📄 Descargar PDF</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="contenido-pestaña oculto" id="pestaña-compartir">
+        <div class="bloque">
+            <h3>🔗 Compartir App</h3>
+            <p>Comparte esta herramienta:</p>
+            <div class="botones-compartir">
+                <button class="btn-whatsapp" id="btnCompartirWsp">💬 WhatsApp</button>
+                <button class="btn-copiar" id="btnCopiarEnlace">📋 Copiar Enlace</button>
             </div>
         </div>
     </section>
 </div>
 
-<!-- MODAL: AGREGAR AHORRO A META -->
-<div class="modal oculto" id="modalAgregarAhorro">
+<div class="modal-fondo oculto" id="modalNombre">
     <div class="modal-contenido">
-        <h3>💰 Agregar Ahorro</h3>
-        <p id="nombreMetaModal" style="color:var(--primario);font-weight:600;margin-bottom:1rem;"></p>
-        <input type="number" id="montoAhorro" class="campo-dato" placeholder="Monto a sumar" min="100" step="100">
-        <div class="modal-botones">
-            <button id="btnCancelarAhorro" class="btn-cancelar">Cancelar</button>
-            <button id="btnConfirmarAhorro" class="btn-guardar">Guardar</button>
+        <h3>✏️ Cambiar Nombre</h3>
+        <input type="text" id="inputNuevoNombre" placeholder="Escribe tu nuevo nombre">
+        <div class="botones-modal">
+            <button class="btn-cancelar-modal" id="btnCancelarNombre">Cancelar</button>
+            <button class="btn-guardar-modal" id="btnGuardarNombre">Guardar</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL: CAMBIAR NOMBRE -->
-<div class="modal oculto" id="modalNombre">
-    <div class="modal-contenido">
-        <h3>Cambiar Nombre</h3>
-        <input type="text" id="inputNuevoNombre" class="campo-dato" placeholder="Escribe tu nuevo nombre">
-        <div class="modal-botones">
-            <button id="btnCancelarNombre" class="btn-cancelar">Cancelar</button>
-            <button id="btnGuardarNombre" class="btn-guardar">Guardar</button>
-        </div>
-    </div>
-</div>
-
-<!-- CARGA SEGURA DEL JS -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const script = document.createElement('script');
-    script.src = 'app.js';
-    script.onerror = function() {
-        alert('❌ No se encuentra el archivo app.js — asegúrate de que esté junto a index.html');
-    };
-    document.head.appendChild(script);
-});
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
