@@ -3,15 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Veyra App </title>
+    <title>📊 Control de Gastos e Ingresos</title>
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
-    <!-- Chart.js para gráficos -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Exportar -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
 
     <style>
 * {
@@ -58,7 +63,7 @@ body {
 }
 @keyframes girar { to { transform: rotate(360deg); } }
 .pantalla-carga p { color: white; font-size: 1.1rem; }
-.oculto { display: none !important; visibility: hidden !important; opacity: 0 !important; height: 0 !important; overflow: hidden !important; position: absolute !important; pointer-events: none !important; }
+.oculto { display: none !important; visibility: hidden !important; opacity: 1 !important; height: 0 !important; overflow: hidden !important; position: absolute !important; pointer-events: none !important; }
 .aparecer { animation: aparecer 0.4s ease forwards; opacity: 0; transform: translateY(15px); }
 @keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
 .pantalla-login {
@@ -269,7 +274,7 @@ body {
 .btn-accion:hover { background: #e1e5e9; }
 .btn-editar:hover { background: #d4edda; color: #155724; }
 .btn-eliminar:hover { background: #f8d7da; color: #a71d2a; }
-.botones-compartir { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.botones-compartir, .botones-exportar { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
 .btn-whatsapp {
     display: inline-flex; align-items: center; gap: 0.5rem;
     background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
@@ -284,6 +289,20 @@ body {
     font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
 }
 .btn-copiar:hover { transform: translateY(-2px); }
+.btn-excel {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-excel:hover { transform: translateY(-2px); }
+.btn-pdf {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-pdf:hover { transform: translateY(-2px); }
 .enlace-registro {
     text-align: center;
     margin-top: 1rem;
@@ -357,7 +376,6 @@ body {
     font-weight: 600;
     cursor: pointer;
 }
-/* Contenedor para gráficos */
 .contenedor-grafico {
     position: relative;
     height: 320px;
@@ -449,6 +467,7 @@ body {
     <nav class="navegacion">
         <button class="pestaña activa" data-pestaña="contable">📒 Contable</button>
         <button class="pestaña" data-pestaña="resumen">📊 Resumen</button>
+        <button class="pestaña" data-pestaña="exportar">📄 Exportar</button>
         <button class="pestaña" data-pestaña="compartir">🔗 Compartir</button>
     </nav>
 
@@ -489,7 +508,6 @@ body {
                 <p class="valor-grande" id="saldoActual">$0</p>
             </div>
         </div>
-
         <div class="bloque">
             <h3>📈 Evolución de Saldo</h3>
             <div class="selector-grafico">
@@ -498,6 +516,17 @@ body {
             </div>
             <div class="contenedor-grafico">
                 <canvas id="graficoEvolucion"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="contenido-pestaña oculto" id="pestaña-exportar">
+        <div class="bloque">
+            <h3>📄 Exportar Mis Registros</h3>
+            <p style="margin-bottom: 1rem;">Descarga todos tus movimientos:</p>
+            <div class="botones-exportar">
+                <button class="btn-excel" id="btnExportarExcel">📊 Descargar Excel</button>
+                <button class="btn-pdf" id="btnExportarPDF">📄 Descargar PDF</button>
             </div>
         </div>
     </section>
@@ -525,411 +554,6 @@ body {
     </div>
 </div>
 
-<script>
-// ===== CONFIGURACIÓN FIREBASE =====
-const firebaseConfig = {
-    apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
-    authDomain: "veyra-faa0e.firebaseapp.com",
-    projectId: "veyra-faa0e",
-    storageBucket: "veyra-faa0e.firebasestorage.app",
-    messagingSenderId: "100478048311",
-    appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
-    measurementId: "G-KW7ZE24BQ8"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
-// ===== VARIABLES =====
-let usuarioActual = null;
-let tipoMovimiento = 'ingreso';
-let modoEdicionId = null;
-let esRegistro = false;
-let grafico = null;
-let tipoGraficoActivo = 'mensual';
-let datosMovimientos = [];
-
-// ===== AUXILIARES =====
-function el(id) { return document.getElementById(id); }
-function formatearMonto(valor) {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor || 0);
-}
-function formatearMes(fecha) {
-    return new Date(fecha).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
-}
-
-// ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
-el('btnCambiarModo').addEventListener('click', () => {
-    esRegistro = !esRegistro;
-    el('campoNombre').style.display = esRegistro ? 'block' : 'none';
-    el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Mis Finanzas';
-    el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
-    el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
-    el('btnCambiarModo').textContent = esRegistro ? '¿Ya tienes cuenta? Ingresar' : '¿No tienes cuenta? Crear una';
-    el('errorLogin').textContent = '';
-});
-
-// ===== INGRESO / REGISTRO =====
-el('btnIngresar').addEventListener('click', async () => {
-    const correo = el('inputCorreo').value.trim();
-    const contraseña = el('inputContraseña').value;
-    const nombre = el('inputNombre').value.trim();
-    el('errorLogin').textContent = '';
-
-    if (!correo || !contraseña) {
-        el('errorLogin').textContent = 'Completa todos los campos';
-        return;
-    }
-    if (esRegistro && !nombre) {
-        el('errorLogin').textContent = 'Escribe tu nombre';
-        return;
-    }
-
-    try {
-        let credencial;
-        if (esRegistro) {
-            credencial = await auth.createUserWithEmailAndPassword(correo, contraseña);
-            await credencial.user.updateProfile({ displayName: nombre });
-            await credencial.user.reload();
-        } else {
-            credencial = await auth.signInWithEmailAndPassword(correo, contraseña);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        let mensaje = 'No se pudo completar la operación';
-        switch (error.code) {
-            case 'auth/invalid-email': mensaje = 'El correo no es válido'; break;
-            case 'auth/user-not-found': mensaje = 'No existe cuenta con este correo'; break;
-            case 'auth/wrong-password': mensaje = 'Contraseña incorrecta'; break;
-            case 'auth/email-already-in-use': mensaje = 'Este correo ya está registrado'; break;
-            case 'auth/weak-password': mensaje = 'La contraseña debe tener al menos 6 caracteres'; break;
-        }
-        el('errorLogin').textContent = mensaje;
-    }
-});
-
-// ===== OBSERVADOR DE SESIÓN =====
-auth.onAuthStateChanged(usuario => {
-    el('pantallaCarga').classList.add('oculto');
-    if (usuario) {
-        usuarioActual = usuario;
-        const nombre = usuario.displayName || usuario.email.split('@')[0];
-        el('nombreUsuario').textContent = nombre;
-        el('pantallaLogin').classList.add('oculto');
-        el('pantallaPrincipal').classList.remove('oculto');
-        cargarMovimientos();
-    } else {
-        usuarioActual = null;
-        el('pantallaPrincipal').classList.add('oculto');
-        el('pantallaLogin').classList.remove('oculto');
-        el('campoNombre').style.display = 'none';
-        esRegistro = false;
-        el('tituloLogin').textContent = 'Mis Finanzas';
-        el('subtituloLogin').textContent = 'Ingresa para continuar';
-        el('btnIngresar').textContent = 'Ingresar';
-        el('btnCambiarModo').textContent = '¿No tienes cuenta? Crear una';
-    }
-});
-
-// ===== CAMBIAR NOMBRE =====
-el('btnCambiarNombre').addEventListener('click', () => {
-    const nombreActual = el('nombreUsuario').textContent;
-    el('inputNuevoNombre').value = nombreActual;
-    el('modalNombre').classList.remove('oculto');
-});
-el('btnCancelarNombre').addEventListener('click', () => {
-    el('modalNombre').classList.add('oculto');
-});
-el('btnGuardarNombre').addEventListener('click', async () => {
-    const nuevoNombre = el('inputNuevoNombre').value.trim();
-    if (!nuevoNombre) {
-        alert('Escribe un nombre válido');
-        return;
-    }
-    if (!usuarioActual) return;
-    try {
-        await usuarioActual.updateProfile({ displayName: nuevoNombre });
-        el('nombreUsuario').textContent = nuevoNombre;
-        el('modalNombre').classList.add('oculto');
-        alert('Nombre actualizado ✅');
-    } catch (error) {
-        alert('Error al cambiar el nombre: ' + error.message);
-    }
-});
-
-// ===== NAVEGACIÓN =====
-document.querySelectorAll('.pestaña').forEach(boton => {
-    boton.addEventListener('click', () => {
-        document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
-        boton.classList.add('activa');
-        const id = boton.dataset.pestaña;
-        document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
-        el(`pestaña-${id}`).classList.remove('oculto');
-        if (id === 'resumen') {
-            setTimeout(dibujarGrafico, 100);
-        }
-    });
-});
-
-// ===== CAMBIAR TIPO GRÁFICO =====
-document.querySelectorAll('.btn-tipo-grafico').forEach(boton => {
-    boton.addEventListener('click', () => {
-        document.querySelectorAll('.btn-tipo-grafico').forEach(b => b.classList.remove('activo'));
-        boton.classList.add('activo');
-        tipoGraficoActivo = boton.dataset.grafico;
-        dibujarGrafico();
-    });
-});
-
-// ===== CAMBIAR TIPO MOVIMIENTO =====
-el('btnIngreso').addEventListener('click', () => {
-    tipoMovimiento = 'ingreso';
-    el('btnIngreso').classList.add('activo');
-    el('btnGasto').classList.remove('activo');
-});
-el('btnGasto').addEventListener('click', () => {
-    tipoMovimiento = 'gasto';
-    el('btnGasto').classList.add('activo');
-    el('btnIngreso').classList.remove('activo');
-});
-
-// ===== GUARDAR MOVIMIENTO =====
-el('btnGuardarMov').addEventListener('click', async () => {
-    if (!usuarioActual) return;
-    const descripcion = el('descripcionMov').value.trim();
-    const valor = parseFloat(el('valorMov').value);
-    if (!descripcion || isNaN(valor) || valor <= 0) {
-        alert('Completa todos los datos correctamente');
-        return;
-    }
-    const datos = {
-        uid: usuarioActual.uid,
-        descripcion,
-        valor,
-        tipo: tipoMovimiento,
-        fecha: new Date().toISOString()
-    };
-    try {
-        if (modoEdicionId) {
-            await db.collection('movimientos').doc(modoEdicionId).update(datos);
-            modoEdicionId = null;
-            el('btnGuardarMov').textContent = '✅ Guardar Movimiento';
-        } else {
-            await db.collection('movimientos').add(datos);
-        }
-        el('descripcionMov').value = '';
-        el('valorMov').value = '';
-        cargarMovimientos();
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-});
-
-// ===== CARGAR MOVIMIENTOS =====
-async function cargarMovimientos() {
-    if (!usuarioActual) return;
-    const lista = el('listaMovimientos');
-    lista.innerHTML = '<p>Cargando...</p>';
-    try {
-        const snap = await db.collection('movimientos')
-            .where('uid', '==', usuarioActual.uid)
-            .orderBy('fecha', 'desc')
-            .get();
-        
-        datosMovimientos = [];
-        lista.innerHTML = '';
-        let totalIng = 0, totalGas = 0;
-        
-        if (snap.empty) {
-            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no tienes movimientos</p>';
-        }
-        
-        snap.forEach(doc => {
-            const m = { id: doc.id, ...doc.data() };
-            datosMovimientos.push(m);
-            
-            const f = new Date(m.fecha).toLocaleString('es-CO', {
-                day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
-            });
-            
-            if (m.tipo === 'ingreso') totalIng += m.valor;
-            else totalGas += m.valor;
-            
-            lista.innerHTML += `
-                <div class="movimiento">
-                    <div class="info-mov">
-                        <p class="descripcion">${m.descripcion}</p>
-                        <p class="fecha">${f}</p>
-                    </div>
-                    <div class="valor-botones">
-                        <p class="valor ${m.tipo==='ingreso'?'positivo':'negativo'}">
-                            ${m.tipo==='ingreso'?'+':'-'}${formatearMonto(m.valor)}
-                        </p>
-                        <div class="acciones">
-                            <button class="btn-accion btn-editar" data-id="${doc.id}">✏️</button>
-                            <button class="btn-accion btn-eliminar" data-id="${doc.id}">🗑️</button>
-                        </div>
-                    </div>
-                </div>`;
-        });
-        
-        el('totalIngresos').textContent = formatearMonto(totalIng);
-        el('totalGastos').textContent = formatearMonto(totalGas);
-        el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
-        
-        document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
-        document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
-        
-        dibujarGrafico();
-    } catch (err) {
-        lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
-    }
-}
-
-// ===== DIBUJAR GRÁFICO =====
-function dibujarGrafico() {
-    if (!datosMovimientos.length) {
-        if (grafico) grafico.destroy();
-        return;
-    }
-
-    // Agrupar por mes
-    const porMes = {};
-    datosMovimientos.forEach(m => {
-        const mes = formatearMes(m.fecha);
-        if (!porMes[mes]) {
-            porMes[mes] = { ingreso: 0, gasto: 0 };
-        }
-        porMes[mes][m.tipo] += m.valor;
-    });
-
-    const etiquetas = Object.keys(porMes).sort((a, b) => new Date(a) - new Date(b));
-    const ingresos = etiquetas.map(m => porMes[m].ingreso);
-    const gastos = etiquetas.map(m => porMes[m].gasto);
-    
-    let datosSaldo;
-    if (tipoGraficoActivo === 'acumulado') {
-        let saldo = 0;
-        datosSaldo = etiquetas.map((_, i) => {
-            saldo += ingresos[i] - gastos[i];
-            return saldo;
-        });
-    }
-
-    if (grafico) grafico.destroy();
-
-    const ctx = el('graficoEvolucion').getContext('2d');
-    grafico = new Chart(ctx, {
-        type: tipoGraficoActivo === 'mensual' ? 'bar' : 'line',
-        data: tipoGraficoActivo === 'mensual' ? {
-            labels: etiquetas,
-            datasets: [
-                {
-                    label: 'Ingresos',
-                    data: ingresos,
-                    backgroundColor: 'rgba(0, 184, 148, 0.65)',
-                    borderColor: '#00b894',
-                    borderWidth: 2,
-                    borderRadius: 8
-                },
-                {
-                    label: 'Gastos',
-                    data: gastos,
-                    backgroundColor: 'rgba(225, 112, 85, 0.65)',
-                    borderColor: '#e17055',
-                    borderWidth: 2,
-                    borderRadius: 8
-                }
-            ]
-        } : {
-            labels: etiquetas,
-            datasets: [{
-                label: 'Saldo Acumulado',
-                data: datosSaldo,
-                borderColor: '#6c5ce7',
-                backgroundColor: 'rgba(108, 92, 231, 0.15)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointBackgroundColor: '#6c5ce7',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v)
-                    },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    grid: { display: false }
-                }
-            }
-        }
-    });
-}
-
-// ===== EDITAR =====
-async function editar(id) {
-    const doc = await db.collection('movimientos').doc(id).get();
-    if (!doc.exists) return;
-    const d = doc.data();
-    el('descripcionMov').value = d.descripcion;
-    el('valorMov').value = d.valor;
-    tipoMovimiento = d.tipo;
-    if (d.tipo === 'ingreso') {
-        el('btnIngreso').classList.add('activo');
-        el('btnGasto').classList.remove('activo');
-    } else {
-        el('btnGasto').classList.add('activo');
-        el('btnIngreso').classList.remove('activo');
-    }
-    modoEdicionId = id;
-    el('btnGuardarMov').textContent = '🔄 Actualizar Movimiento';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ===== ELIMINAR =====
-async function eliminar(id) {
-    if (!confirm('¿Eliminar este movimiento?')) return;
-    await db.collection('movimientos').doc(id).delete();
-    cargarMovimientos();
-}
-
-// ===== COMPARTIR =====
-el('btnCompartirWsp').onclick = () => {
-    const t = encodeURIComponent('Mira esta app para controlar tus finanzas: ' + window.location.href);
-    window.open(`https://wa.me/?text=${t}`, '_blank');
-};
-el('btnCopiarEnlace').onclick = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    alert('¡Enlace copiado!');
-};
-
-// ===== CERRAR SESIÓN =====
-el('btnCerrarSesion').onclick = async () => {
-    if (!confirm('¿Cerrar sesión?')) return;
-    await auth.signOut();
-};
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
