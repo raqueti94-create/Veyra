@@ -670,20 +670,14 @@ document.addEventListener('click', async e => {
         await db.collection('habitos').doc(id).update({ nombre: nuevoNombre.trim() });
         cargarHabitos();
     }
-
-    // Alternar desplegable de semana
-    if (e.target.classList.contains('titulo-semana')) {
-        const contenido = e.target.nextElementSibling;
-        const icono = e.target.querySelector('.icono-desplegable');
-        contenido.classList.toggle('oculto');
-        icono.textContent = contenido.classList.contains('oculto') ? '▶' : '▼';
-    }
 });
 
 async function cargarHabitos() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaHabitos');
     if (!lista) return;
+
+    lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:1rem;">Cargando hábitos...</p>';
 
     try {
         const snap = await db.collection('habitos')
@@ -692,6 +686,7 @@ async function cargarHabitos() {
             .get();
 
         lista.innerHTML = '';
+        
         if (snap.empty) {
             lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
             return;
@@ -699,12 +694,16 @@ async function cargarHabitos() {
 
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const hoy = new Date();
+        const mesActual = hoy.getMonth();
+        const añoActual = hoy.getFullYear();
+        const diasEnMes = new Date(añoActual, mesActual + 1, 0).getDate(); // Cantidad de días del mes
+        const primerDia = new Date(añoActual, mesActual, 1).getDay(); // Qué día de la semana empieza el mes
 
         snap.forEach(doc => {
             const h = { id: doc.id, ...doc.data() };
             
             lista.innerHTML += `
-                <div style="padding:1rem 0;border-bottom:1px solid #e1e5e9;margin-bottom:1rem;">
+                <div style="padding:1.2rem;border-bottom:1px solid #e1e5e9;margin-bottom:1rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                         <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
                         <div style="display:flex;gap:0.4rem;">
@@ -714,8 +713,47 @@ async function cargarHabitos() {
                                 style="background:none;border:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
                         </div>
                     </div>
-                    ${generarSemanas(h, diasSemana, hoy)}
-                </div>`;
+                    
+                    <!-- Cabecera días de la semana -->
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
+                        ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#636e72;font-size:0.8rem;">${d}</div>`).join('')}
+                    </div>
+                    
+                    <!-- Cuadrícula de días del mes -->
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
+            `;
+
+            // Espacios vacíos antes del primer día del mes
+            for (let i = 0; i < primerDia; i++) {
+                lista.innerHTML += `<div></div>`;
+            }
+
+            // Cada día del mes
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                const fecha = new Date(añoActual, mesActual, dia);
+                const clave = fecha.toISOString().split('T')[0];
+                const cumplido = h.dias && h.dias[clave];
+                const esFuturo = fecha > hoy;
+                const esHoy = fecha.toDateString() === hoy.toDateString();
+
+                lista.innerHTML += `
+                    <div style="text-align:center;">
+                        <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy ? 'font-weight:bold;color:#6c5ce7;' : ''}">${dia}</div>
+                        ${esFuturo ? `
+                            <div style="width:34px;height:34px;border-radius:8px;background:#f0f0f0;color:#ccc;line-height:34px;margin:0 auto;">—</div>
+                        ` : `
+                            <button data-habito-id="${doc.id}" data-fecha="${clave}"
+                                style="width:34px;height:34px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+                                background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};
+                                ${esHoy ? 'box-shadow:0 0 0 2px #6c5ce7;' : ''}">
+                                ${cumplido ? '✓' : ''}
+                            </button>
+                        `}
+                    </div>
+                `;
+            }
+
+            lista.innerHTML += `</div></div>`;
         });
 
         // Conectar botones de días
@@ -737,59 +775,4 @@ async function cargarHabitos() {
     } catch (err) {
         lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
     }
-}
-
-// Función auxiliar: Generar últimas 4 semanas agrupadas
-function generarSemanas(habito, diasSemana, hoy) {
-    let html = '';
-    
-    // Generar 4 semanas hacia atrás desde hoy
-    for (let semana = 0; semana < 4; semana++) {
-        const finSemana = new Date(hoy);
-        finSemana.setDate(hoy.getDate() - (semana * 7));
-        
-        const inicioSemana = new Date(finSemana);
-        inicioSemana.setDate(finSemana.getDate() - 6);
-        
-        const etiquetaSemana = `${inicioSemana.getDate()}/${inicioSemana.getMonth()+1} — ${finSemana.getDate()}/${finSemana.getMonth()+1}`;
-        const estaSemanaActual = semana === 0;
-        
-        html += `
-            <div style="margin-bottom:0.5rem;border:1px solid #eee;border-radius:8px;overflow:hidden;">
-                <button class="titulo-semana" style="width:100%;text-align:left;background:#f8f9fa;border:none;padding:0.7rem 1rem;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
-                    <span>${estaSemanaActual ? '✅ Esta Semana' : `Semana ${4-semana}`} · ${etiquetaSemana}</span>
-                    <span class="icono-desplegable">${estaSemanaActual ? '▼' : '▶'}</span>
-                </button>
-                <div class="${estaSemanaActual ? '' : 'oculto'}" style="padding:0.8rem 1rem;background:white;">
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;text-align:center;">
-        `;
-        
-        // Los 7 días de esta semana
-        for (let i = 0; i < 7; i++) {
-            const fecha = new Date(inicioSemana);
-            fecha.setDate(inicioSemana.getDate() + i);
-            const clave = fecha.toISOString().split('T')[0];
-            const cumplido = habito.dias && habito.dias[clave];
-            const esFuturo = fecha > hoy;
-            
-            html += `
-                <div>
-                    <div style="font-size:0.7rem;color:#636e72;margin-bottom:0.3rem;">${diasSemana[fecha.getDay()]}</div>
-                    ${esFuturo ? `
-                        <div style="width:36px;height:36px;border-radius:8px;background:#f0f0f0;color:#bbb;line-height:36px;">—</div>
-                    ` : `
-                        <button data-habito-id="${habito.id}" data-fecha="${clave}"
-                            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
-                            background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};">
-                            ${cumplido ? '✓' : ''}
-                        </button>
-                    `}
-                </div>
-            `;
-        }
-        
-        html += `</div></div></div>`;
-    }
-    
-    return html;
 }
