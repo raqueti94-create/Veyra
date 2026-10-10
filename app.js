@@ -1,9 +1,4 @@
-// ==================================================
-// PARTE 1: CONFIGURACIÓN, AUXILIARES, AUTENTICACIÓN
-// GUARDAR COMO: parte1.js o pegar al inicio del HTML
-// ==================================================
-
-// ========== CONFIGURACIÓN FIREBASE ==========
+// ===== CONFIGURACIÓN FIREBASE =====
 const firebaseConfig = {
     apiKey: "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc",
     authDomain: "veyra-faa0e.firebaseapp.com",
@@ -13,960 +8,463 @@ const firebaseConfig = {
     appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
     measurementId: "G-KW7ZE24BQ8"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// ========== HERRAMIENTAS BÁSICAS ==========
-function el(id) { return document.getElementById(id); }
-const { jsPDF } = window.jspdf;
-
-// ========== VARIABLES GLOBALES ==========
+// ===== VARIABLES =====
 let usuarioActual = null;
-let nombreUsuarioGuardado = '';
-let rachaActual = 0;
 let tipoMovimiento = 'ingreso';
-let modoEdicionMov = null;
-let modoEdicionDep = null;
-let cargarContableEnEjecucion = false;
+let modoEdicionId = null;
+let esRegistro = false;
+let grafico = null;
+let tipoGraficoActivo = 'mensual';
+let datosMovimientos = [];
+let totalesActuales = { ingresos: 0, gastos: 0, saldo: 0 };
 
-const LOGROS = [
-    { dias: 1,   nombre: "Primer paso dado ✅",   emoji: "🔥", descripcion: "¡Empezaste con fuerza!" },
-    { dias: 7,   nombre: "Una semana completa 💪", emoji: "⭐", descripcion: "7 días sin detenerte" },
-    { dias: 14,  nombre: "Caminante constante 🚶", emoji: "🏅", descripcion: "2 semanas seguidas" },
-    { dias: 30,  nombre: "Maestro de la constancia 🏆", emoji: "👑", descripcion: "¡Todo un mes!" }
-];
-
-const ICONOS_CATEGORIA = {
-    'Salario': '💼', 'Ventas': '🛒', 'Comida': '🍔', 'Transporte': '🚗',
-    'Entretenimiento': '🎮', 'Servicios': '💡', 'Vivienda': '🏠', 'Salud': '🏥',
-    'Educación': '📚', 'Ropa': '👕', 'Ahorro': '💰', 'Otro': '📌',
-    'Sin categoría': '📁'
-};
-
-// ========== FUNCIONES AUXILIARES ==========
-function obtenerFechaHoy() {
-    return new Date().toISOString().split('T')[0];
+// ===== AUXILIARES =====
+function el(id) { return document.getElementById(id); }
+function formatearMonto(valor) {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor || 0);
 }
-
-function formatearFecha(fecha) {
-    if (!fecha) return '';
-    const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
-    return d.toLocaleDateString('es-CO', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
+function formatearMes(fecha) {
+    return new Date(fecha).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
+}
+function formatearFechaLarga(fecha) {
+    return new Date(fecha).toLocaleString('es-CO', {
+        day: '2-digit', month: 'long', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
 }
 
-function mesSeleccionadoTexto(valor) {
-    const mapa = {
-        '2026-10': 'Octubre 2026', '2026-11': 'Noviembre 2026',
-        '2026-12': 'Diciembre 2026', '2027-01': 'Enero 2027'
-    };
-    return mapa[valor] || valor;
-}
+// ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
+el('btnCambiarModo').addEventListener('click', () => {
+    esRegistro = !esRegistro;
+    el('campoNombre').style.display = esRegistro ? 'block' : 'none';
+    el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Mis Finanzas';
+    el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
+    el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
+    el('btnCambiarModo').textContent = esRegistro ? '¿Ya tienes cuenta? Ingresar' : '¿No tienes cuenta? Crear una';
+    el('errorLogin').textContent = '';
+});
 
-function iconoCategoria(nombre) {
-    return ICONOS_CATEGORIA[nombre] || '📁';
-}
+// ===== INGRESO / REGISTRO =====
+el('btnIngresar').addEventListener('click', async () => {
+    const correo = el('inputCorreo').value.trim();
+    const contraseña = el('inputContraseña').value;
+    const nombre = el('inputNombre').value.trim();
+    el('errorLogin').textContent = '';
 
-function verificarAlertaSaldo(saldo) {
-    const alerta = el('alertaSaldo');
-    if (!alerta) return;
-    alerta.classList.remove('oculto');
-    if (saldo < 0) {
-        alerta.textContent = `⚠️ ¡Cuidado! Tienes saldo negativo: $ ${saldo.toLocaleString()}`;
-        alerta.style.background = '#ffebee';
-        alerta.style.color = '#c62828';
-    } else if (saldo === 0) {
-        alerta.textContent = 'ℹ️ Tu saldo es cero';
-        alerta.style.background = '#f5f5f5';
-        alerta.style.color = '#666';
-    } else {
-        alerta.textContent = `✅ ¡Bien! Tu saldo es: $ ${saldo.toLocaleString()}`;
-        alerta.style.background = '#e8f5e9';
-        alerta.style.color = '#2e7d32';
+    if (!correo || !contraseña) {
+        el('errorLogin').textContent = 'Completa todos los campos';
+        return;
     }
-}
+    if (esRegistro && !nombre) {
+        el('errorLogin').textContent = 'Escribe tu nombre';
+        return;
+    }
 
-// ========== NOMBRE DE USUARIO ==========
-async function cargarNombreUsuario(uid) {
     try {
-        const doc = await db.collection('usuarios').doc(uid).get();
-        if (doc.exists && doc.data().nombre) {
-            nombreUsuarioGuardado = doc.data().nombre;
-            const elNombre = el('nombreUsuario');
-            if (elNombre) elNombre.textContent = `👋 Hola, ${nombreUsuarioGuardado}`;
-            el('editarNombreContenedor')?.classList.remove('oculto');
-            el('modalNombre')?.classList.add('oculto');
+        let credencial;
+        if (esRegistro) {
+            credencial = await auth.createUserWithEmailAndPassword(correo, contraseña);
+            await credencial.user.updateProfile({ displayName: nombre });
+            await credencial.user.reload();
         } else {
-            el('modalNombre')?.classList.remove('oculto');
-            el('btnCancelarNombre')?.classList.add('oculto');
-            const elTitulo = el('tituloModalNombre');
-            if (elTitulo) elTitulo.textContent = '👤 Crea tu nombre de usuario';
+            credencial = await auth.signInWithEmailAndPassword(correo, contraseña);
         }
-    } catch (err) {
-        console.error('Error cargando nombre:', err);
-    }
-}
-
-async function guardarNombreUsuario(uid, nombre) {
-    try {
-        await db.collection('usuarios').doc(uid).set({ nombre }, { merge: true });
-        nombreUsuarioGuardado = nombre;
-        if (el('nombreUsuario')) el('nombreUsuario').textContent = `👋 Hola, ${nombre}`;
-        el('modalNombre')?.classList.add('oculto');
-        el('editarNombreContenedor')?.classList.remove('oculto');
     } catch (error) {
-        console.error('Error guardando:', error);
-        alert('No se pudo guardar: ' + error.message);
+        console.error('Error:', error);
+        let mensaje = 'No se pudo completar la operación';
+        switch (error.code) {
+            case 'auth/invalid-email': mensaje = 'El correo no es válido'; break;
+            case 'auth/user-not-found': mensaje = 'No existe cuenta con este correo'; break;
+            case 'auth/wrong-password': mensaje = 'Contraseña incorrecta'; break;
+            case 'auth/email-already-in-use': mensaje = 'Este correo ya está registrado'; break;
+            case 'auth/weak-password': mensaje = 'La contraseña debe tener al menos 6 caracteres'; break;
+        }
+        el('errorLogin').textContent = mensaje;
     }
-}
+});
 
-// ========== AUTENTICACIÓN ==========
-firebase.auth().onAuthStateChanged((usuario) => {
-    const login = el('pantallaLogin');
-    const app = el('pantallaPrincipal');
-    usuarioActual = usuario;
+// ===== OBSERVADOR DE SESIÓN =====
+auth.onAuthStateChanged(usuario => {
+    el('pantallaCarga').classList.add('oculto');
     if (usuario) {
-        console.log('✅ Conectado:', usuario.email);
-        if (login) login.style.display = 'none';
-        if (app) app.style.display = 'block';
-        cargarNombreUsuario(usuario.uid);
-        cargarDatos();
+        usuarioActual = usuario;
+        const nombre = usuario.displayName || usuario.email.split('@')[0];
+        el('nombreUsuario').textContent = nombre;
+        el('pantallaLogin').classList.add('oculto');
+        el('pantallaPrincipal').classList.remove('oculto');
+        cargarMovimientos();
     } else {
-        console.log('🔒 Sin sesión');
-        if (login) login.style.display = 'flex';
-        if (app) app.style.display = 'none';
+        usuarioActual = null;
+        el('pantallaPrincipal').classList.add('oculto');
+        el('pantallaLogin').classList.remove('oculto');
+        el('campoNombre').style.display = 'none';
+        esRegistro = false;
+        el('tituloLogin').textContent = 'Mis Finanzas';
+        el('subtituloLogin').textContent = 'Ingresa para continuar';
+        el('btnIngresar').textContent = 'Ingresar';
+        el('btnCambiarModo').textContent = '¿No tienes cuenta? Crear una';
     }
 });
 
-// ========== NAVEGACIÓN DE PESTAÑAS ==========
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('pestaña')) {
-        document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
-        e.target.classList.add('activa');
-        const pagina = e.target.dataset.pagina;
-        document.querySelectorAll('.pagina').forEach(p => p.classList.add('oculto'));
-        el(pagina)?.classList.remove('oculto');
-        if (pagina === 'contable') cargarContable();
-        if (pagina === 'ahorro') cargarAhorro();
-        if (pagina === 'habitos') cargarHabitos();
-        if (pagina === 'logros') cargarLogros();
-        if (pagina === 'exportar') { cargarVistaPreviaTarjeta(); cargarComparacion(); cargarProyeccion(); cargarResumenSemanal(); }
-    }
+// ===== CAMBIAR NOMBRE =====
+el('btnCambiarNombre').addEventListener('click', () => {
+    const nombreActual = el('nombreUsuario').textContent;
+    el('inputNuevoNombre').value = nombreActual;
+    el('modalNombre').classList.remove('oculto');
 });
-
-// ========== CAMBIAR TIPO DE MOVIMIENTO ==========
-document.addEventListener('click', e => {
-    if (e.target.classList.contains('btn-tipo')) {
-        document.querySelectorAll('.btn-tipo').forEach(b => b.classList.remove('activa'));
-        e.target.classList.add('activa');
-        tipoMovimiento = e.target.dataset.tipo;
-    }
+el('btnCancelarNombre').addEventListener('click', () => {
+    el('modalNombre').classList.add('oculto');
 });
-
-// ========== CARGA INICIAL Y PANTALLA ==========
-window.addEventListener('load', () => {
-    setTimeout(() => el('pantallaCarga')?.classList.add('oculto'), 600);
-});
-setTimeout(() => el('pantallaCarga')?.classList.add('oculto'), 3000);
-
-// ==================================================
-// FIN PARTE 1 — Pegar Parte 2 a continuación
-// ==================================================
-// ==================================================
-// PARTE 2: CARGA DE DATOS — CONTABLE, AHORRO, HÁBITOS, LOGROS
-// ==================================================
-
-// ========== CARGA GENERAL ==========
-async function cargarDatos() {
-    await Promise.all([
-        cargarContable(),
-        cargarAhorro(),
-        cargarHabitos(),
-        cargarLogros()
-    ]);
-    cargarResumenSemanal();
-    cargarProyeccion();
-}
-
-// ========== PESTAÑA CONTABLE ==========
-
-async function cargarContable() {
-    const lista = el('listaMovimientos');
-    if (lista) lista.innerHTML = '';
-    
-    if (cargarContableEnEjecucion || !usuarioActual) return;
-    cargarContableEnEjecucion = true;
-
-    const mes = el('mesSeleccionado')?.value || '';
-    const totalIngresosEl = el('totalIngresos');
-    const totalGastosEl = el('totalGastos');
-    const saldoTotalEl = el('saldoTotal');
-
-    await cargarCategorias();
-
+el('btnGuardarNombre').addEventListener('click', async () => {
+    const nuevoNombre = el('inputNuevoNombre').value.trim();
+    if (!nuevoNombre) { alert('Escribe un nombre válido'); return; }
+    if (!usuarioActual) return;
     try {
-        const snapshot = await db.collection('movimientos')
-            .where('userId', '==', usuarioActual.uid)
-            .where('mes', '==', mes)
+        await usuarioActual.updateProfile({ displayName: nuevoNombre });
+        el('nombreUsuario').textContent = nuevoNombre;
+        el('modalNombre').classList.add('oculto');
+        alert('Nombre actualizado ✅');
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// ===== CERRAR SESIÓN =====
+el('btnCerrarSesion').addEventListener('click', async () => {
+    await auth.signOut();
+});
+
+// ===== NAVEGACIÓN =====
+document.querySelectorAll('.pestaña').forEach(boton => {
+    boton.addEventListener('click', () => {
+        document.querySelectorAll('.pestaña').forEach(p => p.classList.remove('activa'));
+        boton.classList.add('activa');
+        const id = boton.dataset.pestaña;
+        document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
+        el(`pestaña-${id}`).classList.remove('oculto');
+        if (id === 'resumen') setTimeout(dibujarGrafico, 100);
+    });
+});
+
+// ===== CAMBIAR TIPO GRÁFICO =====
+document.querySelectorAll('.btn-tipo-grafico').forEach(boton => {
+    boton.addEventListener('click', () => {
+        document.querySelectorAll('.btn-tipo-grafico').forEach(b => b.classList.remove('activo'));
+        boton.classList.add('activo');
+        tipoGraficoActivo = boton.dataset.grafico;
+        dibujarGrafico();
+    });
+});
+
+// ===== CAMBIAR TIPO MOVIMIENTO =====
+el('btnIngreso').addEventListener('click', () => {
+    tipoMovimiento = 'ingreso';
+    el('btnIngreso').classList.add('activo');
+    el('btnGasto').classList.remove('activo');
+});
+el('btnGasto').addEventListener('click', () => {
+    tipoMovimiento = 'gasto';
+    el('btnGasto').classList.add('activo');
+    el('btnIngreso').classList.remove('activo');
+});
+
+// ===== GUARDAR MOVIMIENTO =====
+el('btnGuardarMov').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    const descripcion = el('descripcionMov').value.trim();
+    const valor = parseFloat(el('valorMov').value);
+    if (!descripcion || isNaN(valor) || valor <= 0) {
+        alert('Completa todos los datos correctamente');
+        return;
+    }
+    const datos = {
+        uid: usuarioActual.uid,
+        descripcion,
+        valor,
+        tipo: tipoMovimiento,
+        fecha: new Date().toISOString()
+    };
+    try {
+        if (modoEdicionId) {
+            await db.collection('movimientos').doc(modoEdicionId).update(datos);
+            modoEdicionId = null;
+            el('btnGuardarMov').textContent = '✅ Guardar Movimiento';
+        } else {
+            await db.collection('movimientos').add(datos);
+        }
+        el('descripcionMov').value = '';
+        el('valorMov').value = '';
+        cargarMovimientos();
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+});
+
+// ===== CARGAR MOVIMIENTOS =====
+async function cargarMovimientos() {
+    if (!usuarioActual) return;
+    const lista = el('listaMovimientos');
+    lista.innerHTML = '<p>Cargando...</p>';
+    try {
+        const snap = await db.collection('movimientos')
+            .where('uid', '==', usuarioActual.uid)
             .orderBy('fecha', 'desc')
             .get();
-
-        let totalIngresos = 0, totalGastos = 0;
-
-        if (snapshot.empty) {
-            if (lista) lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Sin movimientos este mes 📝</p>';
-        } else {
-            snapshot.forEach(doc => {
-                const m = doc.data();
-                if (m.tipo === 'ingreso') totalIngresos += m.monto;
-                else totalGastos += m.monto;
-                if (lista) {
-                    lista.innerHTML += `
-                    <div class="movimiento aparecer escala-hover">
-                        <div class="info-mov">
-                            <div class="fecha">${formatearFecha(m.fecha)}</div>
-                            <div class="descripcion"><span class="icono-categoria">${iconoCategoria(m.categoria)}</span> ${m.descripcion}</div>
-                            <div class="categoria-pequeña">${m.categoria}</div>
-                        </div>
-                        <div class="valor-botones">
-                            <div class="valor ${m.tipo === 'ingreso' ? 'positivo' : 'negativo'}">
-                                ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                            </div>
-                            <div class="acciones">
-                                <button class="btn-accion btn-editar btn-editar-mov" data-id="${doc.id}" title="Editar">✏️</button>
-                                <button class="btn-accion btn-eliminar eliminar-mov" data-id="${doc.id}" title="Eliminar">🗑️</button>
-                            </div>
-                        </div>
-                    </div>`;
-                }
-            });
-        }
-
-        if (totalIngresosEl) totalIngresosEl.textContent = `$ ${totalIngresos.toLocaleString()}`;
-        if (totalGastosEl) totalGastosEl.textContent = `$ ${totalGastos.toLocaleString()}`;
-        if (saldoTotalEl) saldoTotalEl.textContent = `$ ${(totalIngresos - totalGastos).toLocaleString()}`;
-        verificarAlertaSaldo(totalIngresos - totalGastos);
-
-    } catch (err) {
-        console.error('Error cargando contable:', err);
-        if (lista) lista.innerHTML = '<p class="error">Error al cargar movimientos</p>';
-    } finally {
-        cargarContableEnEjecucion = false;
-    }
-}
-
-// ========== CARGAR CATEGORÍAS ==========
-async function cargarCategorias() {
-    if (!usuarioActual) return;
-    const lista = el('listaCategorias');
-    const selectMov = el('categoriaMov');
-    const selectEditarCat = el('catEditarMov');
-    if (!lista) return;
-
-    try {
-        const snapshot = await db.collection('categorias')
-            .where('userId', '==', usuarioActual.uid)
-            .get();
+        
+        datosMovimientos = [];
         lista.innerHTML = '';
-        if (selectMov) selectMov.innerHTML = '<option value="">Seleccionar categoría</option>';
-        if (selectEditarCat) selectEditarCat.innerHTML = '<option value="">Seleccionar categoría</option>';
-
-        if (snapshot.empty) {
-            lista.innerHTML = '<p class="texto-centrado" style="color:#636e72;">Aún no tienes categorías. Crea la primera arriba ⬆️</p>';
-            return;
+        let totalIng = 0, totalGas = 0;
+        
+        if (snap.empty) {
+            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no tienes movimientos</p>';
         }
-        snapshot.forEach(doc => {
-            const cat = doc.data();
-            const id = doc.id;
+        
+        snap.forEach(doc => {
+            const m = { id: doc.id, ...doc.data() };
+            datosMovimientos.push(m);
+            
+            const f = new Date(m.fecha).toLocaleString('es-CO', {
+                day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+            });
+            
+            if (m.tipo === 'ingreso') totalIng += m.valor;
+            else totalGas += m.valor;
+            
             lista.innerHTML += `
-                <div class="tarjeta-categoria">
-                    <span class="nombre-cat">${cat.nombre}</span>
-                    <div class="acciones-cat">
-                        <button class="btn-editar-cat" data-id="${id}" data-nombre="${cat.nombre}">✏️</button>
-                        <button class="btn-eliminar-cat" data-id="${id}">🗑️</button>
-                    </div>
-                </div>`;
-            if (selectMov) selectMov.innerHTML += `<option value="${cat.nombre}">${cat.nombre}</option>`;
-            if (selectEditarCat) selectEditarCat.innerHTML += `<option value="${cat.nombre}">${cat.nombre}</option>`;
-        });
-    } catch (err) {
-        console.error('Error cargando categorías:', err);
-        if (lista) lista.innerHTML = '<p class="error">Error al cargar categorías</p>';
-    }
-}
-
-// ========== PESTAÑA AHORRO ==========
-async function cargarAhorro() {
-    if (!usuarioActual) return;
-    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    const depSnap = await db.collection('ahorro_depositos')
-        .where('userId', '==', usuarioActual.uid).orderBy('fecha', 'desc').get();
-
-    let totalAhorrado = 0, totalNequi = 0, totalBanco = 0, totalEfectivo = 0;
-    const listaDep = el('listaDepositos');
-    if (listaDep) listaDep.innerHTML = '';
-
-    depSnap.forEach(doc => {
-        const d = doc.data();
-        totalAhorrado += d.monto;
-        if (d.lugar === 'nequi') totalNequi += d.monto;
-        else if (d.lugar === 'banco') totalBanco += d.monto;
-        else if (d.lugar === 'efectivo') totalEfectivo += d.monto;
-
-        const fecha = d.fecha?.toDate ? d.fecha.toDate() : new Date();
-        const lugarTexto = { nequi: '📱 Nequi', banco: '🏦 Cuenta Bancaria', efectivo: '💵 Efectivo' }[d.lugar] || d.lugar;
-        if (listaDep) {
-            listaDep.innerHTML += `
-                <div class="movimiento aparecer escala-hover">
+                <div class="movimiento">
                     <div class="info-mov">
-                        <div class="fecha">${fecha.toLocaleDateString()}</div>
-                        <div class="descripcion">${lugarTexto}</div>
+                        <p class="descripcion">${m.descripcion}</p>
+                        <p class="fecha">${f}</p>
                     </div>
                     <div class="valor-botones">
-                        <div class="valor positivo">+ $ ${d.monto.toLocaleString()}</div>
+                        <p class="valor ${m.tipo==='ingreso'?'positivo':'negativo'}">
+                            ${m.tipo==='ingreso'?'+':'-'}${formatearMonto(m.valor)}
+                        </p>
                         <div class="acciones">
-                            <button class="btn-accion btn-editar btn-editar-deposito" data-id="${doc.id}" title="Editar">✏️</button>
-                            <button class="btn-accion btn-eliminar eliminar-deposito" data-id="${doc.id}" title="Eliminar">🗑️</button>
+                            <button class="btn-accion btn-editar" data-id="${doc.id}">✏️</button>
+                            <button class="btn-accion btn-eliminar" data-id="${doc.id}">🗑️</button>
                         </div>
                     </div>
                 </div>`;
-        }
-    });
-
-    const falta = Math.max(0, meta - totalAhorrado);
-    const porcentaje = meta > 0 ? Math.min(100, (totalAhorrado / meta) * 100) : 0;
-    const circunferencia = 2 * Math.PI * 40;
-    const actualizarArco = (id, valor, desplazamiento = 0) => {
-        const porc = totalAhorrado > 0 ? valor / totalAhorrado : 0;
-        const longitud = porc * circunferencia;
-        const elem = el(id);
-        if (elem) {
-            elem.style.strokeDasharray = `${longitud} ${circunferencia - longitud}`;
-            elem.style.strokeDashoffset = `${-desplazamiento}`;
-        }
-    };
-
-    actualizarArco('arcNequi', totalNequi, 0);
-    el('valorNequi') && (el('valorNequi').textContent = `$ ${totalNequi.toLocaleString()}`);
-    actualizarArco('arcBanco', totalBanco, totalAhorrado > 0 ? (totalNequi / totalAhorrado) * circunferencia : 0);
-    el('valorBanco') && (el('valorBanco').textContent = `$ ${totalBanco.toLocaleString()}`);
-    actualizarArco('arcEfectivo', totalEfectivo, totalAhorrado > 0 ? ((totalNequi + totalBanco) / totalAhorrado) * circunferencia : 0);
-    el('valorEfectivo') && (el('valorEfectivo').textContent = `$ ${totalEfectivo.toLocaleString()}`);
-    el('metaTotal') && (el('metaTotal').textContent = `$ ${meta.toLocaleString()}`);
-    el('totalAhorrado') && (el('totalAhorrado').textContent = `$ ${totalAhorrado.toLocaleString()}`);
-    el('faltaParaMeta') && (el('faltaParaMeta').textContent = `$ ${falta.toLocaleString()}`);
-    el('porcentajeAhorro') && (el('porcentajeAhorro').textContent = `${porcentaje.toFixed(1)}%`);
-    el('barraAhorro') && (el('barraAhorro').style.width = `${porcentaje}%`);
-    el('alertaMeta') && el('alertaMeta').classList.toggle('oculto', porcentaje < 100);
-    el('metaAhorro') && meta > 0 && (el('metaAhorro').value = meta);
-}
-
-// ========== PESTAÑA HÁBITOS ==========
-async function cargarHabitos() {
-    if (!usuarioActual) return;
-    const habSnap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).orderBy('fechaCreacion', 'desc').get();
-    const lista = el('listaHabitos');
-    if (!lista) return;
-    lista.innerHTML = '';
-    const hoy = obtenerFechaHoy();
-    const diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-
-    habSnap.forEach(doc => {
-        const h = doc.data();
-        const habitoId = doc.id;
-        let diasHtml = '';
-        for (let i = 6; i >= 0; i--) {
-            const fecha = new Date();
-            fecha.setDate(fecha.getDate() - i);
-            const fechaStr = fecha.toISOString().split('T')[0];
-            const nombreDia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
-            const cumplido = h.diasCumplidos?.[fechaStr];
-            const esHoy = fechaStr === hoy;
-            diasHtml += `
-                <div class="dia-habito ${cumplido ? 'hecho' : ''} ${esHoy ? 'hoy' : ''}"
-                     data-habito="${habitoId}" data-fecha="${fechaStr}">
-                    <span class="nombre-dia">${nombreDia}</span>
-                    <span class="numero-dia">${fecha.getDate()}</span>
-                </div>`;
-        }
-        lista.innerHTML += `
-            <div class="bloque habito-tarjeta">
-                <div class="cabecera-habito">
-                    <h4 style="font-size:1rem; color:#2d3436;">${h.nombre}</h4>
-                    <div><button class="btn-accion eliminar-habito" data-id="${habitoId}">🗑️</button></div>
-                </div>
-                <div class="dias-habito">${diasHtml}</div>
-            </div>`;
-    });
-}
-
-// ========== PESTAÑA LOGROS ==========
-async function cargarLogros() {
-    if (!usuarioActual) return;
-    const habSnap = await db.collection('habitos').where('userId', '==', usuarioActual.uid).get();
-    const habitos = [];
-    const fechasCumplidas = {};
-    habSnap.forEach(doc => {
-        habitos.push({ id: doc.id, ...doc.data() });
-        Object.keys(doc.data()?.diasCumplidos || {}).forEach(fecha => {
-            fechasCumplidas[fecha] = (fechasCumplidas[fecha] || 0) + 1;
         });
-    });
-
-    rachaActual = 0;
-    let hoy = new Date();
-    while (true) {
-        const fechaStr = hoy.toISOString().split('T')[0];
-        const cumplidos = fechasCumplidas[fechaStr] || 0;
-        if (habitos.length === 0 || cumplidos < habitos.length) break;
-        rachaActual++;
-        hoy.setDate(hoy.getDate() - 1);
+        
+        totalesActuales = { ingresos: totalIng, gastos: totalGas, saldo: totalIng - totalGas };
+        
+        el('totalIngresos').textContent = formatearMonto(totalIng);
+        el('totalGastos').textContent = formatearMonto(totalGas);
+        el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
+        
+        document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
+        document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
+        
+        dibujarGrafico();
+    } catch (err) {
+        lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
     }
-
-    el('diasActivos') && (el('diasActivos').textContent = `${rachaActual} días en racha`);
-    const listaLogros = el('lista-logros');
-    if (!listaLogros) return;
-    listaLogros.innerHTML = '';
-    LOGROS.forEach(logro => {
-        const desbloqueado = rachaActual >= logro.dias;
-        listaLogros.innerHTML += `
-            <div class="logro-tarjeta ${desbloqueado ? 'desbloqueado' : 'bloqueado'}">
-                <span class="logro-emoji">${desbloqueado ? logro.emoji : '🔒'}</span>
-                <div class="logro-info">
-                    <h4>${logro.nombre}</h4>
-                    <p>${logro.descripcion}</p>
-                </div>
-            </div>`;
-    });
 }
 
-// ========== PROYECCIÓN, RESUMEN, COMPARACIÓN ==========
-async function cargarProyeccion() {
-    if (!usuarioActual) return;
-    const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-    const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-    const contenedor = el('proyeccionAhorro');
-    if (!contenedor) return;
-    if (!meta) {
-        contenedor.innerHTML = '<p style="color:#636e72;">Establece una meta de ahorro para ver la proyección 🎯</p>';
+// ===== DIBUJAR GRÁFICO =====
+function dibujarGrafico() {
+    if (!datosMovimientos.length) {
+        if (grafico) grafico.destroy();
         return;
     }
-    const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).orderBy('fecha', 'asc').get();
-    if (depSnap.empty) {
-        contenedor.innerHTML = '<p style="color:#636e72;">Registra depósitos para calcular cuándo alcanzas tu meta 📈</p>';
-        return;
-    }
-    let totalAhorrado = 0;
-    const primerDia = depSnap.docs[0].data().fecha?.toDate();
-    const diasTranscurridos = Math.max(1, Math.ceil((new Date() - primerDia) / (1000 * 60 * 60 * 24)));
-    depSnap.forEach(d => totalAhorrado += d.data().monto);
-    const promedioDiario = totalAhorrado / diasTranscurridos;
-    const falta = Math.max(0, meta - totalAhorrado);
-    const diasFaltantes = promedioDiario > 0 ? Math.ceil(falta / promedioDiario) : Infinity;
-    const fechaMeta = new Date(); fechaMeta.setDate(fechaMeta.getDate() + diasFaltantes);
-    contenedor.innerHTML = `
-        <p><strong>Meta:</strong> $ ${meta.toLocaleString()}</p>
-        <p><strong>Ahorrado:</strong> $ ${totalAhorrado.toLocaleString()}</p>
-        <p><strong>Promedio diario:</strong> $ ${promedioDiario.toFixed(0).toLocaleString()}</p>
-        <p style="font-size:1.1rem; font-weight:700; margin-top:0.5rem;">
-            📅 Si sigues así, alcanzas tu meta el:<br>
-            ${diasFaltantes === Infinity ? 'Aún no hay suficiente historial' : fechaMeta.toLocaleDateString('es-CO')}
-        </p>
-        <p style="color:#636e72; margin-top:0.5rem;">(Basado en ${diasTranscurridos} días de ahorro)</p>`;
-}
 
-async function cargarResumenSemanal() {
-    if (!usuarioActual) return;
-    const hoy = new Date();
-    const hace7Dias = new Date(hoy); hace7Dias.setDate(hoy.getDate() - 7);
-    const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('fecha', '>=', hace7Dias).get();
-    let ing = 0, gas = 0;
-    snap.forEach(d => { const m = d.data(); m.tipo === 'ingreso' ? ing += m.monto : gas += m.monto; });
-    const contenedor = el('resumenSemanal');
-    if (!contenedor) return;
-    contenedor.innerHTML = `
-        <p style="font-size:1.05rem;">Última semana:</p>
-        <p>💰 Ingresos: <span class="positivo">$ ${ing.toLocaleString()}</span></p>
-        <p>📉 Gastos: <span class="negativo">$ ${gas.toLocaleString()}</span></p>
-        <p style="font-weight:700; margin-top:0.5rem;">
-            Saldo semanal: ${ing - gas >= 0 ? '✅' : '⚠️'} $ ${(ing - gas).toLocaleString()}
-        </p>`;
-}
-
-async function cargarComparacion() {
-    if (!usuarioActual) return;
-    const m1 = el('mesComparar1')?.value;
-    const m2 = el('mesComparar2')?.value;
-    if (!m1 || !m2) return;
-    const datosMes = async (mes) => {
-        const snap = await db.collection('movimientos').where('userId', '==', usuarioActual.uid).where('mes', '==', mes).get();
-        let ing = 0, gas = 0;
-        snap.forEach(d => { const m = d.data(); m.tipo === 'ingreso' ? ing += m.monto : gas += m.monto; });
-        return { ing, gas, saldo: ing - gas };
-    };
-    const [d1, d2] = await Promise.all([datosMes(m1), datosMes(m2)]);
-    const res = el('resultadoComparacion');
-    if (!res) return;
-    res.innerHTML = `
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem;">
-            <div style="padding:1rem; background:#f8f9fa; border-radius:10px;">
-                <h4>${mesSeleccionadoTexto(m1)}</h4>
-                <p>Ingresos: <span class="positivo">$ ${d1.ing.toLocaleString()}</span></p>
-                <p>Gastos: <span class="negativo">$ ${d1.gas.toLocaleString()}</span></p>
-                <p style="font-weight:700;">Saldo: $ ${d1.saldo.toLocaleString()}</p>
-            </div>
-            <div style="padding:1rem; background:#f8f9fa; border-radius:10px;">
-                <h4>${mesSeleccionadoTexto(m2)}</h4>
-                <p>Ingresos: <span class="positivo">$ ${d2.ing.toLocaleString()}</span></p>
-                <p>Gastos: <span class="negativo">$ ${d2.gas.toLocaleString()}</span></p>
-                <p style="font-weight:700;">Saldo: $ ${d2.saldo.toLocaleString()}</p>
-            </div>
-        </div>
-        <div style="margin-top:1rem; padding:1rem; background:#e3f2fd; border-radius:10px;">
-            <p><strong>Diferencia entre meses:</strong></p>
-            <p>Ingresos: ${d2.ing >= d1.ing ? '↑' : '↓'} $ ${Math.abs(d2.ing - d1.ing).toLocaleString()}</p>
-            <p>Gastos: ${d2.gas <= d1.gas ? '↓' : '↑'} $ ${Math.abs(d2.gas - d1.gas).toLocaleString()}</p>
-        </div>`;
-}
-
-// ========== TARJETA ==========
-function cargarVistaPreviaTarjeta() {
-    el('tarjetaNombre') && (el('tarjetaNombre').textContent = nombreUsuarioGuardado || 'Usuario');
-    el('tarjetaRacha') && (el('tarjetaRacha').textContent = `${rachaActual} días`);
-    const lista = el('tarjetaListaLogros');
-    if (!lista) return;
-    lista.innerHTML = '';
-    LOGROS.forEach(logro => {
-        const desbloqueado = rachaActual >= logro.dias;
-        lista.innerHTML += `
-            <div style="display:flex; align-items:center; gap:10px; padding:6px 0; opacity:${desbloqueado ? 1 : 0.6};">
-                <span style="font-size:1.1rem;">${desbloqueado ? logro.emoji : '🔒'}</span>
-                <span style="font-size:0.9rem;">${logro.nombre.split(' ').slice(1).join(' ')}</span>
-                ${desbloqueado ? '<span style="margin-left:auto; color:#ffd700;">✓</span>' : ''}
-            </div>`;
-    });
-    if (el('vistaPreviaTarjeta') && el('tarjetaImagen')) {
-        el('vistaPreviaTarjeta').innerHTML = el('tarjetaImagen').innerHTML;
-    }
-}
-// ==================================================
-// PARTE 3: EVENTOS, PDF CORREGIDO Y DELEGACIÓN
-// ==================================================
-// ========== INICIO DE EVENTOS ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // Login / Registro
-    el('btnIngresar')?.addEventListener('click', async () => {
-        try {
-            el('mensajeError').textContent = '';
-            await auth.signInWithEmailAndPassword(el('correoLogin').value, el('claveLogin').value);
-        } catch (err) {
-            el('mensajeError').textContent = 'Correo o contraseña incorrectos';
-        }
-    });
-    el('btnRegistrar')?.addEventListener('click', async () => {
-        try {
-            el('mensajeError').textContent = '';
-            await auth.createUserWithEmailAndPassword(el('correoLogin').value, el('claveLogin').value);
-        } catch (err) {
-            el('mensajeError').textContent = 'No se pudo crear la cuenta: ' + err.message;
-        }
+    const porMes = {};
+    datosMovimientos.forEach(m => {
+        const mes = formatearMes(m.fecha);
+        if (!porMes[mes]) porMes[mes] = { ingreso: 0, gasto: 0 };
+        porMes[mes][m.tipo] += m.valor;
     });
 
-    // Guardar movimiento
-    el('btnGuardarMov')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const desc = el('descripcionMov');
-        const cat = el('categoriaMov');
-        const monto = el('montoMov');
-        const mes = el('mesSeleccionado');
-        const montoValor = parseFloat(monto?.value) || 0;
-        if (!montoValor) return alert('Escribe un monto válido');
-        try {
-            await db.collection('movimientos').add({
-                userId: usuarioActual.uid, tipo: tipoMovimiento,
-                descripcion: desc?.value || 'Sin descripción',
-                categoria: cat?.value || 'Sin categoría',
-                monto: montoValor, mes: mes?.value || '', fecha: new Date()
-            });
-            if (desc) desc.value = '';
-            if (monto) monto.value = '';
-            cargarContable();
-        } catch (err) {
-            console.error('Error guardando:', err);
-            alert('No se pudo guardar el movimiento');
-        }
-    });
-
-    // Cambio de mes
-    const selectMes = el('mesSeleccionado');
-    if (selectMes) {
-        selectMes.removeEventListener('change', cargarContable);
-        selectMes.addEventListener('change', cargarContable);
+    const etiquetas = Object.keys(porMes).sort((a, b) => new Date(a) - new Date(b));
+    const ingresos = etiquetas.map(m => porMes[m].ingreso);
+    const gastos = etiquetas.map(m => porMes[m].gasto);
+    
+    let datosSaldo;
+    if (tipoGraficoActivo === 'acumulado') {
+        let saldo = 0;
+        datosSaldo = etiquetas.map((_, i) => {
+            saldo += ingresos[i] - gastos[i];
+            return saldo;
+        });
     }
 
-    // Categorías
-    el('btnAbrirCat')?.addEventListener('click', () => {
-        el('formNuevaCat')?.classList.toggle('oculto');
-    });
-    el('btnGuardarCat')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const nombre = el('nombreCat')?.value?.trim();
-        if (!nombre) return alert('Escribe un nombre');
-        try {
-            await db.collection('categorias').add({ userId: usuarioActual.uid, nombre, fecha: new Date() });
-            el('nombreCat').value = '';
-            el('formNuevaCat')?.classList.add('oculto');
-            cargarCategorias();
-        } catch (err) { console.error(err); }
-    });
+    if (grafico) grafico.destroy();
 
-    // Ahorro
-    el('lugarAhorro')?.addEventListener('change', () => {
-        el('campoBanco')?.classList.toggle('oculto', el('lugarAhorro').value !== 'banco');
-    });
-    el('btnGuardarAhorro')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const meta = parseFloat(el('metaAhorro').value) || 0;
-        const lugar = el('lugarAhorro').value;
-        const monto = parseFloat(el('montoGuardar').value) || 0;
-        const nombreBanco = el('nombreBanco').value.trim();
-        if (!meta) return alert('Establece una meta');
-        if (!lugar) return alert('Selecciona dónde lo guardas');
-        if (!monto) return alert('Escribe el monto');
-        try {
-            await db.collection('ahorro_config').doc(usuarioActual.uid).set(
-                { meta, nombreBanco: lugar === 'banco' ? nombreBanco : '' }, { merge: true }
-            );
-            await db.collection('ahorro_depositos').add({
-                userId: usuarioActual.uid, monto, lugar, fecha: new Date()
-            });
-            el('montoGuardar').value = ''; el('lugarAhorro').value = ''; el('nombreBanco').value = '';
-            el('campoBanco')?.classList.add('oculto');
-            cargarAhorro();
-        } catch (err) { console.error(err); alert('Error guardando'); }
-    });
-
-    // Hábito
-    el('btnCrearHabito')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        const nombre = el('nombreHabito').value.trim();
-        if (!nombre) return alert('Escribe el nombre del hábito');
-        try {
-            await db.collection('habitos').add({ userId: usuarioActual.uid, nombre, fechaCreacion: new Date() });
-            el('nombreHabito').value = '';
-            cargarHabitos();
-        } catch (err) { console.error(err); }
-    });
-
-    // Editar movimiento
-    el('btnConfirmarEditar')?.addEventListener('click', async () => {
-        const id = el('idEditarMov')?.value;
-        if (!id || !usuarioActual) return;
-        try {
-            await db.collection('movimientos').doc(id).update({
-                descripcion: el('descEditarMov').value || 'Sin descripción',
-                categoria: el('catEditarMov').value || 'Sin categoría',
-                monto: parseFloat(el('montoEditarMov').value) || 0
-            });
-            el('modalEditarMov')?.classList.add('oculto');
-            cargarContable();
-        } catch (err) { alert('Error al editar: ' + err.message); }
-    });
-    el('btnCancelarEditar')?.addEventListener('click', () => {
-        el('modalEditarMov')?.classList.add('oculto');
-    });
-
-    // Editar depósito
-    el('btnConfirmarEditarDep')?.addEventListener('click', async () => {
-        if (!modoEdicionDep) return;
-        try {
-            await db.collection('ahorro_depositos').doc(modoEdicionDep).update({
-                monto: parseFloat(el('montoEditarDep').value) || 0
-            });
-            el('modalEditarDeposito')?.classList.add('oculto');
-            modoEdicionDep = null;
-            cargarAhorro();
-        } catch (err) { alert('Error al editar: ' + err.message); }
-    });
-    el('btnCancelarEditarDep')?.addEventListener('click', () => {
-        el('modalEditarDeposito')?.classList.add('oculto');
-        modoEdicionDep = null;
-    });
-
-    // Cambiar / Guardar nombre
-    el('btnEditarNombre')?.addEventListener('click', () => {
-        el('modalNombre')?.classList.remove('oculto');
-        el('inputNombreUsuario').value = nombreUsuarioGuardado;
-        el('tituloModalNombre').textContent = '✏️ Cambiar tu nombre';
-        el('btnCancelarNombre')?.classList.remove('oculto');
-    });
-    el('btnCancelarNombre')?.addEventListener('click', () => {
-        el('modalNombre')?.classList.add('oculto');
-        el('inputNombreUsuario').value = '';
-    });
-    el('btnGuardarNombre')?.addEventListener('click', async () => {
-        const nombre = el('inputNombreUsuario').value.trim();
-        if (!nombre) return alert('Escribe un nombre válido ✍️');
-        const usuario = firebase.auth().currentUser;
-        if (!usuario) return alert('No hay sesión activa — recarga la página');
-        await guardarNombreUsuario(usuario.uid, nombre);
-    });
-
-    // Cerrar sesión
-    el('btnCerrarSesion')?.addEventListener('click', async () => {
-        if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
-        try {
-            await firebase.auth().signOut();
-            window.location.reload();
-        } catch (error) { alert('Error: ' + error.message); }
-    });
-
-    // ==============================================
-    // PDF GENERADO CORRECTAMENTE — SIN DEPENDENCIAS
-    // ==============================================
-    el('btnGenerarPDF')?.addEventListener('click', async () => {
-        if (!usuarioActual) {
-            alert('Inicia sesión para generar el PDF');
-            return;
-        }
-        const mesValor = el('mesExtracto')?.value;
-        if (!mesValor) {
-            alert('Selecciona el mes');
-            return;
-        }
-        const mesNombre = mesSeleccionadoTexto(mesValor);
-
-        try {
-            // Obtener datos de Firebase
-            const movSnap = await db.collection('movimientos')
-                .where('userId', '==', usuarioActual.uid)
-                .where('mes', '==', mesValor)
-                .orderBy('fecha', 'desc')
-                .get();
-
-            let totalIngresos = 0, totalGastos = 0;
-            const movimientos = [];
-            movSnap.forEach(doc => {
-                const m = doc.data();
-                if (m.tipo === 'ingreso') totalIngresos += m.monto;
-                else totalGastos += m.monto;
-                movimientos.push({
-                    fecha: formatearFecha(m.fecha),
-                    descripcion: m.descripcion || 'Sin descripción',
-                    categoria: m.categoria || 'Sin categoría',
-                    monto: m.monto,
-                    tipo: m.tipo
-                });
-            });
-            const saldo = totalIngresos - totalGastos;
-
-            // Datos de ahorro
-            const configDoc = await db.collection('ahorro_config').doc(usuarioActual.uid).get();
-            const meta = configDoc.exists ? (configDoc.data()?.meta || 0) : 0;
-            const depSnap = await db.collection('ahorro_depositos').where('userId', '==', usuarioActual.uid).get();
-            let totalAhorrado = 0, nequi = 0, banco = 0, efectivo = 0;
-            depSnap.forEach(d => {
-                const datos = d.data();
-                totalAhorrado += datos.monto;
-                if (datos.lugar === 'nequi') nequi += datos.monto;
-                else if (datos.lugar === 'banco') banco += datos.monto;
-                else if (datos.lugar === 'efectivo') efectivo += datos.monto;
-            });
-            const falta = Math.max(0, meta - totalAhorrado);
-            const porcentaje = meta > 0 ? ((totalAhorrado / meta) * 100).toFixed(1) : 0;
-
-            // Construir filas de movimientos
-            const filasMov = movimientos.length === 0
-                ? `<tr><td colspan="4" style="padding:15px; text-align:center; color:#888;">Sin movimientos en este mes</td></tr>`
-                : movimientos.map(m => `
-                    <tr>
-                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.fecha}</td>
-                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.descripcion}</td>
-                        <td style="padding:8px; border-bottom:1px solid #eee;">${m.categoria}</td>
-                        <td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:${m.tipo === 'ingreso' ? '#00b894' : '#e17055'};">
-                            ${m.tipo === 'ingreso' ? '+' : '-'} $ ${m.monto.toLocaleString()}
-                        </td>
-                    </tr>`).join('');
-
-            // Plantilla completa
-            const plantillaHTML = `
-<div style="padding:20px; font-family:Arial, sans-serif; color:#333;">
-    <h2 style="text-align:center; color:#2d3436; margin-bottom:5px;">📄 Extracto Financiero</h2>
-    <p style="text-align:center; color:#636e72; margin-bottom:20px;">Periodo: ${mesNombre}</p>
-    <div style="display:flex; justify-content:space-between; border-bottom:2px solid #ddd; padding-bottom:10px; margin-bottom:15px;">
-        <div><strong>Usuario:</strong> ${nombreUsuarioGuardado || 'Usuario'}</div>
-        <div><strong>Emisión:</strong> ${new Date().toLocaleDateString('es-CO')}</div>
-    </div>
-    <h3 style="color:#2d3436;">Resumen del Mes</h3>
-    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-        <tr style="background:#f8f9fa;"><th style="padding:10px; text-align:left;">Concepto</th><th style="padding:10px; text-align:right;">Valor</th></tr>
-        <tr><td style="padding:8px; border-bottom:1px solid #eee;">💰 Total Ingresos</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#00b894; font-weight:bold;">$ ${totalIngresos.toLocaleString()}</td></tr>
-        <tr><td style="padding:8px; border-bottom:1px solid #eee;">📉 Total Gastos</td><td style="padding:8px; border-bottom:1px solid #eee; text-align:right; color:#e17055; font-weight:bold;">$ ${totalGastos.toLocaleString()}</td></tr>
-        <tr style="background:#f0f0f0; font-weight:bold;"><td style="padding:10px;">💵 Saldo del Mes</td><td style="padding:10px; text-align:right;">$ ${saldo.toLocaleString()}</td></tr>
-    </table>
-    <h3 style="color:#2d3436;">Movimientos</h3>
-    <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-        <tr style="background:#f8f9fa;"><th style="padding:10px; text-align:left;">Fecha</th><th style="padding:10px; text-align:left;">Descripción</th><th style="padding:10px; text-align:left;">Categoría</th><th style="padding:10px; text-align:right;">Monto</th></tr>
-        ${filasMov}
-    </table>
-    <h3 style="color:#2d3436;">💰 Ahorro</h3>
-    <table style="width:100%; border-collapse:collapse;">
-        <tr><td style="padding:8px;"><strong>Meta:</strong></td><td style="padding:8px; text-align:right;">$ ${meta.toLocaleString()}</td></tr>
-        <tr><td style="padding:8px;"><strong>Total Ahorrado:</strong></td><td style="padding:8px; text-align:right; font-weight:bold;">$ ${totalAhorrado.toLocaleString()}</td></tr>
-        <tr><td style="padding:8px;"><strong>Falta para la meta:</strong></td><td style="padding:8px; text-align:right;">$ ${falta.toLocaleString()}</td></tr>
-        <tr><td style="padding:8px;"><strong>Progreso:</strong></td><td style="padding:8px; text-align:right;">${porcentaje}%</td></tr>
-        <tr style="background:#f8f9fa;"><td style="padding:8px;">📱 Nequi</td><td style="padding:8px; text-align:right;">$ ${nequi.toLocaleString()}</td></tr>
-        <tr style="background:#f8f9fa;"><td style="padding:8px;">🏦 Banco</td><td style="padding:8px; text-align:right;">$ ${banco.toLocaleString()}</td></tr>
-        <tr style="background:#f8f9fa;"><td style="padding:8px;">💵 Efectivo</td><td style="padding:8px; text-align:right;">$ ${efectivo.toLocaleString()}</td></tr>
-    </table>
-</div>`;
-
-            // Generar PDF
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = plantillaHTML;
-            document.body.appendChild(tempDiv);
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            await pdf.html(tempDiv, { x: 5, y: 5, width: 200, windowWidth: 794, autoPaging: true });
-            pdf.save(`Extracto_${mesNombre.replace(' ', '_')}.pdf`);
-            document.body.removeChild(tempDiv);
-
-        } catch (err) {
-            console.error('Error generando PDF:', err);
-            alert('Error al generar el PDF: ' + err.message);
-        }
-    });
-
-    // Generar imagen tarjeta
-    el('btnGenerarImagen')?.addEventListener('click', async () => {
-        if (!usuarioActual) return;
-        cargarVistaPreviaTarjeta();
-        const elemento = el('tarjetaImagen');
-        elemento.style.display = 'block';
-        setTimeout(async () => {
-            const lienzo = await html2canvas(elemento, { scale: 2, useCORS: true });
-            elemento.style.display = 'none';
-            const enlace = document.createElement('a');
-            enlace.download = `Progreso_${nombreUsuarioGuardado.replace(/\s/g, '_')}.png`;
-            enlace.href = lienzo.toDataURL('image/png');
-            enlace.click();
-        }, 300);
-    });
-
-    // Recordatorio
-    el('btnRecordatorioHabito')?.addEventListener('click', async () => {
-        try {
-            if (Notification.permission === 'granted') {
-                new Notification('💪 ¡Hola!', { body: '¿Ya marcaste tu hábito de hoy? ¡Vas muy bien!', icon: 'https://raqueti94-create.github.io/Veyra/favicon.ico' });
-                alert('🔔 Recordatorio enviado ✅');
-            } else if (Notification.permission !== 'denied') {
-                const permiso = await Notification.requestPermission();
-                if (permiso === 'granted') alert('✅ Permiso concedido');
-            } else {
-                alert('⚠️ Las notificaciones están bloqueadas');
+    const ctx = el('graficoEvolucion').getContext('2d');
+    grafico = new Chart(ctx, {
+        type: tipoGraficoActivo === 'mensual' ? 'bar' : 'line',
+        data: tipoGraficoActivo === 'mensual' ? {
+            labels: etiquetas,
+            datasets: [
+                { label: 'Ingresos', data: ingresos, backgroundColor: 'rgba(0, 184, 148, 0.65)', borderColor: '#00b894', borderWidth: 2, borderRadius: 8 },
+                { label: 'Gastos', data: gastos, backgroundColor: 'rgba(225, 112, 85, 0.65)', borderColor: '#e17055', borderWidth: 2, borderRadius: 8 }
+            ]
+        } : {
+            labels: etiquetas,
+            datasets: [{
+                label: 'Saldo Acumulado', data: datosSaldo,
+                borderColor: '#6c5ce7', backgroundColor: 'rgba(108, 92, 231, 0.15)',
+                fill: true, tension: 0.4, borderWidth: 3,
+                pointBackgroundColor: '#6c5ce7', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` } }
+            },
+            scales: {
+                y: { ticks: { callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
             }
-        } catch { alert('No se pudo enviar 😅'); }
+        }
+    });
+}
+
+// ===== EDITAR =====
+async function editar(id) {
+    const doc = await db.collection('movimientos').doc(id).get();
+    if (!doc.exists) return;
+    const d = doc.data();
+    el('descripcionMov').value = d.descripcion;
+    el('valorMov').value = d.valor;
+    tipoMovimiento = d.tipo;
+    if (d.tipo === 'ingreso') {
+        el('btnIngreso').classList.add('activo');
+        el('btnGasto').classList.remove('activo');
+    } else {
+        el('btnGasto').classList.add('activo');
+        el('btnIngreso').classList.remove('activo');
+    }
+    modoEdicionId = id;
+    el('btnGuardarMov').textContent = '🔄 Actualizar Movimiento';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== ELIMINAR =====
+async function eliminar(id) {
+    if (!confirm('¿Eliminar este movimiento?')) return;
+    await db.collection('movimientos').doc(id).delete();
+    cargarMovimientos();
+}
+
+// ===== EXPORTAR A EXCEL =====
+el('btnExportarExcel').addEventListener('click', () => {
+    if (!datosMovimientos.length) {
+        alert('No hay movimientos para exportar');
+        return;
+    }
+    const nombreUsuario = el('nombreUsuario').textContent;
+    const fechaExportacion = new Date().toLocaleDateString('es-CO');
+    
+    const filas = [
+        ['Nombre:', nombreUsuario],
+        ['Fecha de exportación:', fechaExportacion],
+        [],
+        ['Fecha y Hora', 'Descripción', 'Tipo', 'Valor']
+    ];
+
+    datosMovimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).forEach(m => {
+        filas.push([
+            formatearFechaLarga(m.fecha),
+            m.descripcion,
+            m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+            m.valor
+        ]);
     });
 
-    // Compartir
-    el('btnCompartirWhatsapp')?.addEventListener('click', () => {
-        const texto = encodeURIComponent(`💰 Mi Progreso Financiero\nUsuario: ${nombreUsuarioGuardado}\n🔥 Racha: ${rachaActual} días\nMira mi avance: ${window.location.href}`);
-        window.open(`https://wa.me/?text=${texto}`, '_blank');
-    });
-    el('btnCopiarEnlace')?.addEventListener('click', async () => {
-        try {
-            await navigator.clipboard.writeText(window.location.href);
-            alert('✅ Enlace copiado');
-        } catch { alert('Copia la dirección manualmente'); }
-    });
+    filas.push(
+        [],
+        ['', 'Total Ingresos', '', totalesActuales.ingresos],
+        ['', 'Total Gastos', '', totalesActuales.gastos],
+        ['', 'Saldo', '', totalesActuales.saldo]
+    );
 
-    // Comparar
-    el('btnCompararMeses')?.addEventListener('click', cargarComparacion);
+    const hoja = XLSX.utils.aoa_to_sheet(filas);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Movimientos');
+    XLSX.writeFile(libro, `Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.xlsx`);
 });
 
-// ========== DELEGACIÓN DE EVENTOS DINÁMICOS ==========
-document.addEventListener('click', async e => {
-    // Eliminar movimiento
-    if (e.target.classList.contains('eliminar-mov')) {
-        if (!confirm('¿Eliminar este movimiento?')) return;
-        await db.collection('movimientos').doc(e.target.dataset.id).delete();
-        cargarContable();
+// ===== EXPORTAR A PDF =====
+el('btnExportarPDF').addEventListener('click', () => {
+    if (!datosMovimientos.length) {
+        alert('No hay movimientos para exportar');
+        return;
     }
-    // Abrir editar movimiento
-    if (e.target.classList.contains('btn-editar-mov')) {
-        const id = e.target.dataset.id;
-        el('modalEditarMov')?.classList.remove('oculto');
-        el('idEditarMov').value = id;
-        const select = el('catEditarMov');
-        select.innerHTML = '<option value="">Seleccionar categoría</option>';
-        const snap = await db.collection('categorias').where('userId', '==', usuarioActual.uid).get();
-        snap.forEach(d => {
-            const opt = document.createElement('option');
-            opt.value = d.data().nombre;
-            opt.textContent = d.data().nombre;
-            select.appendChild(opt);
-        });
-        const doc = await db.collection('movimientos').doc(id).get();
-        const m = doc.data();
-        el('descEditarMov').value = m.descripcion || '';
-        el('montoEditarMov').value = m.monto || '';
-        el('catEditarMov').value = m.categoria || '';
-    }
-    // Eliminar categoría
-    if (e.target.classList.contains('btn-eliminar-cat')) {
-        if (!confirm('¿Eliminar esta categoría?')) return;
-        await db.collection('categorias').doc(e.target.dataset.id).delete();
-        cargarCategorias();
-    }
-    // Editar categoría
-    if (e.target.classList.contains('btn-editar-cat')) {
-        const id = e.target.dataset.id;
-        const nombreActual = e.target.dataset.nombre;
-        const nuevoNombre = prompt('Nuevo nombre de categoría:', nombreActual);
-        if (!nuevoNombre || nuevoNombre.trim() === '' || nuevoNombre.trim() === nombreActual) return;
-        await db.collection('categorias').doc(id).update({ nombre: nuevoNombre.trim() });
-        cargarCategorias();
-    }
-    // Eliminar depósito
-    if (e.target.classList.contains('eliminar-deposito')) {
-        if (!confirm('¿Eliminar este depósito?')) return;
-        await db.collection('ahorro_depositos').doc(e.target.dataset.id).delete();
-        cargarAhorro();
-    }
-    // Editar depósito
-    if (e.target.classList.contains('btn-editar-deposito')) {
-        modoEdicionDep = e.target.dataset.id;
-        el('modalEditarDeposito')?.classList.remove('oculto');
-        const doc = await db.collection('ahorro_depositos').doc(modoEdicionDep).get();
-        el('montoEditarDep').value = doc.data().monto || '';
-    }
-    // Eliminar hábito
-    if (e.target.classList.contains('eliminar-habito')) {
-        if (!confirm('¿Eliminar este hábito? Se perderá su historial ✍️')) return;
-        await db.collection('habitos').doc(e.target.dataset.id).delete();
-        cargarHabitos();
-        cargarLogros();
-    }
-    // Marcar/desmarcar día de hábito
-    if (e.target.classList.contains('dia-habito')) {
-        const habitoId = e.target.dataset.habito;
-        const fecha = e.target.dataset.fecha;
-        const doc = await db.collection('habitos').doc(habitoId).get();
-        if (!doc.exists) return;
-        const datos = doc.data();
-        const dias = datos.diasCumplidos || {};
-        dias[fecha] = !dias[fecha];
-        await db.collection('habitos').doc(habitoId).update({ diasCumplidos: dias });
-        cargarHabitos();
-        cargarLogros();
-    }
+    const nombreUsuario = el('nombreUsuario').textContent;
+    const fechaExportacion = new Date().toLocaleDateString('es-CO');
+    
+    const filasTabla = datosMovimientos
+        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+        .map(m => [
+            { text: formatearFechaLarga(m.fecha), fontSize: 9 },
+            { text: m.descripcion, fontSize: 9 },
+            { text: m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto', fontSize: 9, color: m.tipo === 'ingreso' ? '#00b894' : '#e17055' },
+            { text: formatearMonto(m.valor), fontSize: 9, alignment: 'right' }
+        ]);
+
+    const docDefinicion = {
+        content: [
+            { text: 'REPORTE DE MOVIMIENTOS', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+            { text: nombreUsuario, fontSize: 14, alignment: 'center', margin: [0, 0, 0, 5] },
+            { text: `Exportado el ${fechaExportacion}`, fontSize: 10, color: '#666', alignment: 'center', margin: [0, 0, 0, 20] },
+            {
+                table: {
+                    headerRows: 1,
+                    widths: ['*', '*', 'auto', 'auto'],
+                    body: [
+                        [
+                            { text: 'Fecha', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                            { text: 'Descripción', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                            { text: 'Tipo', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                            { text: 'Valor', bold: true, fillColor: '#6c5ce7', color: 'white', alignment: 'right' }
+                        ],
+                        ...filasTabla
+                    ]
+                },
+                margin: [0, 0, 0, 20]
+            },
+            {
+                table: {
+                    widths: ['*', 'auto'],
+                    body: [
+                        [{ text: 'Total Ingresos:', bold: true }, { text: formatearMonto(totalesActuales.ingresos), bold: true, color: '#00b894', alignment: 'right' }],
+                        [{ text: 'Total Gastos:', bold: true }, { text: formatearMonto(totalesActuales.gastos), bold: true, color: '#e17055', alignment: 'right' }],
+                        [{ text: 'Saldo:', bold: true, fontSize: 12 }, { text: formatearMonto(totalesActuales.saldo), bold: true, fontSize: 12, alignment: 'right' }]
+                    ]
+                },
+                layout: 'noBorders'
+            }
+        ],
+        defaultStyle: { font: 'Roboto' },
+        pageSize: 'A4',
+        pageMargins: [40, 40, 40, 40]
+    };
+
+    pdfmake.createPdf(docDefinicion).download(`Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.pdf`);
 });
 
-// ==================================================
-// FIN DEL CÓDIGO — TODO COMPLETO ✅
-// ==================================================
+// ===== COMPARTIR =====
+el('btnCompartirWsp').addEventListener('click', () => {
+    const enlace = window.location.href;
+    const texto = encodeURIComponent('Mira mi app de control de finanzas: ' + enlace);
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
+});
+
+el('btnCopiarEnlace').addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('¡Enlace copiado! ✅');
+    } catch {
+        alert('No se pudo copiar automáticamente. Copia la dirección desde la barra del navegador.');
+    }
+});
