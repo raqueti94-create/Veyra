@@ -481,3 +481,218 @@ document.addEventListener('click', async function(e) {
         }
     }
 });
+
+// ==============================================
+// METAS DE AHORRO
+// ==============================================
+document.addEventListener('click', async e => {
+    if (e.target.id === 'btnCrearMeta') {
+        if (!usuarioActual) return;
+        const nombre = document.getElementById('nombreMeta').value.trim();
+        const monto = parseFloat(document.getElementById('montoMeta').value);
+        
+        if (!nombre || isNaN(monto) || monto < 1000) {
+            alert('Escribe un nombre y un monto válido (mínimo $1.000)');
+            return;
+        }
+
+        try {
+            await db.collection('metas').add({
+                uid: usuarioActual.uid,
+                nombre,
+                montoMeta: monto,
+                montoAhorrado: 0,
+                completada: false,
+                fechaCreacion: new Date().toISOString()
+            });
+            
+            document.getElementById('nombreMeta').value = '';
+            document.getElementById('montoMeta').value = '';
+            cargarMetas();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+});
+
+async function cargarMetas() {
+    if (!usuarioActual) return;
+    const lista = document.getElementById('listaMetas');
+    if (!lista) return;
+    
+    lista.innerHTML = '<p>Cargando...</p>';
+    
+    try {
+        const snap = await db.collection('metas')
+            .where('uid', '==', usuarioActual.uid)
+            .orderBy('fechaCreacion', 'desc')
+            .get();
+
+        lista.innerHTML = '';
+        if (snap.empty) {
+            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>';
+            return;
+        }
+
+        snap.forEach(doc => {
+            const meta = { id: doc.id, ...doc.data() };
+            const porcentaje = Math.min(100, Math.round((meta.montoAhorrado / meta.montoMeta) * 100));
+
+            lista.innerHTML += `
+                <div style="padding:1rem;border:1px solid #e1e5e9;border-radius:12px;margin-bottom:1rem;">
+                    <h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;">${meta.nombre} ${meta.completada ? '✅ ¡Meta cumplida!' : ''}</h4>
+                    <p style="margin:0.3rem 0;">Ahorrado: <strong>${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoAhorrado)}</strong> de ${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoMeta)}</p>
+                    <div style="background:#e1e5e9;height:12px;border-radius:6px;overflow:hidden;margin:0.8rem 0;">
+                        <div style="width:${porcentaje}%;background:#6c5ce7;height:100%;color:white;text-align:center;font-size:0.75rem;line-height:12px;font-weight:600;">
+                            ${porcentaje}%
+                        </div>
+                    </div>
+                    ${!meta.completada ? `
+                        <button data-meta-id="${doc.id}" data-meta-nombre="${meta.nombre}" 
+                            style="background:#00b894;color:white;border:none;padding:0.6rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;">
+                            💰 Agregar Ahorro
+                        </button>
+                    ` : ''}
+                </div>`;
+        });
+
+        document.querySelectorAll('[data-meta-id]').forEach(boton => {
+            boton.addEventListener('click', () => {
+                window.metaSeleccionadaId = boton.dataset.metaId;
+                const modalNombre = document.getElementById('nombreMetaModal');
+                if (modalNombre) modalNombre.textContent = boton.dataset.metaNombre;
+                const modal = document.getElementById('modalAgregarAhorro');
+                if (modal) modal.classList.remove('oculto');
+            });
+        });
+
+    } catch (err) {
+        lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
+    }
+}
+
+document.addEventListener('click', e => {
+    if (e.target.id === 'btnCancelarAhorro') {
+        const modal = document.getElementById('modalAgregarAhorro');
+        if (modal) modal.classList.add('oculto');
+        window.metaSeleccionadaId = null;
+    }
+    if (e.target.id === 'btnConfirmarAhorro') {
+        const monto = parseFloat(document.getElementById('montoAhorro').value);
+        if (!monto || monto <= 0) {
+            alert('Ingresa un monto válido');
+            return;
+        }
+        db.collection('metas').doc(window.metaSeleccionadaId).get().then(doc => {
+            if (!doc.exists) return;
+            const datos = doc.data();
+            const nuevoAhorrado = datos.montoAhorrado + monto;
+            const completada = nuevoAhorrado >= datos.montoMeta;
+            return doc.ref.update({ montoAhorrado: nuevoAhorrado, completada });
+        }).then(() => {
+            const modal = document.getElementById('modalAgregarAhorro');
+            if (modal) modal.classList.add('oculto');
+            alert('✅ ¡Ahorro guardado!');
+            cargarMetas();
+        }).catch(err => alert('Error: ' + err.message));
+    }
+});
+
+// ==============================================
+// HÁBITOS
+// ==============================================
+document.addEventListener('click', async e => {
+    if (e.target.id === 'btnAgregarHabito') {
+        if (!usuarioActual) return;
+        const nombre = document.getElementById('nombreHabito').value.trim();
+        
+        if (!nombre) {
+            alert('Escribe el nombre del hábito');
+            return;
+        }
+
+        try {
+            await db.collection('habitos').add({
+                uid: usuarioActual.uid,
+                nombre,
+                dias: {},
+                creado: new Date().toISOString()
+            });
+            
+            document.getElementById('nombreHabito').value = '';
+            cargarHabitos();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+});
+
+async function cargarHabitos() {
+    if (!usuarioActual) return;
+    const lista = document.getElementById('listaHabitos');
+    if (!lista) return;
+
+    try {
+        const snap = await db.collection('habitos')
+            .where('uid', '==', usuarioActual.uid)
+            .orderBy('creado', 'desc')
+            .get();
+
+        lista.innerHTML = '';
+        if (snap.empty) {
+            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
+            return;
+        }
+
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+        const hoy = new Date();
+
+        snap.forEach(doc => {
+            const h = { id: doc.id, ...doc.data() };
+            
+            lista.innerHTML += `
+                <div style="padding:1rem 0;border-bottom:1px solid #e1e5e9;">
+                    <h4 style="margin:0 0 1rem 0;color:#6c5ce7;">${h.nombre}</h4>
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;text-align:center;">
+            `;
+            
+            for (let i = 6; i >= 0; i--) {
+                const fecha = new Date(hoy);
+                fecha.setDate(hoy.getDate() - i);
+                const clave = fecha.toISOString().split('T')[0];
+                const cumplido = h.dias && h.dias[clave];
+                
+                lista.innerHTML += `
+                    <div>
+                        <div style="font-size:0.7rem;color:#636e72;margin-bottom:0.3rem;">${diasSemana[fecha.getDay()]}</div>
+                        <button data-habito-id="${doc.id}" data-fecha="${clave}"
+                            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+                            background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};">
+                            ${cumplido ? '✓' : ''}
+                        </button>
+                    </div>
+                `;
+            }
+            
+            lista.innerHTML += `</div></div>`;
+        });
+
+        document.querySelectorAll('[data-habito-id]').forEach(boton => {
+            boton.addEventListener('click', async () => {
+                const ref = db.collection('habitos').doc(boton.dataset.habitoId);
+                const doc = await ref.get();
+                if (!doc.exists) return;
+                
+                const datos = doc.data();
+                if (!datos.dias) datos.dias = {};
+                datos.dias[boton.dataset.fecha] = !datos.dias[boton.dataset.fecha];
+                
+                await ref.update({ dias: datos.dias });
+                cargarHabitos();
+            });
+        });
+
+    } catch (err) {
+        lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
+    }
+}
