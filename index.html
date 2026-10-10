@@ -12,6 +12,11 @@
     
     <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Librerías para exportar -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
 
     <style>
 * {
@@ -269,7 +274,7 @@ body {
 .btn-accion:hover { background: #e1e5e9; }
 .btn-editar:hover { background: #d4edda; color: #155724; }
 .btn-eliminar:hover { background: #f8d7da; color: #a71d2a; }
-.botones-compartir { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+.botones-compartir, .botones-exportar { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
 .btn-whatsapp {
     display: inline-flex; align-items: center; gap: 0.5rem;
     background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
@@ -284,6 +289,20 @@ body {
     font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
 }
 .btn-copiar:hover { transform: translateY(-2px); }
+.btn-excel {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-excel:hover { transform: translateY(-2px); }
+.btn-pdf {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+}
+.btn-pdf:hover { transform: translateY(-2px); }
 .enlace-registro {
     text-align: center;
     margin-top: 1rem;
@@ -449,6 +468,7 @@ body {
     <nav class="navegacion">
         <button class="pestaña activa" data-pestaña="contable">📒 Contable</button>
         <button class="pestaña" data-pestaña="resumen">📊 Resumen</button>
+        <button class="pestaña" data-pestaña="exportar">📄 Exportar</button>
         <button class="pestaña" data-pestaña="compartir">🔗 Compartir</button>
     </nav>
 
@@ -502,6 +522,29 @@ body {
         </div>
     </section>
 
+    <section class="contenido-pestaña oculto" id="pestaña-exportar">
+        <div class="bloque">
+            <h3>📄 Exportar Mis Registros</h3>
+            <p style="margin-bottom: 1rem;">Descarga todos tus movimientos en el formato que prefieras:</p>
+            
+            <div class="botones-exportar">
+                <button class="btn-excel" id="btnExportarExcel">📊 Descargar Excel</button>
+                <button class="btn-pdf" id="btnExportarPDF">📄 Descargar PDF</button>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 10px;">
+                <p style="font-weight: 600; margin-bottom: 0.5rem;">📋 Resumen incluido en el archivo:</p>
+                <ul style="color: var(--texto-claro); padding-left: 1.2rem;">
+                    <li>Fecha y hora de cada movimiento</li>
+                    <li>Descripción</li>
+                    <li>Tipo (Ingreso / Gasto)</li>
+                    <li>Valor en pesos colombianos</li>
+                    <li>Totales generales y saldo</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
     <section class="contenido-pestaña oculto" id="pestaña-compartir">
         <div class="bloque">
             <h3>🔗 Compartir App</h3>
@@ -549,6 +592,7 @@ let esRegistro = false;
 let grafico = null;
 let tipoGraficoActivo = 'mensual';
 let datosMovimientos = [];
+let totalesActuales = { ingresos: 0, gastos: 0, saldo: 0 };
 
 // ===== AUXILIARES =====
 function el(id) { return document.getElementById(id); }
@@ -557,6 +601,12 @@ function formatearMonto(valor) {
 }
 function formatearMes(fecha) {
     return new Date(fecha).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
+}
+function formatearFechaLarga(fecha) {
+    return new Date(fecha).toLocaleString('es-CO', {
+        day: '2-digit', month: 'long', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
 }
 
 // ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
@@ -666,9 +716,7 @@ document.querySelectorAll('.pestaña').forEach(boton => {
         const id = boton.dataset.pestaña;
         document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
         el(`pestaña-${id}`).classList.remove('oculto');
-        if (id === 'resumen') {
-            setTimeout(dibujarGrafico, 100);
-        }
+        if (id === 'resumen') setTimeout(dibujarGrafico, 100);
     });
 });
 
@@ -774,6 +822,8 @@ async function cargarMovimientos() {
                 </div>`;
         });
         
+        totalesActuales = { ingresos: totalIng, gastos: totalGas, saldo: totalIng - totalGas };
+        
         el('totalIngresos').textContent = formatearMonto(totalIng);
         el('totalGastos').textContent = formatearMonto(totalGas);
         el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
@@ -794,13 +844,10 @@ function dibujarGrafico() {
         return;
     }
 
-    // Agrupar por mes
     const porMes = {};
     datosMovimientos.forEach(m => {
         const mes = formatearMes(m.fecha);
-        if (!porMes[mes]) {
-            porMes[mes] = { ingreso: 0, gasto: 0 };
-        }
+        if (!porMes[mes]) porMes[mes] = { ingreso: 0, gasto: 0 };
         porMes[mes][m.tipo] += m.valor;
     });
 
@@ -825,111 +872,114 @@ function dibujarGrafico() {
         data: tipoGraficoActivo === 'mensual' ? {
             labels: etiquetas,
             datasets: [
-                {
-                    label: 'Ingresos',
-                    data: ingresos,
-                    backgroundColor: 'rgba(0, 184, 148, 0.65)',
-                    borderColor: '#00b894',
-                    borderWidth: 2,
-                    borderRadius: 8
-                },
-                {
-                    label: 'Gastos',
-                    data: gastos,
-                    backgroundColor: 'rgba(225, 112, 85, 0.65)',
-                    borderColor: '#e17055',
-                    borderWidth: 2,
-                    borderRadius: 8
-                }
+                { label: 'Ingresos', data: ingresos, backgroundColor: 'rgba(0, 184, 148, 0.65)', borderColor: '#00b894', borderWidth: 2, borderRadius: 8 },
+                { label: 'Gastos', data: gastos, backgroundColor: 'rgba(225, 112, 85, 0.65)', borderColor: '#e17055', borderWidth: 2, borderRadius: 8 }
             ]
         } : {
             labels: etiquetas,
             datasets: [{
-                label: 'Saldo Acumulado',
-                data: datosSaldo,
-                borderColor: '#6c5ce7',
-                backgroundColor: 'rgba(108, 92, 231, 0.15)',
-                fill: true,
-                tension: 0.4,
-                borderWidth: 3,
-                pointBackgroundColor: '#6c5ce7',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 5
+                label: 'Saldo Acumulado', data: datosSaldo,
+                borderColor: '#6c5ce7', backgroundColor: 'rgba(108, 92, 231, 0.15)',
+                fill: true, tension: 0.4, borderWidth: 3,
+                pointBackgroundColor: '#6c5ce7', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
-                    }
-                }
+                legend: { position: 'top', labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` } }
             },
             scales: {
-                y: {
-                    ticks: {
-                        callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v)
-                    },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    grid: { display: false }
-                }
+                y: { ticks: { callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
             }
         }
     });
 }
 
-// ===== EDITAR =====
-async function editar(id) {
-    const doc = await db.collection('movimientos').doc(id).get();
-    if (!doc.exists) return;
-    const d = doc.data();
-    el('descripcionMov').value = d.descripcion;
-    el('valorMov').value = d.valor;
-    tipoMovimiento = d.tipo;
-    if (d.tipo === 'ingreso') {
-        el('btnIngreso').classList.add('activo');
-        el('btnGasto').classList.remove('activo');
-    } else {
-        el('btnGasto').classList.add('activo');
-        el('btnIngreso').classList.remove('activo');
+// ===== EXPORTAR A EXCEL =====
+el('btnExportarExcel').addEventListener('click', () => {
+    if (!datosMovimientos.length) {
+        alert('No hay movimientos para exportar');
+        return;
     }
-    modoEdicionId = id;
-    el('btnGuardarMov').textContent = '🔄 Actualizar Movimiento';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-// ===== ELIMINAR =====
-async function eliminar(id) {
-    if (!confirm('¿Eliminar este movimiento?')) return;
-    await db.collection('movimientos').doc(id).delete();
-    cargarMovimientos();
-}
+    const nombreUsuario = el('nombreUsuario').textContent;
+    const fechaExportacion = new Date().toLocaleDateString('es-CO');
+    
+    const filas = [
+        ['Nombre:', nombreUsuario],
+        ['Fecha de exportación:', fechaExportacion],
+        [],
+        ['Fecha y Hora', 'Descripción', 'Tipo', 'Valor']
+    ];
 
-// ===== COMPARTIR =====
-el('btnCompartirWsp').onclick = () => {
-    const t = encodeURIComponent('Mira esta app para controlar tus finanzas: ' + window.location.href);
-    window.open(`https://wa.me/?text=${t}`, '_blank');
-};
-el('btnCopiarEnlace').onclick = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    alert('¡Enlace copiado!');
-};
+    datosMovimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).forEach(m => {
+        filas.push([
+            formatearFechaLarga(m.fecha),
+            m.descripcion,
+            m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+            m.valor
+        ]);
+    });
 
-// ===== CERRAR SESIÓN =====
-el('btnCerrarSesion').onclick = async () => {
-    if (!confirm('¿Cerrar sesión?')) return;
-    await auth.signOut();
-};
-</script>
+    filas.push(
+        [],
+        ['', 'Total Ingresos', '', totalesActuales.ingresos],
+        ['', 'Total Gastos', '', totalesActuales.gastos],
+        ['', 'Saldo', '', totalesActuales.saldo]
+    );
 
-</body>
-</html>
+    const hoja = XLSX.utils.aoa_to_sheet(filas);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Movimientos');
+    
+    XLSX.writeFile(libro, `Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.xlsx`);
+});
+
+// ===== EXPORTAR A PDF =====
+el('btnExportarPDF').addEventListener('click', () => {
+    if (!datosMovimientos.length) {
+        alert('No hay movimientos para exportar');
+        return;
+    }
+
+    const nombreUsuario = el('nombreUsuario').textContent;
+    const fechaExportacion = new Date().toLocaleDateString('es-CO');
+    
+    const filasTabla = datosMovimientos
+        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+        .map(m => [
+            { text: formatearFechaLarga(m.fecha), fontSize: 9 },
+            { text: m.descripcion, fontSize: 9 },
+            { text: m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto', fontSize: 9, color: m.tipo === 'ingreso' ? '#00b894' : '#e17055' },
+            { text: formatearMonto(m.valor), fontSize: 9, alignment: 'right' }
+        ]);
+
+    const contenido = [
+        { text: 'REPORTE DE MOVIMIENTOS', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+        { text: nombreUsuario, fontSize: 14, alignment: 'center', margin: [0, 0, 0, 5] },
+        { text: `Exportado el ${fechaExportacion}`, fontSize: 10, color: '#666', alignment: 'center', margin: [0, 0, 0, 20] },
+        {
+            table: {
+                headerRows: 1,
+                widths: ['*', '*', 'auto', 'auto'],
+                body: [
+                    [
+                        { text: 'Fecha', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Descripción', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Tipo', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Valor', bold: true, fillColor: '#6c5ce7', color: 'white', alignment: 'right' }
+                    ],
+                    ...filasTabla
+                ]
+            },
+            margin: [0, 0, 0, 20]
+        },
+        {
+            table: {
+                widths: ['*', 'auto'],
+                body: [
+                    [{ text: 'Total Ingresos:', bold: true }, { text: formatearMonto(totalesActuales.ingresos), bold: true, color: '#00b894' }],
+                    [{ text: 'Total Gastos:', bold:
