@@ -702,109 +702,124 @@ button:disabled {
         font-size: 1rem;
     }
 }
-/* ===== HÁBITOS — Cuadrícula del mes ===== */
-.lista-habitos {
-    margin-top: 1rem;
-}
 
-.tarjeta-habito {
-    padding: 1.2rem 0;
-    border-bottom: 1px solid var(--borde);
+.habito-tarjeta {
+    padding: 1.2rem;
     margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e1e5e9;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
-.cabecera-habito {
+.habito-cabecera {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     margin-bottom: 1rem;
 }
 
-.titulo-habito {
+.habito-cabecera h4 {
     margin: 0;
-    color: var(--primario);
+    color: #6c5ce7;
     font-size: 1.1rem;
+    overflow-wrap: anywhere;
 }
 
-.acciones-habito {
+.habito-acciones {
     display: flex;
     gap: 0.4rem;
+    flex-shrink: 0;
 }
 
-.btn-editar-habito,
-.btn-eliminar-habito {
+.habito-acciones button {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 1rem;
 }
 
-.btn-eliminar-habito {
-    color: var(--peligro);
+.habito-calendario {
+    width: 100%;
+    min-width: 0;
 }
 
-.nombres-dias {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.nombre-dia {
-    text-align: center;
-    font-weight: 600;
-    color: var(--texto-claro);
-    font-size: 0.85rem;
-}
-
-.cuadricula-mes {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+.habito-semana,
+.habito-mes {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
     gap: 0.5rem;
     width: 100%;
+    box-sizing: border-box;
 }
 
-.celda-dia {
+.habito-semana {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.habito-semana > div {
     text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #636e72;
+    min-width: 0;
 }
 
-.numero-dia {
+.habito-dia,
+.habito-dia-vacio {
+    min-width: 0;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.habito-numero {
     font-size: 0.75rem;
     color: #999;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.25rem;
 }
 
-.numero-dia.hoy {
+.habito-numero.habito-hoy {
+    color: #6c5ce7;
     font-weight: bold;
-    color: var(--primario);
 }
 
-.boton-dia {
-    width: 36px;
-    height: 36px;
+.habito-marca,
+.habito-futuro {
+    width: 100%;
+    max-width: 42px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
     border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.habito-marca {
+    display: block;
+    padding: 0;
     border: none;
     cursor: pointer;
+    background: #e1e5e9;
+    color: #2d3436;
+    font-size: 1rem;
     font-weight: bold;
-    margin: 0 auto;
 }
 
-.boton-dia.no-disponible {
-    background: #f0f0f0;
-    color: #ccc;
-    cursor: default;
-}
-
-.boton-dia.incompleto {
-    background: var(--borde);
-    color: var(--texto);
-}
-
-.boton-dia.completo {
-    background: var(--exito);
+.habito-marca.cumplido {
+    background: #00b894;
     color: white;
 }
 
-.boton-dia.hoy {
-    box-shadow: 0 0 0 2px var(--primario);
+.habito-marca.es-hoy {
+    box-shadow: 0 0 0 2px #6c5ce7;
+}
+
+.habito-futuro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #ccc;
+    font-size: 0.8rem;
 }
