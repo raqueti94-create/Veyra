@@ -662,13 +662,21 @@ document.addEventListener('click', async e => {
         cargarHabitos();
     }
 
-    // Editar nombre de hábito
+    // Editar nombre
     if (e.target.classList.contains('btn-editar-habito')) {
         const id = e.target.dataset.id;
         const nuevoNombre = prompt('Nuevo nombre del hábito:');
         if (!nuevoNombre || !nuevoNombre.trim()) return;
         await db.collection('habitos').doc(id).update({ nombre: nuevoNombre.trim() });
         cargarHabitos();
+    }
+
+    // Alternar desplegable de semana
+    if (e.target.classList.contains('titulo-semana')) {
+        const contenido = e.target.nextElementSibling;
+        const icono = e.target.querySelector('.icono-desplegable');
+        contenido.classList.toggle('oculto');
+        icono.textContent = contenido.classList.contains('oculto') ? '▶' : '▼';
     }
 });
 
@@ -696,9 +704,9 @@ async function cargarHabitos() {
             const h = { id: doc.id, ...doc.data() };
             
             lista.innerHTML += `
-                <div style="padding:1rem 0;border-bottom:1px solid #e1e5e9;">
+                <div style="padding:1rem 0;border-bottom:1px solid #e1e5e9;margin-bottom:1rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-                        <h4 style="margin:0;color:#6c5ce7;">${h.nombre}</h4>
+                        <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
                         <div style="display:flex;gap:0.4rem;">
                             <button data-id="${doc.id}" class="btn-editar-habito" title="Editar nombre" 
                                 style="background:none;border:none;cursor:pointer;font-size:1rem;">✏️</button>
@@ -706,29 +714,8 @@ async function cargarHabitos() {
                                 style="background:none;border:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
                         </div>
                     </div>
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;text-align:center;">
-            `;
-            
-            // Últimos 7 días
-            for (let i = 6; i >= 0; i--) {
-                const fecha = new Date(hoy);
-                fecha.setDate(hoy.getDate() - i);
-                const clave = fecha.toISOString().split('T')[0];
-                const cumplido = h.dias && h.dias[clave];
-                
-                lista.innerHTML += `
-                    <div>
-                        <div style="font-size:0.7rem;color:#636e72;margin-bottom:0.3rem;">${diasSemana[fecha.getDay()]}</div>
-                        <button data-habito-id="${doc.id}" data-fecha="${clave}"
-                            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
-                            background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};">
-                            ${cumplido ? '✓' : ''}
-                        </button>
-                    </div>
-                `;
-            }
-            
-            lista.innerHTML += `</div></div>`;
+                    ${generarSemanas(h, diasSemana, hoy)}
+                </div>`;
         });
 
         // Conectar botones de días
@@ -750,4 +737,59 @@ async function cargarHabitos() {
     } catch (err) {
         lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
     }
+}
+
+// Función auxiliar: Generar últimas 4 semanas agrupadas
+function generarSemanas(habito, diasSemana, hoy) {
+    let html = '';
+    
+    // Generar 4 semanas hacia atrás desde hoy
+    for (let semana = 0; semana < 4; semana++) {
+        const finSemana = new Date(hoy);
+        finSemana.setDate(hoy.getDate() - (semana * 7));
+        
+        const inicioSemana = new Date(finSemana);
+        inicioSemana.setDate(finSemana.getDate() - 6);
+        
+        const etiquetaSemana = `${inicioSemana.getDate()}/${inicioSemana.getMonth()+1} — ${finSemana.getDate()}/${finSemana.getMonth()+1}`;
+        const estaSemanaActual = semana === 0;
+        
+        html += `
+            <div style="margin-bottom:0.5rem;border:1px solid #eee;border-radius:8px;overflow:hidden;">
+                <button class="titulo-semana" style="width:100%;text-align:left;background:#f8f9fa;border:none;padding:0.7rem 1rem;cursor:pointer;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+                    <span>${estaSemanaActual ? '✅ Esta Semana' : `Semana ${4-semana}`} · ${etiquetaSemana}</span>
+                    <span class="icono-desplegable">${estaSemanaActual ? '▼' : '▶'}</span>
+                </button>
+                <div class="${estaSemanaActual ? '' : 'oculto'}" style="padding:0.8rem 1rem;background:white;">
+                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;text-align:center;">
+        `;
+        
+        // Los 7 días de esta semana
+        for (let i = 0; i < 7; i++) {
+            const fecha = new Date(inicioSemana);
+            fecha.setDate(inicioSemana.getDate() + i);
+            const clave = fecha.toISOString().split('T')[0];
+            const cumplido = habito.dias && habito.dias[clave];
+            const esFuturo = fecha > hoy;
+            
+            html += `
+                <div>
+                    <div style="font-size:0.7rem;color:#636e72;margin-bottom:0.3rem;">${diasSemana[fecha.getDay()]}</div>
+                    ${esFuturo ? `
+                        <div style="width:36px;height:36px;border-radius:8px;background:#f0f0f0;color:#bbb;line-height:36px;">—</div>
+                    ` : `
+                        <button data-habito-id="${habito.id}" data-fecha="${clave}"
+                            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+                            background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};">
+                            ${cumplido ? '✓' : ''}
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+        
+        html += `</div></div></div>`;
+    }
+    
+    return html;
 }
