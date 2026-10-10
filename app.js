@@ -626,7 +626,7 @@ document.addEventListener('click', e => {
     }
 });
 // ==============================================
-// HÁBITOS
+// HÁBITOS 
 // ==============================================
 document.addEventListener('click', async e => {
     // Agregar hábito
@@ -670,8 +670,15 @@ document.addEventListener('click', async e => {
         await db.collection('habitos').doc(id).update({ nombre: nuevoNombre.trim() });
         cargarHabitos();
     }
+
+    // Cargar al hacer clic en la pestaña
+    if (e.target.dataset.pestaña === 'habitos' || 
+        e.target.closest('[data-pestaña="habitos"]')) {
+        setTimeout(cargarHabitos, 50);
+    }
 });
 
+// FUNCIÓN PRINCIPAL
 async function cargarHabitos() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaHabitos');
@@ -696,14 +703,14 @@ async function cargarHabitos() {
         const hoy = new Date();
         const mesActual = hoy.getMonth();
         const añoActual = hoy.getFullYear();
-        const diasEnMes = new Date(añoActual, mesActual + 1, 0).getDate(); // Cantidad de días del mes
-        const primerDia = new Date(añoActual, mesActual, 1).getDay(); // Qué día de la semana empieza el mes
+        const diasEnMes = new Date(añoActual, mesActual + 1, 0).getDate();
+        const primerDia = new Date(añoActual, mesActual, 1).getDay();
 
         snap.forEach(doc => {
             const h = { id: doc.id, ...doc.data() };
             
             lista.innerHTML += `
-                <div style="padding:1.2rem;border-bottom:1px solid #e1e5e9;margin-bottom:1rem;">
+                <div style="padding:1.2rem;border-bottom:1px solid #e1e5e9;margin-bottom:1.5rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
                         <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
                         <div style="display:flex;gap:0.4rem;">
@@ -714,21 +721,17 @@ async function cargarHabitos() {
                         </div>
                     </div>
                     
-                    <!-- Cabecera días de la semana -->
                     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
                         ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#636e72;font-size:0.8rem;">${d}</div>`).join('')}
                     </div>
                     
-                    <!-- Cuadrícula de días del mes -->
                     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
             `;
 
-            // Espacios vacíos antes del primer día del mes
             for (let i = 0; i < primerDia; i++) {
                 lista.innerHTML += `<div></div>`;
             }
 
-            // Cada día del mes
             for (let dia = 1; dia <= diasEnMes; dia++) {
                 const fecha = new Date(añoActual, mesActual, dia);
                 const clave = fecha.toISOString().split('T')[0];
@@ -738,12 +741,12 @@ async function cargarHabitos() {
 
                 lista.innerHTML += `
                     <div style="text-align:center;">
-                        <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy ? 'font-weight:bold;color:#6c5ce7;' : ''}">${dia}</div>
+                        <div style="font-size:0.75rem;color:#999;margin-bottom:0.2rem;${esHoy ? 'font-weight:bold;color:#6c5ce7;' : ''}">${dia}</div>
                         ${esFuturo ? `
-                            <div style="width:34px;height:34px;border-radius:8px;background:#f0f0f0;color:#ccc;line-height:34px;margin:0 auto;">—</div>
+                            <div style="width:36px;height:36px;border-radius:8px;background:#f0f0f0;color:#ccc;line-height:36px;margin:0 auto;">—</div>
                         ` : `
                             <button data-habito-id="${doc.id}" data-fecha="${clave}"
-                                style="width:34px;height:34px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+                                style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
                                 background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};
                                 ${esHoy ? 'box-shadow:0 0 0 2px #6c5ce7;' : ''}">
                                 ${cumplido ? '✓' : ''}
@@ -756,7 +759,7 @@ async function cargarHabitos() {
             lista.innerHTML += `</div></div>`;
         });
 
-        // Conectar botones de días
+        // Conectar botones
         document.querySelectorAll('[data-habito-id]').forEach(boton => {
             boton.addEventListener('click', async () => {
                 const ref = db.collection('habitos').doc(boton.dataset.habitoId);
@@ -776,3 +779,11 @@ async function cargarHabitos() {
         lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
     }
 }
+
+// ✅ CARGA AUTOMÁTICA al iniciar sesión
+const verificarYCargarHabitos = setInterval(() => {
+    if (usuarioActual && document.getElementById('listaHabitos')) {
+        cargarHabitos();
+        clearInterval(verificarYCargarHabitos);
+    }
+}, 300);
