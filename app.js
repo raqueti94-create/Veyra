@@ -673,7 +673,6 @@ async function cargarHabitos() {
             .where('uid', '==', usuarioActual.uid)
             .orderBy('creado', 'desc').get();
 
-        lista.innerHTML = '';
         if (snap.empty) {
             lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
             return;
@@ -685,10 +684,17 @@ async function cargarHabitos() {
         const totalDias = new Date(año, mes + 1, 0).getDate();
         const primerDia = new Date(año, mes, 1).getDay();
 
+        // Clave de fecha LOCAL (toISOString usa UTC y puede cambiar el día)
+        const claveFecha = (a, m, d) =>
+            `${a}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+        let html = '';   // <-- acumulamos todo aquí
+
         snap.forEach(doc => {
             const h = { id: doc.id, ...doc.data() };
 
-            lista.innerHTML += `
+            // Cabecera del hábito + nombres de los días
+            html += `
 <div style="padding:1rem 0;border-bottom:1px solid #eee;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
     <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
@@ -698,53 +704,50 @@ async function cargarHabitos() {
     </div>
   </div>
 
-  <!-- Cabecera días -->
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
-    ${diasSemana.map(d=>`<div style="text-align:center;font-weight:600;color:#666;font-size:0.8rem;">${d}</div>`).join('')}
+    ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#666;font-size:0.8rem;">${d}</div>`).join('')}
   </div>
 
-  <!-- CUADRÍCULA DEL MES -->
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
-`;
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">`;
 
-            // Espacios vacíos
-            for (let i = 0; i < primerDia; i++) lista.innerHTML += `<div></div>`;
+            // Espacios vacíos antes del día 1
+            for (let i = 0; i < primerDia; i++) html += `<div></div>`;
 
             // Días del mes
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fecha = new Date(año, mes, dia);
-                const clave = fecha.toISOString().split('T')[0];
+                const clave = claveFecha(año, mes, dia);
                 const cumplido = h.dias?.[clave];
                 const esFuturo = fecha > hoy;
                 const esHoy = fecha.toDateString() === hoy.toDateString();
 
-                lista.innerHTML += `
+                html += `
     <div style="text-align:center;">
-      <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy?'font-weight:bold;color:#6c5ce7;':''}">${dia}</div>
+      <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy ? 'font-weight:bold;color:#6c5ce7;' : ''}">${dia}</div>
       ${esFuturo
         ? `<div style="width:36px;height:36px;line-height:36px;margin:0 auto;background:#f0f0f0;color:#ccc;border-radius:8px;">—</div>`
-        : `<button data-habito-id="${doc.id}" data-fecha="${clave}" 
+        : `<button data-habito-id="${doc.id}" data-fecha="${clave}"
             style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
-            background:${cumplido?'#00b894':'#e9e9e9'};color:${cumplido?'white':'#333'};
-            ${esHoy?'box-shadow:0 0 0 2px #6c5ce7;':''}">${cumplido?'✓':''}</button>`
+            background:${cumplido ? '#00b894' : '#e9e9e9'};color:${cumplido ? 'white' : '#333'};
+            ${esHoy ? 'box-shadow:0 0 0 2px #6c5ce7;' : ''}">${cumplido ? '✓' : ''}</button>`
       }
-    </div>
-`;
+    </div>`;
             }
 
-            lista.innerHTML += `</div></div>`;
+            html += `</div></div>`;   // cierra el grid de días y la tarjeta
         });
 
-        // Conectar botones
+        lista.innerHTML = html;       // <-- UNA sola asignación
+
+        // Conectar botones de marcar día
         document.querySelectorAll('[data-habito-id]').forEach(b => {
             b.addEventListener('click', async () => {
                 const ref = db.collection('habitos').doc(b.dataset.habitoId);
                 const doc = await ref.get();
                 if (!doc.exists) return;
-                const datos = doc.data();
-                datos.dias = datos.dias || {};
-                datos.dias[b.dataset.fecha] = !datos.dias[b.dataset.fecha];
-                await ref.update({ dias: datos.dias });
+                const dias = doc.data().dias || {};
+                dias[b.dataset.fecha] = !dias[b.dataset.fecha];
+                await ref.update({ dias });
                 cargarHabitos();
             });
         });
@@ -753,11 +756,3 @@ async function cargarHabitos() {
         lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
 }
-
-// Carga automática
-const esperarHabitos = setInterval(() => {
-    if (usuarioActual && document.getElementById('listaHabitos')) {
-        cargarHabitos();
-        clearInterval(esperarHabitos);
-    }
-}, 300);
