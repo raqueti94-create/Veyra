@@ -466,17 +466,21 @@ el('btnExportarPDF').addEventListener('click', () => {
 });
 
 // ===== COMPARTIR =====
-el('btnCompartirWsp').addEventListener('click', () => {
-    const enlace = window.location.href;
-    const texto = encodeURIComponent('Mira mi app de control de finanzas: ' + enlace);
-    window.open(`https://wa.me/?text=${texto}`, '_blank');
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'btnCompartirWsp') {
+        const enlace = window.location.href;
+        const texto = encodeURIComponent('Mira mi app de control de finanzas: ' + enlace);
+        window.open(`https://wa.me/?text=${texto}`, '_blank');
+    }
 });
 
-el('btnCopiarEnlace').addEventListener('click', async () => {
-    try {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('¡Enlace copiado! ✅');
-    } catch {
-        alert('No se pudo copiar automáticamente. Copia la dirección desde la barra del navegador.');
+document.addEventListener('click', async function(e) {
+    if (e.target.id === 'btnCopiarEnlace') {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            alert('¡Enlace copiado! ✅');
+        } catch {
+            alert('No se pudo copiar automáticamente. Copia la dirección desde la barra del navegador.');
+        }
     }
 });
