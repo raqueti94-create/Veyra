@@ -110,6 +110,8 @@ auth.onAuthStateChanged(usuario => {
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.remove('oculto');
         
         cargarMovimientos();
+        cargarMetas();
+        cargarHabitos(); 
     } else {
         usuarioActual = null;
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.add('oculto');
@@ -492,19 +494,18 @@ document.addEventListener('click', async e => {
         const nombre = document.getElementById('nombreMeta').value.trim();
         const monto = parseFloat(document.getElementById('montoMeta').value);
         
-        if (!nombre || isNaN(monto) || monto < 1000) {
-            alert('Escribe un nombre y un monto válido (mínimo $1.000)');
+        if (!nombre || !monto || monto <= 0) {
+            alert('Completa todos los datos correctamente');
             return;
         }
 
         try {
             await db.collection('metas').add({
-                uid: usuarioActual.uid,
+                userId: usuarioActual.uid,
                 nombre,
-                montoMeta: monto,
-                montoAhorrado: 0,
-                completada: false,
-                fechaCreacion: new Date().toISOString()
+                montoTotal: monto,
+                ahorrado: 0,
+                creado: new Date().toISOString()
             });
             
             document.getElementById('nombreMeta').value = '';
@@ -515,116 +516,127 @@ document.addEventListener('click', async e => {
         }
     }
 
+    // Agregar ahorro a meta
+    if (e.target.id === 'btnConfirmarAhorro') {
+        if (!usuarioActual) return;
+        const metaId = document.getElementById('modalAgregarAhorro').dataset.metaId;
+        const monto = parseFloat(document.getElementById('montoAhorro').value);
+        
+        if (!monto || monto <= 0) {
+            alert('Ingresa un monto válido');
+            return;
+        }
+
+        try {
+            const ref = db.collection('metas').doc(metaId);
+            const doc = await ref.get();
+            if (!doc.exists) return;
+            
+            const actual = doc.data();
+            await ref.update({
+                ahorrado: (actual.ahorrado || 0) + monto
+            });
+            
+            cerrarModalAhorro();
+            cargarMetas();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    }
+
     // Eliminar meta
     if (e.target.classList.contains('btn-eliminar-meta')) {
-        if (!confirm('¿Eliminar esta meta? No se puede deshacer.')) return;
-        const id = e.target.dataset.id;
-        await db.collection('metas').doc(id).delete();
+        if (!confirm('¿Eliminar esta meta?')) return;
+        await db.collection('metas').doc(e.target.dataset.id).delete();
         cargarMetas();
     }
 
-    // Editar nombre de meta
-    if (e.target.classList.contains('btn-editar-meta')) {
-        const id = e.target.dataset.id;
-        const nuevoNombre = prompt('Nuevo nombre de la meta:');
-        if (!nuevoNombre || !nuevoNombre.trim()) return;
-        await db.collection('metas').doc(id).update({ nombre: nuevoNombre.trim() });
-        cargarMetas();
+    // Abrir modal para agregar ahorro
+    if (e.target.classList.contains('btn-agregar-ahorro')) {
+        document.getElementById('modalAgregarAhorro').dataset.metaId = e.target.dataset.id;
+        document.getElementById('nombreMetaModal').textContent = e.target.dataset.nombre;
+        document.getElementById('montoAhorro').value = '';
+        document.getElementById('modalAgregarAhorro').classList.remove('oculto');
+    }
+
+    // Cerrar modal
+    if (e.target.id === 'btnCancelarAhorro' || e.target.id === 'modalAgregarAhorro') {
+        cerrarModalAhorro();
+    }
+
+    // Cargar metas al entrar a la pestaña
+    if (e.target.dataset.pestaña === 'ahorro' || 
+        e.target.closest('[data-pestaña="ahorro"]')) {
+        setTimeout(cargarMetas, 50);
     }
 });
+
+function cerrarModalAhorro() {
+    document.getElementById('modalAgregarAhorro').classList.add('oculto');
+    document.getElementById('montoAhorro').value = '';
+}
 
 async function cargarMetas() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaMetas');
     if (!lista) return;
-    
-    lista.innerHTML = '<p>Cargando...</p>';
-    
+
+    lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:1rem;">Cargando metas...</p>';
+
     try {
         const snap = await db.collection('metas')
-            .where('uid', '==', usuarioActual.uid)
-            .orderBy('fechaCreacion', 'desc')
+            .where('userId', '==', usuarioActual.uid)
+            .orderBy('creado', 'desc')
             .get();
 
-        lista.innerHTML = '';
         if (snap.empty) {
-            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>';
+            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>';
             return;
         }
 
+        let html = ''; // ✅ Acumulamos todo en una sola variable
+
         snap.forEach(doc => {
-            const meta = { id: doc.id, ...doc.data() };
-            const porcentaje = Math.min(100, Math.round((meta.montoAhorrado / meta.montoMeta) * 100));
+            const m = { id: doc.id, ...doc.data() };
+            const porcentaje = Math.min(100, ((m.ahorrado || 0) / m.montoTotal) * 100);
+            const faltante = m.montoTotal - (m.ahorrado || 0);
 
-            lista.innerHTML += `
-                <div style="padding:1rem;border:1px solid #e1e5e9;border-radius:12px;margin-bottom:1rem;">
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                        <h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;">${meta.nombre} ${meta.completada ? '✅ ¡Meta cumplida!' : ''}</h4>
-                        <div style="display:flex;gap:0.4rem;">
-                            <button data-id="${doc.id}" class="btn-editar-meta" title="Editar nombre" 
-                                style="background:none;border:none;cursor:pointer;font-size:1rem;">✏️</button>
-                            <button data-id="${doc.id}" class="btn-eliminar-meta" title="Eliminar" 
-                                style="background:none;border:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
-                        </div>
-                    </div>
-                    <p style="margin:0.3rem 0;">Ahorrado: <strong>${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoAhorrado)}</strong> de ${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoMeta)}</p>
-                    <div style="background:#e1e5e9;height:12px;border-radius:6px;overflow:hidden;margin:0.8rem 0;">
-                        <div style="width:${porcentaje}%;background:#6c5ce7;height:100%;color:white;text-align:center;font-size:0.75rem;line-height:12px;font-weight:600;">
-                            ${porcentaje}%
-                        </div>
-                    </div>
-                    ${!meta.completada ? `
-                        <button data-meta-id="${doc.id}" data-meta-nombre="${meta.nombre}" 
-                            style="background:#00b894;color:white;border:none;padding:0.6rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;">
-                            💰 Agregar Ahorro
-                        </button>
-                    ` : ''}
-                </div>`;
+            html += `
+<div class="bloque" style="margin-bottom:1rem;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+    <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${m.nombre}</h4>
+    <button data-id="${doc.id}" class="btn-eliminar-meta" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#e17055;" title="Eliminar">🗑️</button>
+  </div>
+  
+  <p style="margin:0.5rem 0;">Total: <strong>$ ${m.montoTotal.toLocaleString()}</strong></p>
+  <p style="margin:0.5rem 0;">Ahorrado: <span style="color:#00b894;font-weight:bold;">$ ${(m.ahorrado || 0).toLocaleString()}</span></p>
+  <p style="margin:0.5rem 0;">Falta: <span style="color:#e17055;font-weight:bold;">$ ${Math.max(0, faltante).toLocaleString()}</span></p>
+  
+  <div class="barra-fondo" style="margin:1rem 0;">
+    <div class="barra-lleno" style="width:${porcentaje}%;">${porcentaje.toFixed(0)}%</div>
+  </div>
+  
+  <button data-id="${doc.id}" data-nombre="${m.nombre}" class="btn-agregar-ahorro btn btn-primario" style="width:auto;padding:0.7rem 1.5rem;margin-top:0.5rem;">
+    💰 Agregar Ahorro
+  </button>
+</div>
+`;
         });
 
-        // Conectar botones de agregar ahorro
-        document.querySelectorAll('[data-meta-id]').forEach(boton => {
-            boton.addEventListener('click', () => {
-                window.metaSeleccionadaId = boton.dataset.metaId;
-                const modalNombre = document.getElementById('nombreMetaModal');
-                if (modalNombre) modalNombre.textContent = boton.dataset.metaNombre;
-                const modal = document.getElementById('modalAgregarAhorro');
-                if (modal) modal.classList.remove('oculto');
-            });
-        });
+        lista.innerHTML = html; // ✅ Una sola asignación al final
 
     } catch (err) {
-        lista.innerHTML = `<p style="color:#e17055;">Error: ${err.message}</p>`;
+        lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
 }
 
-// Modal agregar ahorro
-document.addEventListener('click', e => {
-    if (e.target.id === 'btnCancelarAhorro') {
-        const modal = document.getElementById('modalAgregarAhorro');
-        if (modal) modal.classList.add('oculto');
-        window.metaSeleccionadaId = null;
+// ✅ CARGA AUTOMÁTICA al recargar la página
+const verificarMetas = setInterval(() => {
+    if (usuarioActual && document.getElementById('listaMetas')) {
+        cargarMetas();
+        clearInterval(verificarMetas);
     }
-    if (e.target.id === 'btnConfirmarAhorro') {
-        const monto = parseFloat(document.getElementById('montoAhorro').value);
-        if (!monto || monto <= 0) {
-            alert('Ingresa un monto válido');
-            return;
-        }
-        db.collection('metas').doc(window.metaSeleccionadaId).get().then(doc => {
-            if (!doc.exists) return;
-            const datos = doc.data();
-            const nuevoAhorrado = datos.montoAhorrado + monto;
-            const completada = nuevoAhorrado >= datos.montoMeta;
-            return doc.ref.update({ montoAhorrado: nuevoAhorrado, completada });
-        }).then(() => {
-            const modal = document.getElementById('modalAgregarAhorro');
-            if (modal) modal.classList.add('oculto');
-            alert('✅ ¡Ahorro guardado!');
-            cargarMetas();
-        }).catch(err => alert('Error: ' + err.message));
-    }
-});
+}, 300);
 // ==============================================
 // HÁBITOS 
 // ==============================================
