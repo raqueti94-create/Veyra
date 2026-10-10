@@ -450,7 +450,7 @@ el('btnExportarPDF').addEventListener('click', () => {
         pageMargins: [40, 40, 40, 40]
     };
 
-    pdfmake.createPdf(docDefinicion).download(`Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.pdf`);
+    pdfMake.createPdf(docDefinicion).download(`Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.pdf`);
 });
 
 // ===== COMPARTIR =====
