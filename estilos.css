@@ -823,3 +823,9 @@ button:disabled {
     color: #ccc;
     font-size: 0.8rem;
 }
+/* ===== CORRECCIÓN FINAL CUADRÍCULA HÁBITOS ===== */
+.habito-mes {
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
