@@ -671,14 +671,13 @@ document.addEventListener('click', async e => {
         cargarHabitos();
     }
 
-    // Cargar al hacer clic en la pestaña
+    // Cargar al entrar a la pestaña
     if (e.target.dataset.pestaña === 'habitos' || 
         e.target.closest('[data-pestaña="habitos"]')) {
         setTimeout(cargarHabitos, 50);
     }
 });
 
-// FUNCIÓN PRINCIPAL
 async function cargarHabitos() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaHabitos');
@@ -721,17 +720,21 @@ async function cargarHabitos() {
                         </div>
                     </div>
                     
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
-                        ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#636e72;font-size:0.8rem;">${d}</div>`).join('')}
+                    <!-- Cabecera días de la semana -->
+                    <div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:0.5rem;margin-bottom:0.5rem;">
+                        ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#636e72;font-size:0.85rem;">${d}</div>`).join('')}
                     </div>
                     
-                    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
+                    <!-- CUADRÍCULA DEL MES — 7 columnas en fila horizontal -->
+                    <div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:0.5rem;width:100%;">
             `;
 
+            // Espacios vacíos antes del día 1
             for (let i = 0; i < primerDia; i++) {
                 lista.innerHTML += `<div></div>`;
             }
 
+            // Cada día del mes
             for (let dia = 1; dia <= diasEnMes; dia++) {
                 const fecha = new Date(añoActual, mesActual, dia);
                 const clave = fecha.toISOString().split('T')[0];
@@ -748,7 +751,7 @@ async function cargarHabitos() {
                             <button data-habito-id="${doc.id}" data-fecha="${clave}"
                                 style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
                                 background:${cumplido ? '#00b894' : '#e1e5e9'};color:${cumplido ? 'white' : '#2d3436'};
-                                ${esHoy ? 'box-shadow:0 0 0 2px #6c5ce7;' : ''}">
+                                ${esHoy ? 'box-shadow:0 0 0 2px #6c5ce7;' : ''};display:inline-block;">
                                 ${cumplido ? '✓' : ''}
                             </button>
                         `}
@@ -780,7 +783,7 @@ async function cargarHabitos() {
     }
 }
 
-// ✅ CARGA AUTOMÁTICA al iniciar sesión
+// Carga automática al iniciar sesión
 const verificarYCargarHabitos = setInterval(() => {
     if (usuarioActual && document.getElementById('listaHabitos')) {
         cargarHabitos();
