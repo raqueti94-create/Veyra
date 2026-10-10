@@ -629,7 +629,6 @@ document.addEventListener('click', e => {
 // HÁBITOS 
 // ==============================================
 document.addEventListener('click', async e => {
-    // Agregar hábito
     if (e.target.id === 'btnAgregarHabito') {
         if (!usuarioActual) return;
         const nombre = document.getElementById('nombreHabito').value.trim();
@@ -644,24 +643,20 @@ document.addEventListener('click', async e => {
         } catch (err) { alert('Error: ' + err.message); }
     }
 
-    // Eliminar hábito
     if (e.target.classList.contains('btn-eliminar-habito')) {
-        if (!confirm('¿Eliminar este hábito? Se perderán todos tus registros.')) return;
+        if (!confirm('¿Eliminar este hábito?')) return;
         await db.collection('habitos').doc(e.target.dataset.id).delete();
         cargarHabitos();
     }
 
-    // Editar nombre
     if (e.target.classList.contains('btn-editar-habito')) {
-        const nuevoNombre = prompt('Nuevo nombre del hábito:');
+        const nuevoNombre = prompt('Nuevo nombre:');
         if (!nuevoNombre || !nuevoNombre.trim()) return;
         await db.collection('habitos').doc(e.target.dataset.id).update({ nombre: nuevoNombre.trim() });
         cargarHabitos();
     }
 
-    // Cargar al entrar a la pestaña
-    if (e.target.dataset.pestaña === 'habitos' || 
-        e.target.closest('[data-pestaña="habitos"]')) {
+    if (e.target.dataset.pestaña === 'habitos' || e.target.closest('[data-pestaña="habitos"]')) {
         setTimeout(cargarHabitos, 50);
     }
 });
@@ -671,7 +666,7 @@ async function cargarHabitos() {
     const lista = document.getElementById('listaHabitos');
     if (!lista) return;
 
-    lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Cargando hábitos...</p>';
+    lista.innerHTML = '<p style="text-align:center;padding:1rem;">Cargando...</p>';
 
     try {
         const snap = await db.collection('habitos')
@@ -680,7 +675,7 @@ async function cargarHabitos() {
 
         lista.innerHTML = '';
         if (snap.empty) {
-            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
+            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
             return;
         }
 
@@ -694,30 +689,28 @@ async function cargarHabitos() {
             const h = { id: doc.id, ...doc.data() };
 
             lista.innerHTML += `
-<div class="habito-tarjeta">
-  <div class="habito-cabecera">
-    <h4>${h.nombre}</h4>
-    <div class="habito-acciones">
-      <button data-id="${doc.id}" class="btn-editar-habito" title="Editar nombre">✏️</button>
-      <button data-id="${doc.id}" class="btn-eliminar-habito" title="Eliminar">🗑️</button>
+<div style="padding:1rem 0;border-bottom:1px solid #eee;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
+    <div style="display:flex;gap:0.5rem;">
+      <button data-id="${doc.id}" class="btn-editar-habito" style="border:none;background:none;cursor:pointer;font-size:1rem;">✏️</button>
+      <button data-id="${doc.id}" class="btn-eliminar-habito" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
     </div>
   </div>
 
-  <!-- Cabecera días de la semana -->
-  <div class="habito-semana">
-    ${diasSemana.map(d => `<div>${d}</div>`).join('')}
+  <!-- Cabecera días -->
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
+    ${diasSemana.map(d=>`<div style="text-align:center;font-weight:600;color:#666;font-size:0.8rem;">${d}</div>`).join('')}
   </div>
 
-  <!-- CUADRÍCULA DEL MES — Usando tu CSS ✅ -->
-  <div class="habito-mes">
+  <!-- CUADRÍCULA DEL MES -->
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
 `;
 
-            // Espacios vacíos antes del día 1
-            for (let i = 0; i < primerDia; i++) {
-                lista.innerHTML += `<div class="habito-dia-vacio"></div>`;
-            }
+            // Espacios vacíos
+            for (let i = 0; i < primerDia; i++) lista.innerHTML += `<div></div>`;
 
-            // Cada día del mes
+            // Días del mes
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fecha = new Date(año, mes, dia);
                 const clave = fecha.toISOString().split('T')[0];
@@ -726,14 +719,14 @@ async function cargarHabitos() {
                 const esHoy = fecha.toDateString() === hoy.toDateString();
 
                 lista.innerHTML += `
-    <div class="habito-dia">
-      <div class="habito-numero ${esHoy ? 'habito-hoy' : ''}">${dia}</div>
+    <div style="text-align:center;">
+      <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy?'font-weight:bold;color:#6c5ce7;':''}">${dia}</div>
       ${esFuturo
-        ? `<div class="habito-futuro">—</div>`
+        ? `<div style="width:36px;height:36px;line-height:36px;margin:0 auto;background:#f0f0f0;color:#ccc;border-radius:8px;">—</div>`
         : `<button data-habito-id="${doc.id}" data-fecha="${clave}" 
-            class="habito-marca ${cumplido ? 'cumplido' : ''} ${esHoy ? 'es-hoy' : ''}">
-            ${cumplido ? '✓' : ''}
-          </button>`
+            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+            background:${cumplido?'#00b894':'#e9e9e9'};color:${cumplido?'white':'#333'};
+            ${esHoy?'box-shadow:0 0 0 2px #6c5ce7;':''}">${cumplido?'✓':''}</button>`
       }
     </div>
 `;
@@ -743,28 +736,28 @@ async function cargarHabitos() {
         });
 
         // Conectar botones
-        document.querySelectorAll('[data-habito-id]').forEach(boton => {
-            boton.addEventListener('click', async () => {
-                const ref = db.collection('habitos').doc(boton.dataset.habitoId);
+        document.querySelectorAll('[data-habito-id]').forEach(b => {
+            b.addEventListener('click', async () => {
+                const ref = db.collection('habitos').doc(b.dataset.habitoId);
                 const doc = await ref.get();
                 if (!doc.exists) return;
                 const datos = doc.data();
                 datos.dias = datos.dias || {};
-                datos.dias[boton.dataset.fecha] = !datos.dias[boton.dataset.fecha];
+                datos.dias[b.dataset.fecha] = !datos.dias[b.dataset.fecha];
                 await ref.update({ dias: datos.dias });
                 cargarHabitos();
             });
         });
 
     } catch (err) {
-        lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
+        lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
 }
 
 // Carga automática
-const verificarYCargarHabitos = setInterval(() => {
+const esperarHabitos = setInterval(() => {
     if (usuarioActual && document.getElementById('listaHabitos')) {
         cargarHabitos();
-        clearInterval(verificarYCargarHabitos);
+        clearInterval(esperarHabitos);
     }
 }, 300);
