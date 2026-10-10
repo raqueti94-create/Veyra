@@ -100,26 +100,23 @@ el('btnIngresar').addEventListener('click', async () => {
 
 // ===== OBSERVADOR DE SESIÓN =====
 auth.onAuthStateChanged(usuario => {
-    el('pantallaCarga').classList.add('oculto');
     if (usuario) {
         usuarioActual = usuario;
         const nombre = usuario.displayName || usuario.email.split('@')[0];
-        el('nombreUsuario').textContent = nombre;
-        el('pantallaLogin').classList.add('oculto');
-        el('pantallaPrincipal').classList.remove('oculto');
+        
+        // Verificamos que CADA elemento exista antes de usarlo ✅
+        if (el('nombreUsuario')) el('nombreUsuario').textContent = nombre;
+        if (el('pantallaLogin')) el('pantallaLogin').classList.add('oculto');
+        if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.remove('oculto');
+        
         cargarMovimientos();
     } else {
         usuarioActual = null;
-        el('pantallaPrincipal').classList.add('oculto');
-        el('pantallaLogin').classList.remove('oculto');
-        el('campoNombre').style.display = 'none';
-        esRegistro = false;
-        el('tituloLogin').textContent = 'Mis Finanzas';
-        el('subtituloLogin').textContent = 'Ingresa para continuar';
-        el('btnIngresar').textContent = 'Ingresar';
-        el('btnCambiarModo').textContent = '¿No tienes cuenta? Crear una';
+        if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.add('oculto');
+        if (el('pantallaLogin')) el('pantallaLogin').classList.remove('oculto');
     }
 });
+
 
 // ===== CAMBIAR NOMBRE =====
 el('btnCambiarNombre').addEventListener('click', () => {
