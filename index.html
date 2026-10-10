@@ -3,557 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Control de Gastos e Ingresos</title>
-
+    <title>💰 Veyra - Control de Finanzas</title>
+    
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
-    <!-- Chart.js -->
+    <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    
-    <!-- Exportar -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
 
     <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-}
-:root {
-    --primario: #6c5ce7;
-    --exito: #00b894;
-    --peligro: #e17055;
-    --fondo: #f8f9fa;
-    --texto: #2d3436;
-    --texto-claro: #636e72;
-    --borde: #e1e5e9;
-    --sombra: 0 4px 20px rgba(0,0,0,0.08);
-    --transicion: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-body {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: var(--texto);
-    line-height: 1.6;
-}
-.pantalla-carga {
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-.pantalla-carga.oculto { opacity: 0; visibility: hidden; }
-.spinner {
-    width: 50px; height: 50px;
-    border: 4px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: girar 1s linear infinite;
-    margin-bottom: 1rem;
-}
-@keyframes girar { to { transform: rotate(360deg); } }
-.pantalla-carga p { color: white; font-size: 1.1rem; }
-.oculto { display: none !important; visibility: hidden !important; opacity: 1 !important; height: 0 !important; overflow: hidden !important; position: absolute !important; pointer-events: none !important; }
-.aparecer { animation: aparecer 0.4s ease forwards; opacity: 0; transform: translateY(15px); }
-@keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
-.pantalla-login {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #fd79a8 100%);
-}
-.caja-login {
-    background: white;
-    padding: 2rem;
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    width: 100%; max-width: 420px;
-    animation: aparecer 0.5s ease forwards;
-    transform: translateY(20px); opacity: 0;
-}
-.icono-app { font-size: 4rem; text-align: center; margin-bottom: 0.5rem; display: block; }
-.caja-login h1 { text-align: center; color: var(--primario); margin-bottom: 0.5rem; font-size: 2rem; font-weight: 700; }
-.subtitulo { text-align: center; color: var(--texto-claro); margin-bottom: 1.5rem; font-size: 1rem; }
-.grupo-input { margin-bottom: 1rem; }
-.grupo-input label { display: block; margin-bottom: 0.4rem; font-weight: 600; color: var(--texto); font-size: 0.9rem; }
-.grupo-input input {
-    width: 100%;
-    padding: 0.9rem 1rem;
-    border: 2px solid var(--borde);
-    border-radius: 12px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: #fafbfc;
-}
-.grupo-input input:focus {
-    outline: none;
-    border-color: var(--primario);
-    background: white;
-    box-shadow: 0 0 0 4px rgba(108,92,231,0.15);
-}
-.error {
-    color: var(--peligro);
-    margin: 0.8rem 0;
-    text-align: center;
-    font-weight: 500;
-    min-height: 1.5rem;
-}
-.fila-botones { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1rem; }
-.boton-principal {
-    width: 100%;
-    padding: 1rem;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: white;
-    box-shadow: 0 6px 20px rgba(108,92,231,0.4);
-}
-.boton-principal:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(108,92,231,0.5); }
-.boton-secundario {
-    width: 100%;
-    padding: 0.9rem;
-    border: 2px solid #6c5ce7;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
-    color: #6c5ce7;
-}
-.boton-secundario:hover { background: #6c5ce7; color: white; }
-.pantalla-principal { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-.cabecera {
-    background: white;
-    padding: 1.25rem;
-    border-radius: 16px;
-    box-shadow: var(--sombra);
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.cabecera h2 { font-size: 1.1rem; color: var(--primario); }
-.contenedor-botones-cabecera {
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-}
-.boton-cabecera {
-    background: transparent;
-    border: 2px solid;
-    border-radius: 10px;
-    padding: 0.6rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transicion);
-}
-.btn-cambiar-nombre {
-    border-color: var(--primario);
-    color: var(--primario);
-}
-.btn-cambiar-nombre:hover {
-    background: var(--primario);
-    color: white;
-    transform: translateY(-2px);
-}
-.btn-cerrar-sesion {
-    border-color: var(--peligro);
-    color: var(--peligro);
-}
-.btn-cerrar-sesion:hover {
-    background: var(--peligro);
-    color: white;
-    transform: translateY(-2px);
-}
-.navegacion { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
-.pestaña {
-    padding: 0.7rem 1.1rem;
-    background: rgba(255,255,255,0.2);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: var(--transicion);
-}
-.pestaña.activa { background: white; color: var(--primario); font-weight: 600; box-shadow: var(--sombra); }
-.pestaña:hover:not(.activa) { background: rgba(255,255,255,0.3); }
-.bloque {
-    background: white;
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1.2rem;
-    box-shadow: var(--sombra);
-}
-.bloque h3 { margin-bottom: 1rem; color: var(--primario); display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; }
-.fila-doble { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.valor-grande { font-size: 1.6rem; font-weight: 700; }
-.positivo { color: var(--exito); }
-.negativo { color: var(--peligro); }
-.selector-tipo {
-    display: flex;
-    gap: 1rem;
-    margin: 1.2rem 0;
-}
-.btn-tipo-ingreso, .btn-tipo-gasto {
-    flex: 1;
-    padding: 0.9rem 1rem;
-    border: 2px solid var(--borde);
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
-    color: var(--texto-claro);
-}
-.btn-tipo-ingreso.activo { border-color: var(--exito); background: linear-gradient(135deg, #00b894 0%, #55efc4 100%); color: white; box-shadow: 0 4px 12px rgba(0,184,148,0.35); }
-.btn-tipo-gasto.activo { border-color: var(--peligro); background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%); color: white; box-shadow: 0 4px 12px rgba(225,112,85,0.35); }
-.btn-tipo-ingreso:not(.activo):hover { border-color: var(--exito); color: var(--exito); background: #e8f5e9; }
-.btn-tipo-gasto:not(.activo):hover { border-color: var(--peligro); color: var(--peligro); background: #fff0f0; }
-.campos-formulario { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.campo-dato { flex: 1; min-width: 140px; padding: 0.85rem 1rem; border: 2px solid var(--borde); border-radius: 10px; font-size: 0.95rem; }
-.btn-guardar-movimiento {
-    width: 100%;
-    padding: 1rem;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: white;
-    box-shadow: 0 6px 16px rgba(108,92,231,0.35);
-}
-.btn-guardar-movimiento:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(108,92,231,0.45); }
-.movimiento {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--borde);
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-.info-mov { flex: 1; min-width: 160px; }
-.descripcion { font-weight: 600; }
-.fecha { font-size: 0.8rem; color: var(--texto-claro); margin-top: 0.2rem; }
-.valor-botones { display: flex; align-items: center; gap: 0.8rem; }
-.valor { font-weight: 700; font-size: 1rem; }
-.acciones { display: flex; gap: 0.4rem; }
-.btn-accion {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
-    transition: var(--transicion);
-    font-size: 1rem;
-}
-.btn-accion:hover { background: #e1e5e9; }
-.btn-editar:hover { background: #d4edda; color: #155724; }
-.btn-eliminar:hover { background: #f8d7da; color: #a71d2a; }
-.botones-compartir, .botones-exportar { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
-.btn-whatsapp {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
-    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
-}
-.btn-whatsapp:hover { transform: translateY(-2px); }
-.btn-copiar {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
-    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
-}
-.btn-copiar:hover { transform: translateY(-2px); }
-.btn-excel {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
-    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
-}
-.btn-excel:hover { transform: translateY(-2px); }
-.btn-pdf {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white; border: none; padding: 0.9rem 1.5rem; border-radius: 10px;
-    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
-}
-.btn-pdf:hover { transform: translateY(-2px); }
-.enlace-registro {
-    text-align: center;
-    margin-top: 1rem;
-}
-.btn-registro {
-    background: none;
-    border: none;
-    color: var(--primario);
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-    font-size: 0.95rem;
-}
-.modal-fondo {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-    padding: 1rem;
-}
-.modal-fondo.oculto { display: none; }
-.modal-contenido {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    max-width: 420px;
-    width: 100%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-.modal-contenido h3 {
-    text-align: center;
-    color: var(--primario);
-    margin-bottom: 1.5rem;
-}
-.modal-contenido input {
-    width: 100%;
-    padding: 0.9rem 1rem;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 1rem;
-    margin-bottom: 1.2rem;
-}
-.modal-contenido input:focus {
-    outline: none;
-    border-color: var(--primario);
-    box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
-}
-.botones-modal {
-    display: flex;
-    gap: 0.8rem;
-    justify-content: flex-end;
-}
-.btn-cancelar-modal {
-    background: #e1e5e9;
-    color: var(--texto);
-    border: none;
-    padding: 0.7rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.btn-guardar-modal {
-    background: var(--primario);
-    color: white;
-    border: none;
-    padding: 0.7rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.contenedor-grafico {
-    position: relative;
-    height: 320px;
-    margin-top: 1rem;
-    padding: 0.5rem;
-}
-.selector-grafico {
-    display: flex;
-    gap: 0.6rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-.btn-tipo-grafico {
-    padding: 0.6rem 1rem;
-    border: 2px solid var(--borde);
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.25s ease;
-    color: var(--texto-claro);
-}
-.btn-tipo-grafico.activo {
-    border-color: var(--primario);
-    background: var(--primario);
-    color: white;
-}
-@media (max-width: 768px) {
-    .fila-doble { grid-template-columns: 1fr; }
-    .selector-tipo { flex-direction: column; }
-    .cabecera { flex-direction: column; text-align: center; }
-    .contenedor-botones-cabecera { width: 100%; justify-content: center; }
-    .contenedor-grafico { height: 260px; }
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root {
+            --primario: #6c5ce7;
+            --exito: #00b894;
+            --peligro: #e17055;
+            --fondo: #f8f9fa;
+            --texto: #2d3436;
+            --texto-claro: #636e72;
+            --borde: #e1e5e9;
+            --sombra: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        body { background: var(--fondo); color: var(--texto); min-height: 100vh; }
+        .oculto { display: none !important; }
+
+        /* PANTALLA LOGIN */
+        .pantalla-login {
+            max-width: 420px; margin: 0 auto; padding: 2rem;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white; border-radius: 16px; box-shadow: var(--sombra);
+        }
+        .titulo { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
+        .subtitulo { text-align: center; color: var(--texto-claro); margin-bottom: 2rem; }
+        .campo {
+            width: 100%; padding: 0.9rem; margin: 0.5rem 0;
+            border: 1px solid var(--borde); border-radius: 10px; font-size: 1rem;
+        }
+        .btn {
+            width: 100%; padding: 0.9rem; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primario { background: var(--primario); color: white; margin-top: 0.5rem; }
+        .btn-primario:hover { background: #5549d1; }
+        .btn-secundario { background: transparent; color: var(--primario); margin-top: 1rem; }
+        .error { color: var(--peligro); margin-top: 0.5rem; text-align: center; min-height: 1.5rem; }
+
+        /* CABECERA */
+        .cabecera {
+            background: white; padding: 1rem 2rem; box-shadow: var(--sombra);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--primario); }
+        .usuario { display: flex; gap: 0.8rem; align-items: center; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.9rem; width: auto; }
+
+        /* NAVEGACIÓN */
+        .navegacion {
+            display: flex; gap: 0.5rem; padding: 1rem 2rem; flex-wrap: wrap;
+        }
+        .pestaña {
+            padding: 0.7rem 1.2rem; border: none; background: white; border-radius: 10px;
+            cursor: pointer; font-weight: 500; color: var(--texto-claro);
+        }
+        .pestaña.activa {
+            background: var(--primario); color: white; box-shadow: 0 4px 12px rgba(108,92,231,0.3);
+        }
+
+        /* CONTENIDO */
+        .contenido { padding: 0 2rem 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
+        .bloque {
+            background: white; padding: 1.5rem; border-radius: 16px;
+            box-shadow: var(--sombra); margin-bottom: 1.5rem;
+        }
+        .fila { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .btn-ingreso { background: var(--exito); color: white; }
+        .btn-gasto { background: var(--peligro); color: white; }
+        .btn-ingreso.activo, .btn-gasto.activo { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5); }
+        .positivo { color: var(--exito); font-weight: 700; }
+        .negativo { color: var(--peligro); font-weight: 700; }
+        .lista { margin-top: 1rem; }
+        .item { padding: 0.8rem 0; border-bottom: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; }
+        .barra-fondo { background: var(--borde); height: 12px; border-radius: 6px; overflow: hidden; margin: 0.8rem 0; }
+        .barra-lleno { height: 100%; background: var(--primario); color: white; text-align: center; font-size: 0.75rem; line-height: 12px; font-weight: 600; transition: width 0.3s; }
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200;
+        }
+        .modal-contenido {
+            background: white; padding: 2rem; border-radius: 16px; max-width: 400px; width: 90%;
+        }
+        .modal-botones { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+        .btn-cancelar { background: var(--borde); color: var(--texto); }
+        .btn-guardar { background: var(--exito); color: white; }
+        .btn-compartir { background: #25D366; color: white; }
+        .btn-copiar { background: var(--primario); color: white; }
+        .grafico { height: 300px; margin: 1rem 0; }
+        .fila-botones { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 
-<div class="pantalla-carga" id="pantallaCarga">
-    <div class="spinner"></div>
-    <p>Iniciando...</p>
-</div>
-
-<div class="pantalla-login oculto" id="pantallaLogin">
-    <div class="caja-login">
-        <span class="icono-app">💰</span>
-        <h1 id="tituloLogin">Mis Finanzas</h1>
-        <p class="subtitulo" id="subtituloLogin">Ingresa tus datos para acceder</p>
-
-        <div class="grupo-input">
-            <label for="inputCorreo">Correo electrónico</label>
-            <input type="email" id="inputCorreo" placeholder="tu@correo.com">
-        </div>
-
-        <div class="grupo-input" id="campoNombre">
-            <label for="inputNombre">Tu Nombre</label>
-            <input type="text" id="inputNombre" placeholder="Escribe tu nombre">
-        </div>
-
-        <div class="grupo-input">
-            <label for="inputContraseña">Contraseña</label>
-            <input type="password" id="inputContraseña" placeholder="Mínimo 6 caracteres">
-        </div>
-
-        <p class="error" id="errorLogin"></p>
-
-        <div class="fila-botones">
-            <button class="boton-principal" id="btnIngresar">Ingresar</button>
-        </div>
-
-        <div class="enlace-registro">
-            <button class="btn-registro" id="btnCambiarModo">¿No tienes cuenta? Crear una</button>
-        </div>
+<!-- PANTALLA LOGIN -->
+<div id="pantallaLogin" class="pantalla-login">
+    <h1 class="titulo" id="tituloLogin">📊 Veyra</h1>
+    <p class="subtitulo" id="subtituloLogin">Ingresa para continuar</p>
+    
+    <div id="campoNombre" class="oculto">
+        <input type="text" id="inputNombre" class="campo" placeholder="Tu nombre completo">
     </div>
+    <input type="email" id="inputCorreo" class="campo" placeholder="correo@ejemplo.com">
+    <input type="password" id="inputContraseña" class="campo" placeholder="Contraseña">
+    
+    <button id="btnIngresar" class="btn btn-primario">Ingresar</button>
+    <p id="errorLogin" class="error"></p>
+    
+    <button id="btnCambiarModo" class="btn btn-secundario">¿No tienes cuenta? Crear una</button>
 </div>
 
-<div class="pantalla-principal oculto" id="pantallaPrincipal">
+<!-- PANTALLA PRINCIPAL -->
+<div id="pantallaPrincipal" class="oculto">
+    <!-- CABECERA -->
     <header class="cabecera">
-        <div>
-            <h2>👋 Bienvenido, <span id="nombreUsuario">Usuario</span></h2>
-        </div>
-        <div class="contenedor-botones-cabecera">
-            <button class="boton-cabecera btn-cambiar-nombre" id="btnCambiarNombre">✏️ Cambiar nombre</button>
-            <button class="boton-cabecera btn-cerrar-sesion" id="btnCerrarSesion">🚪 Cerrar sesión</button>
+        <div class="logo">💰 Veyra</div>
+        <div class="usuario">
+            <span id="nombreUsuario"></span>
+            <button id="btnCambiarNombre" class="btn btn-sm btn-secundario">✏️ Cambiar nombre</button>
+            <button id="btnCerrarSesion" class="btn btn-sm btn-secundario">🚪 Salir</button>
         </div>
     </header>
 
+    <!-- NAVEGACIÓN -->
     <nav class="navegacion">
-        <button class="pestaña activa" data-pestaña="contable">📒 Contable</button>
-        <button class="pestaña" data-pestaña="resumen">📊 Resumen</button>
+        <button class="pestaña activa" data-pestaña="resumen">📈 Resumen</button>
+        <button class="pestaña" data-pestaña="contable">💰 Contable</button>
+        <button class="pestaña" data-pestaña="ahorro">🎯 Metas de Ahorro</button>
+        <button class="pestaña" data-pestaña="habitos">✅ Hábitos</button>
         <button class="pestaña" data-pestaña="exportar">📄 Exportar</button>
-        <button class="pestaña" data-pestaña="compartir">🔗 Compartir</button>
     </nav>
 
-    <section class="contenido-pestaña" id="pestaña-contable">
-        <div class="bloque">
-            <h3>📝 Registrar Movimiento</h3>
-            <div class="selector-tipo">
-                <button type="button" class="btn-tipo-ingreso activo" id="btnIngreso">💰 Ingreso</button>
-                <button type="button" class="btn-tipo-gasto" id="btnGasto">📉 Gasto</button>
-            </div>
-            <div class="campos-formulario">
-                <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción">
-                <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="0">
-            </div>
-            <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
-        </div>
-        <div class="bloque">
-            <h3>📋 Mis Movimientos</h3>
-            <div id="listaMovimientos"></div>
-        </div>
-    </section>
-
-    <section class="contenido-pestaña oculto" id="pestaña-resumen">
-        <div class="bloque">
-            <h3>📊 Resumen</h3>
-            <div class="fila-doble">
-                <div>
-                    <p>Total Ingresos</p>
-                    <p class="valor-grande positivo" id="totalIngresos">$0</p>
-                </div>
-                <div>
-                    <p>Total Gastos</p>
-                    <p class="valor-grande negativo" id="totalGastos">$0</p>
+    <!-- CONTENIDO -->
+    <main class="contenido">
+        
+        <!-- RESUMEN -->
+        <section class="contenido-pestaña" id="pestaña-resumen">
+            <div class="bloque">
+                <h3>Saldo Total</h3>
+                <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                    <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
+                    <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
                 </div>
             </div>
-            <div style="margin-top: 1.5rem;">
-                <p>Saldo Actual</p>
-                <p class="valor-grande" id="saldoActual">$0</p>
+            <div class="bloque">
+                <h3>Evolución</h3>
+                <div class="grafico">
+                    <canvas id="graficoEvolucion"></canvas>
+                </div>
             </div>
-        </div>
-        <div class="bloque">
-            <h3>📈 Evolución de Saldo</h3>
-            <div class="selector-grafico">
-                <button class="btn-tipo-grafico activo" data-grafico="mensual">📊 Mensual</button>
-                <button class="btn-tipo-grafico" data-grafico="acumulado">📈 Acumulado</button>
-            </div>
-            <div class="contenedor-grafico">
-                <canvas id="graficoEvolucion"></canvas>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <section class="contenido-pestaña oculto" id="pestaña-exportar">
-        <div class="bloque">
-            <h3>📄 Exportar Mis Registros</h3>
-            <p style="margin-bottom: 1rem;">Descarga todos tus movimientos:</p>
-            <div class="botones-exportar">
-                <button class="btn-excel" id="btnExportarExcel">📊 Descargar Excel</button>
-                <button class="btn-pdf" id="btnExportarPDF">📄 Descargar PDF</button>
+        <!-- CONTABLE -->
+        <section class="contenido-pestaña oculto" id="pestaña-contable">
+            <div class="bloque">
+                <h3>Registrar Movimiento</h3>
+                <div class="fila" style="margin: 1rem 0;">
+                    <button id="btnIngreso" class="btn btn-sm btn-ingreso activo">📥 Ingreso</button>
+                    <button id="btnGasto" class="btn btn-sm btn-gasto">📤 Gasto</button>
+                </div>
+                <input type="text" id="descripcionMov" class="campo" placeholder="Descripción (ej: Sueldo, Comida)">
+                <input type="number" id="valorMov" class="campo" placeholder="Valor" min="100">
+                <button id="btnGuardarMov" class="btn btn-primario">✅ Guardar Movimiento</button>
             </div>
-        </div>
-    </section>
+            <div class="bloque">
+                <h3>Historial</h3>
+                <div id="listaMovimientos" class="lista">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes movimientos</p>
+                </div>
+            </div>
+        </section>
 
-    <section class="contenido-pestaña oculto" id="pestaña-compartir">
-        <div class="bloque">
-            <h3>🔗 Compartir App</h3>
-            <p>Comparte esta herramienta:</p>
-            <div class="botones-compartir">
-                <button class="btn-whatsapp" id="btnCompartirWsp">💬 WhatsApp</button>
-                <button class="btn-copiar" id="btnCopiarEnlace">📋 Copiar Enlace</button>
+        <!-- METAS DE AHORRO -->
+        <section class="contenido-pestaña oculto" id="pestaña-ahorro">
+            <div class="bloque">
+                <h3>🎯 Crear Meta de Ahorro</h3>
+                <input type="text" id="nombreMeta" class="campo" placeholder="Nombre de la meta (ej: Carro)">
+                <input type="number" id="montoMeta" class="campo" placeholder="Monto total a alcanzar" min="1000">
+                <button id="btnCrearMeta" class="btn btn-primario">➕ Crear Meta</button>
             </div>
-        </div>
-    </section>
+            <div class="bloque">
+                <h3>📋 Mis Metas</h3>
+                <div id="listaMetas">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HÁBITOS -->
+        <section class="contenido-pestaña oculto" id="pestaña-habitos">
+            <div class="bloque">
+                <h3>✅ Agregar Hábito</h3>
+                <input type="text" id="nombreHabito" class="campo" placeholder="Nombre del hábito">
+                <button id="btnAgregarHabito" class="btn btn-primario">➕ Agregar</button>
+            </div>
+            <div class="bloque">
+                <h3>Mis Hábitos</h3>
+                <div id="listaHabitos">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Agrega tus hábitos arriba</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPORTAR Y COMPARTIR -->
+        <section class="contenido-pestaña oculto" id="pestaña-exportar">
+            <div class="bloque">
+                <h3>📄 Descargar Registros</h3>
+                <div class="fila-botones">
+                    <button id="btnExportarExcel" class="btn btn-primario">📊 Exportar a Excel</button>
+                    <button id="btnExportarPDF" class="btn btn-primario">📄 Exportar a PDF</button>
+                </div>
+            </div>
+            <div class="bloque">
+                <h3>🔗 Compartir App</h3>
+                <div class="fila-botones">
+                    <button id="btnCompartirWsp" class="btn btn-compartir">📱 WhatsApp</button>
+                    <button id="btnCopiarEnlace" class="btn btn-copiar">📋 Copiar Enlace</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
 </div>
 
-<div class="modal-fondo oculto" id="modalNombre">
+<!-- MODALES -->
+<div id="modalAgregarAhorro" class="modal oculto">
     <div class="modal-contenido">
-        <h3>✏️ Cambiar Nombre</h3>
-        <input type="text" id="inputNuevoNombre" placeholder="Escribe tu nuevo nombre">
-        <div class="botones-modal">
-            <button class="btn-cancelar-modal" id="btnCancelarNombre">Cancelar</button>
-            <button class="btn-guardar-modal" id="btnGuardarNombre">Guardar</button>
+        <h3>💰 Agregar Ahorro</h3>
+        <p id="nombreMetaModal" style="color: var(--primario); font-weight: 600; margin: 1rem 0;"></p>
+        <input type="number" id="montoAhorro" class="campo" placeholder="Monto a guardar" min="100">
+        <div class="modal-botones">
+            <button id="btnCancelarAhorro" class="btn btn-cancelar">Cancelar</button>
+            <button id="btnConfirmarAhorro" class="btn btn-guardar">Guardar</button>
         </div>
     </div>
 </div>
 
+<div id="modalNombre" class="modal oculto">
+    <div class="modal-contenido">
+        <h3>✏️ Cambiar Nombre</h3>
+        <input type="text" id="inputNuevoNombre" class="campo" placeholder="Escribe tu nuevo nombre">
+        <div class="modal-botones">
+            <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
+            <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- TU ARCHIVO JS -->
 <script src="app.js"></script>
 </body>
 </html>
