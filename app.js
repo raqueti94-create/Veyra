@@ -486,6 +486,7 @@ document.addEventListener('click', async function(e) {
 // METAS DE AHORRO
 // ==============================================
 document.addEventListener('click', async e => {
+    // Crear meta
     if (e.target.id === 'btnCrearMeta') {
         if (!usuarioActual) return;
         const nombre = document.getElementById('nombreMeta').value.trim();
@@ -512,6 +513,23 @@ document.addEventListener('click', async e => {
         } catch (err) {
             alert('Error: ' + err.message);
         }
+    }
+
+    // Eliminar meta
+    if (e.target.classList.contains('btn-eliminar-meta')) {
+        if (!confirm('¿Eliminar esta meta? No se puede deshacer.')) return;
+        const id = e.target.dataset.id;
+        await db.collection('metas').doc(id).delete();
+        cargarMetas();
+    }
+
+    // Editar nombre de meta
+    if (e.target.classList.contains('btn-editar-meta')) {
+        const id = e.target.dataset.id;
+        const nuevoNombre = prompt('Nuevo nombre de la meta:');
+        if (!nuevoNombre || !nuevoNombre.trim()) return;
+        await db.collection('metas').doc(id).update({ nombre: nuevoNombre.trim() });
+        cargarMetas();
     }
 });
 
@@ -540,7 +558,15 @@ async function cargarMetas() {
 
             lista.innerHTML += `
                 <div style="padding:1rem;border:1px solid #e1e5e9;border-radius:12px;margin-bottom:1rem;">
-                    <h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;">${meta.nombre} ${meta.completada ? '✅ ¡Meta cumplida!' : ''}</h4>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <h4 style="margin:0 0 0.5rem 0;font-size:1.1rem;">${meta.nombre} ${meta.completada ? '✅ ¡Meta cumplida!' : ''}</h4>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button data-id="${doc.id}" class="btn-editar-meta" title="Editar nombre" 
+                                style="background:none;border:none;cursor:pointer;font-size:1rem;">✏️</button>
+                            <button data-id="${doc.id}" class="btn-eliminar-meta" title="Eliminar" 
+                                style="background:none;border:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
+                        </div>
+                    </div>
                     <p style="margin:0.3rem 0;">Ahorrado: <strong>${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoAhorrado)}</strong> de ${new Intl.NumberFormat('es-CO', {style:'currency',currency:'COP'}).format(meta.montoMeta)}</p>
                     <div style="background:#e1e5e9;height:12px;border-radius:6px;overflow:hidden;margin:0.8rem 0;">
                         <div style="width:${porcentaje}%;background:#6c5ce7;height:100%;color:white;text-align:center;font-size:0.75rem;line-height:12px;font-weight:600;">
@@ -556,6 +582,7 @@ async function cargarMetas() {
                 </div>`;
         });
 
+        // Conectar botones de agregar ahorro
         document.querySelectorAll('[data-meta-id]').forEach(boton => {
             boton.addEventListener('click', () => {
                 window.metaSeleccionadaId = boton.dataset.metaId;
@@ -571,6 +598,7 @@ async function cargarMetas() {
     }
 }
 
+// Modal agregar ahorro
 document.addEventListener('click', e => {
     if (e.target.id === 'btnCancelarAhorro') {
         const modal = document.getElementById('modalAgregarAhorro');
@@ -597,11 +625,11 @@ document.addEventListener('click', e => {
         }).catch(err => alert('Error: ' + err.message));
     }
 });
-
 // ==============================================
 // HÁBITOS
 // ==============================================
 document.addEventListener('click', async e => {
+    // Agregar hábito
     if (e.target.id === 'btnAgregarHabito') {
         if (!usuarioActual) return;
         const nombre = document.getElementById('nombreHabito').value.trim();
@@ -624,6 +652,23 @@ document.addEventListener('click', async e => {
         } catch (err) {
             alert('Error: ' + err.message);
         }
+    }
+
+    // Eliminar hábito
+    if (e.target.classList.contains('btn-eliminar-habito')) {
+        if (!confirm('¿Eliminar este hábito? Se perderán todos tus registros.')) return;
+        const id = e.target.dataset.id;
+        await db.collection('habitos').doc(id).delete();
+        cargarHabitos();
+    }
+
+    // Editar nombre de hábito
+    if (e.target.classList.contains('btn-editar-habito')) {
+        const id = e.target.dataset.id;
+        const nuevoNombre = prompt('Nuevo nombre del hábito:');
+        if (!nuevoNombre || !nuevoNombre.trim()) return;
+        await db.collection('habitos').doc(id).update({ nombre: nuevoNombre.trim() });
+        cargarHabitos();
     }
 });
 
@@ -652,10 +697,19 @@ async function cargarHabitos() {
             
             lista.innerHTML += `
                 <div style="padding:1rem 0;border-bottom:1px solid #e1e5e9;">
-                    <h4 style="margin:0 0 1rem 0;color:#6c5ce7;">${h.nombre}</h4>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <h4 style="margin:0;color:#6c5ce7;">${h.nombre}</h4>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button data-id="${doc.id}" class="btn-editar-habito" title="Editar nombre" 
+                                style="background:none;border:none;cursor:pointer;font-size:1rem;">✏️</button>
+                            <button data-id="${doc.id}" class="btn-eliminar-habito" title="Eliminar" 
+                                style="background:none;border:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
+                        </div>
+                    </div>
                     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;text-align:center;">
             `;
             
+            // Últimos 7 días
             for (let i = 6; i >= 0; i--) {
                 const fecha = new Date(hoy);
                 fecha.setDate(hoy.getDate() - i);
@@ -677,6 +731,7 @@ async function cargarHabitos() {
             lista.innerHTML += `</div></div>`;
         });
 
+        // Conectar botones de días
         document.querySelectorAll('[data-habito-id]').forEach(boton => {
             boton.addEventListener('click', async () => {
                 const ref = db.collection('habitos').doc(boton.dataset.habitoId);
