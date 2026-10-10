@@ -629,446 +629,135 @@ document.addEventListener('click', e => {
 // HÁBITOS 
 // ==============================================
 document.addEventListener('click', async e => {
-
-    // AGREGAR HÁBITO
-    if (e.target.closest('#btnAgregarHabito')) {
+    if (e.target.id === 'btnAgregarHabito') {
         if (!usuarioActual) return;
-
-        const campoNombre = document.getElementById('nombreHabito');
-        if (!campoNombre) return;
-
-        const nombre = campoNombre.value.trim();
-
-        if (!nombre) {
-            alert('Escribe el nombre del hábito');
-            return;
-        }
-
+        const nombre = document.getElementById('nombreHabito').value.trim();
+        if (!nombre) { alert('Escribe el nombre del hábito'); return; }
         try {
             await db.collection('habitos').add({
-                uid: usuarioActual.uid,
-                nombre: nombre,
-                dias: {},
+                uid: usuarioActual.uid, nombre, dias: {},
                 creado: new Date().toISOString()
             });
-
-            campoNombre.value = '';
-            await cargarHabitos();
-
-        } catch (err) {
-            alert('Error al agregar el hábito: ' + err.message);
-        }
-
-        return;
+            document.getElementById('nombreHabito').value = '';
+            cargarHabitos();
+        } catch (err) { alert('Error: ' + err.message); }
     }
 
-
-    // ELIMINAR HÁBITO
-    const botonEliminar = e.target.closest('.btn-eliminar-habito');
-
-    if (botonEliminar) {
-        if (!confirm(
-            '¿Eliminar este hábito? Se perderán todos tus registros.'
-        )) return;
-
-        try {
-            await db.collection('habitos')
-                .doc(botonEliminar.dataset.id)
-                .delete();
-
-            await cargarHabitos();
-
-        } catch (err) {
-            alert('Error al eliminar el hábito: ' + err.message);
-        }
-
-        return;
+    if (e.target.classList.contains('btn-eliminar-habito')) {
+        if (!confirm('¿Eliminar este hábito?')) return;
+        await db.collection('habitos').doc(e.target.dataset.id).delete();
+        cargarHabitos();
     }
 
-
-    // EDITAR NOMBRE DEL HÁBITO
-    const botonEditar = e.target.closest('.btn-editar-habito');
-
-    if (botonEditar) {
-        const nuevoNombre = prompt('Nuevo nombre del hábito:');
-
+    if (e.target.classList.contains('btn-editar-habito')) {
+        const nuevoNombre = prompt('Nuevo nombre:');
         if (!nuevoNombre || !nuevoNombre.trim()) return;
-
-        try {
-            await db.collection('habitos')
-                .doc(botonEditar.dataset.id)
-                .update({
-                    nombre: nuevoNombre.trim()
-                });
-
-            await cargarHabitos();
-
-        } catch (err) {
-            alert('Error al editar el hábito: ' + err.message);
-        }
-
-        return;
+        await db.collection('habitos').doc(e.target.dataset.id).update({ nombre: nuevoNombre.trim() });
+        cargarHabitos();
     }
 
-
-    // CARGAR HÁBITOS AL ENTRAR EN LA PESTAÑA
-    if (
-        e.target.dataset.pestaña === 'habitos' ||
-        e.target.closest('[data-pestaña="habitos"]')
-    ) {
+    if (e.target.dataset.pestaña === 'habitos' || e.target.closest('[data-pestaña="habitos"]')) {
         setTimeout(cargarHabitos, 50);
     }
-
 });
-
-
-/* =====================================================
-   2. CARGAR Y GENERAR EL CALENDARIO
-   ===================================================== */
 
 async function cargarHabitos() {
-
     if (!usuarioActual) return;
-
     const lista = document.getElementById('listaHabitos');
-
     if (!lista) return;
 
-    lista.innerHTML = `
-        <p style="color:#636e72;text-align:center;padding:1rem;">
-            Cargando hábitos...
-        </p>
-    `;
+    lista.innerHTML = '<p style="text-align:center;padding:1rem;">Cargando...</p>';
 
     try {
-
         const snap = await db.collection('habitos')
             .where('uid', '==', usuarioActual.uid)
-            .orderBy('creado', 'desc')
-            .get();
+            .orderBy('creado', 'desc').get();
 
-        // SI NO HAY HÁBITOS
+        lista.innerHTML = '';
         if (snap.empty) {
-            lista.innerHTML = `
-                <p style="color:#636e72;text-align:center;padding:2rem;">
-                    Agrega tus hábitos arriba 👆
-                </p>
-            `;
+            lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
             return;
         }
 
-
-        // FECHA ACTUAL
+        const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const hoy = new Date();
-
-        const mesActual = hoy.getMonth();
-        const añoActual = hoy.getFullYear();
-
-        const diasEnMes = new Date(
-            añoActual,
-            mesActual + 1,
-            0
-        ).getDate();
-
-        // Domingo = 0, lunes = 1, ..., sábado = 6
-        const primerDia = new Date(
-            añoActual,
-            mesActual,
-            1
-        ).getDay();
-
-        const diasSemana = [
-            'Dom',
-            'Lun',
-            'Mar',
-            'Mié',
-            'Jue',
-            'Vie',
-            'Sáb'
-        ];
-
-        // Fecha de hoy sin horas para comparar correctamente.
-        const hoySinHora = new Date(
-            hoy.getFullYear(),
-            hoy.getMonth(),
-            hoy.getDate()
-        );
-
-
-        // CONSTRUIR TODAS LAS TARJETAS ANTES DE INSERTARLAS
-        const tarjetas = [];
+        const mes = hoy.getMonth(), año = hoy.getFullYear();
+        const totalDias = new Date(año, mes + 1, 0).getDate();
+        const primerDia = new Date(año, mes, 1).getDay();
 
         snap.forEach(doc => {
+            const h = { id: doc.id, ...doc.data() };
 
-            const h = doc.data();
-            const id = doc.id;
+            lista.innerHTML += `
+<div style="padding:1rem 0;border-bottom:1px solid #eee;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+    <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${h.nombre}</h4>
+    <div style="display:flex;gap:0.5rem;">
+      <button data-id="${doc.id}" class="btn-editar-habito" style="border:none;background:none;cursor:pointer;font-size:1rem;">✏️</button>
+      <button data-id="${doc.id}" class="btn-eliminar-habito" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
+    </div>
+  </div>
 
-            const nombre = String(h.nombre || '');
-            const dias = h.dias || {};
+  <!-- Cabecera días -->
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
+    ${diasSemana.map(d=>`<div style="text-align:center;font-weight:600;color:#666;font-size:0.8rem;">${d}</div>`).join('')}
+  </div>
 
-            // Evitar que el nombre rompa el HTML.
-            const nombreSeguro = nombre.replace(
-                /[&<>"']/g,
-                caracter => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#39;'
-                })[caracter]
-            );
+  <!-- CUADRÍCULA DEL MES -->
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">
+`;
 
+            // Espacios vacíos
+            for (let i = 0; i < primerDia; i++) lista.innerHTML += `<div></div>`;
 
-            // GENERAR LAS CELDAS DEL CALENDARIO
-            const celdas = [];
+            // Días del mes
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const fecha = new Date(año, mes, dia);
+                const clave = fecha.toISOString().split('T')[0];
+                const cumplido = h.dias?.[clave];
+                const esFuturo = fecha > hoy;
+                const esHoy = fecha.toDateString() === hoy.toDateString();
 
-
-            // ESPACIOS VACÍOS ANTES DEL DÍA 1
-            for (let i = 0; i < primerDia; i++) {
-
-                celdas.push(`
-                    <div class="habito-dia-vacio"></div>
-                `);
-
+                lista.innerHTML += `
+    <div style="text-align:center;">
+      <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy?'font-weight:bold;color:#6c5ce7;':''}">${dia}</div>
+      ${esFuturo
+        ? `<div style="width:36px;height:36px;line-height:36px;margin:0 auto;background:#f0f0f0;color:#ccc;border-radius:8px;">—</div>`
+        : `<button data-habito-id="${doc.id}" data-fecha="${clave}" 
+            style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;font-weight:bold;
+            background:${cumplido?'#00b894':'#e9e9e9'};color:${cumplido?'white':'#333'};
+            ${esHoy?'box-shadow:0 0 0 2px #6c5ce7;':''}">${cumplido?'✓':''}</button>`
+      }
+    </div>
+`;
             }
 
-
-            // GENERAR CADA DÍA DEL MES
-            for (let dia = 1; dia <= diasEnMes; dia++) {
-
-                const fecha = new Date(
-                    añoActual,
-                    mesActual,
-                    dia
-                );
-
-                // Crear la fecha en horario local para evitar
-                // desplazamientos de día por la conversión UTC.
-                const clave = [
-                    añoActual,
-                    String(mesActual + 1).padStart(2, '0'),
-                    String(dia).padStart(2, '0')
-                ].join('-');
-
-                const cumplido = Boolean(dias[clave]);
-
-                const esFuturo = fecha > hoySinHora;
-
-                const esHoy = (
-                    dia === hoy.getDate()
-                );
-
-
-                // AGREGAR CELDA
-                celdas.push(`
-
-                    <div class="habito-dia">
-
-                        <div class="habito-numero ${
-                            esHoy ? 'habito-hoy' : ''
-                        }">
-                            ${dia}
-                        </div>
-
-                        ${
-                            esFuturo
-
-                            // DÍAS FUTUROS
-                            ? `
-                                <div class="habito-futuro">—</div>
-                            `
-
-                            // DÍAS ACTUALES Y ANTERIORES
-                            : `
-                                <button
-                                    type="button"
-                                    class="habito-marca ${
-                                        cumplido ? 'cumplido' : ''
-                                    } ${
-                                        esHoy ? 'es-hoy' : ''
-                                    }"
-
-                                    data-habito-id="${id}"
-                                    data-fecha="${clave}"
-
-                                    aria-label="Día ${dia}: ${
-                                        cumplido
-                                            ? 'completado'
-                                            : 'pendiente'
-                                    }"
-
-                                    aria-pressed="${cumplido}"
-                                >${cumplido ? '✓' : ''}</button>
-                            `
-                        }
-
-                    </div>
-
-                `);
-
-            }
-
-
-            // TARJETA COMPLETA DEL HÁBITO
-            tarjetas.push(`
-
-                <section class="habito-tarjeta">
-
-                    <div class="habito-cabecera">
-
-                        <h4>${nombreSeguro}</h4>
-
-                        <div class="habito-acciones">
-
-                            <button
-                                type="button"
-                                class="btn-editar-habito"
-                                data-id="${id}"
-                                title="Editar nombre"
-                                aria-label="Editar ${nombreSeguro}"
-                            >✏️</button>
-
-                            <button
-                                type="button"
-                                class="btn-eliminar-habito"
-                                data-id="${id}"
-                                title="Eliminar"
-                                aria-label="Eliminar ${nombreSeguro}"
-                            >🗑️</button>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CABECERA DE LOS SIETE DÍAS -->
-
-                    <div class="habito-calendario">
-
-                        <div class="habito-semana">
-
-                            ${diasSemana.map(d => `
-                                <div>${d}</div>
-                            `).join('')}
-
-                        </div>
-
-
-                        <!-- CUADRÍCULA MENSUAL -->
-
-                        <div class="habito-mes">
-
-                            ${celdas.join('')}
-
-                        </div>
-
-                    </div>
-
-                </section>
-
-            `);
-
+            lista.innerHTML += `</div></div>`;
         });
 
-
-        // INSERTAR EL HTML COMPLETO DE UNA SOLA VEZ
-        lista.innerHTML = tarjetas.join('');
-
+        // Conectar botones
+        document.querySelectorAll('[data-habito-id]').forEach(b => {
+            b.addEventListener('click', async () => {
+                const ref = db.collection('habitos').doc(b.dataset.habitoId);
+                const doc = await ref.get();
+                if (!doc.exists) return;
+                const datos = doc.data();
+                datos.dias = datos.dias || {};
+                datos.dias[b.dataset.fecha] = !datos.dias[b.dataset.fecha];
+                await ref.update({ dias: datos.dias });
+                cargarHabitos();
+            });
+        });
 
     } catch (err) {
-
-        console.error('Error al cargar hábitos:', err);
-
-        lista.innerHTML = `
-            <p style="color:#e17055;">
-                Error al cargar los hábitos: ${err.message}
-            </p>
-        `;
-
+        lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
-
 }
 
-
-/* =====================================================
-   3. MARCAR Y DESMARCAR LOS DÍAS DEL CALENDARIO
-   Este evento se registra una sola vez.
-   ===================================================== */
-
-document.addEventListener('click', async e => {
-
-    const boton = e.target.closest('.habito-marca');
-
-    if (!boton) return;
-
-    // Evitar dobles clics mientras se guarda.
-    if (boton.disabled) return;
-
-    boton.disabled = true;
-
-    try {
-
-        const idHabito = boton.dataset.habitoId;
-        const fecha = boton.dataset.fecha;
-
-        const referencia = db.collection('habitos')
-            .doc(idHabito);
-
-        const documento = await referencia.get();
-
-        if (!documento.exists) {
-            alert('Este hábito ya no existe.');
-            return;
-        }
-
-        const datos = documento.data();
-
-        // Copia del objeto para actualizar el día seleccionado.
-        const dias = {
-            ...(datos.dias || {})
-        };
-
-        dias[fecha] = !dias[fecha];
-
-        await referencia.update({
-            dias: dias
-        });
-
-        // Actualizar la vista con los datos guardados.
-        await cargarHabitos();
-
-    } catch (err) {
-
-        console.error('Error al marcar el hábito:', err);
-
-        alert(
-            'No se pudo actualizar el hábito: ' + err.message
-        );
-
-    } finally {
-
-        boton.disabled = false;
-
-    }
-
-});
-
-
-/* =====================================================
-   4. CARGA AUTOMÁTICA DESPUÉS DEL INICIO DE SESIÓN
-   ===================================================== */
-
-const verificarYCargarHabitos = setInterval(() => {
-
-    if (
-        usuarioActual &&
-        document.getElementById('listaHabitos')
-    ) {
-
+// Carga automática
+const esperarHabitos = setInterval(() => {
+    if (usuarioActual && document.getElementById('listaHabitos')) {
         cargarHabitos();
-
-        clearInterval(verificarYCargarHabitos);
-
+        clearInterval(esperarHabitos);
     }
-
 }, 300);
