@@ -369,99 +369,207 @@ function dibujarGrafico() {
 }
 
 // ===== EXPORTAR A EXCEL =====
-el('btnExportarExcel').addEventListener('click', () => {
-    if (!datosMovimientos.length) {
-        alert('No hay movimientos para exportar');
-        return;
-    }
+el('btnExportarExcel').addEventListener('click', async () => {
+    if (!usuarioActual) return;
+    
     const nombreUsuario = el('nombreUsuario').textContent;
     const fechaExportacion = new Date().toLocaleDateString('es-CO');
     
+    // Obtener METAS de ahorro
+    const metasSnap = await db.collection('metas')
+        .where('userId', '==', usuarioActual.uid)
+        .orderBy('creado', 'desc')
+        .get();
+    const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    // Sección MOVIMIENTOS
     const filas = [
         ['Nombre:', nombreUsuario],
         ['Fecha de exportación:', fechaExportacion],
         [],
+        ['=== MOVIMIENTOS ==='],
         ['Fecha y Hora', 'Descripción', 'Tipo', 'Valor']
     ];
-
-    datosMovimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).forEach(m => {
-        filas.push([
-            formatearFechaLarga(m.fecha),
-            m.descripcion,
-            m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
-            m.valor
-        ]);
-    });
-
-    filas.push(
-        [],
-        ['', 'Total Ingresos', '', totalesActuales.ingresos],
-        ['', 'Total Gastos', '', totalesActuales.gastos],
-        ['', 'Saldo', '', totalesActuales.saldo]
-    );
-
+    
+    if (datosMovimientos.length) {
+        datosMovimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).forEach(m => {
+            filas.push([
+                formatearFechaLarga(m.fecha),
+                m.descripcion,
+                m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+                m.valor
+            ]);
+        });
+        filas.push(
+            [],
+            ['', 'Total Ingresos', '', totalesActuales.ingresos],
+            ['', 'Total Gastos', '', totalesActuales.gastos],
+            ['', 'Saldo', '', totalesActuales.saldo]
+        );
+    } else {
+        filas.push(['', '', 'Sin movimientos', '']);
+    }
+    
+    // Espacio entre secciones
+    filas.push([]);
+    filas.push(['=== METAS DE AHORRO ===']);
+    filas.push([
+        'Nombre de la Meta',
+        'Monto Total',
+        'Ahorrado',
+        'Falta',
+        'Progreso %',
+        'Estado'
+    ]);
+    
+    if (metas.length > 0) {
+        metas.forEach(m => {
+            const porcentaje = Math.min(100, ((m.ahorrado || 0) / m.montoTotal) * 100);
+            const faltante = Math.max(0, m.montoTotal - (m.ahorrado || 0));
+            const estado = porcentaje >= 100 
+                ? '✅ COMPLETA' 
+                : `${porcentaje.toFixed(1)}% — En progreso`;
+            
+            filas.push([
+                m.nombre,
+                m.montoTotal,
+                (m.ahorrado || 0),
+                faltante,
+                `${porcentaje.toFixed(1)}%`,
+                estado
+            ]);
+        });
+    } else {
+        filas.push(['', '', 'Sin metas registradas', '', '', '']);
+    }
+    
     const hoja = XLSX.utils.aoa_to_sheet(filas);
     const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Movimientos');
+    XLSX.utils.book_append_sheet(libro, hoja, 'Registros');
     XLSX.writeFile(libro, `Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.xlsx`);
 });
 
 // ===== EXPORTAR A PDF =====
-el('btnExportarPDF').addEventListener('click', () => {
-    if (!datosMovimientos.length) {
-        alert('No hay movimientos para exportar');
-        return;
-    }
+el('btnExportarPDF').addEventListener('click', async () => {
+    if (!usuarioActual || typeof pdfMake === 'undefined') return;
+    
     const nombreUsuario = el('nombreUsuario').textContent;
     const fechaExportacion = new Date().toLocaleDateString('es-CO');
     
-    const filasTabla = datosMovimientos
-        .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
-        .map(m => [
-            { text: formatearFechaLarga(m.fecha), fontSize: 9 },
-            { text: m.descripcion, fontSize: 9 },
-            { text: m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto', fontSize: 9, color: m.tipo === 'ingreso' ? '#00b894' : '#e17055' },
-            { text: formatearMonto(m.valor), fontSize: 9, alignment: 'right' }
-        ]);
-
-    const docDefinicion = {
-        content: [
-            { text: 'REPORTE DE MOVIMIENTOS', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
-            { text: nombreUsuario, fontSize: 14, alignment: 'center', margin: [0, 0, 0, 5] },
-            { text: `Exportado el ${fechaExportacion}`, fontSize: 10, color: '#666', alignment: 'center', margin: [0, 0, 0, 20] },
-            {
-                table: {
-                    headerRows: 1,
-                    widths: ['*', '*', 'auto', 'auto'],
-                    body: [
-                        [
-                            { text: 'Fecha', bold: true, fillColor: '#6c5ce7', color: 'white' },
-                            { text: 'Descripción', bold: true, fillColor: '#6c5ce7', color: 'white' },
-                            { text: 'Tipo', bold: true, fillColor: '#6c5ce7', color: 'white' },
-                            { text: 'Valor', bold: true, fillColor: '#6c5ce7', color: 'white', alignment: 'right' }
-                        ],
-                        ...filasTabla
-                    ]
-                },
-                margin: [0, 0, 0, 20]
+    // Obtener METAS de ahorro
+    const metasSnap = await db.collection('metas')
+        .where('userId', '==', usuarioActual.uid)
+        .orderBy('creado', 'desc')
+        .get();
+    const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    
+    // Construir contenido
+    const contenido = [];
+    
+    // Encabezado
+    contenido.push(
+        { text: 'REPORTE COMPLETO', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
+        { text: nombreUsuario, fontSize: 14, alignment: 'center', margin: [0, 0, 0, 5] },
+        { text: `Exportado el ${fechaExportacion}`, fontSize: 10, color: '#666', alignment: 'center', margin: [0, 0, 0, 20] }
+    );
+    
+    // === SECCIÓN MOVIMIENTOS ===
+    contenido.push({ text: '💰 MOVIMIENTOS', fontSize: 14, bold: true, margin: [0, 0, 0, 10] });
+    
+    if (datosMovimientos.length) {
+        const filasTabla = datosMovimientos
+            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+            .map(m => [
+                { text: formatearFechaLarga(m.fecha), fontSize: 9 },
+                { text: m.descripcion, fontSize: 9 },
+                { text: m.tipo === 'ingreso' ? 'Ingreso' : 'Gasto', fontSize: 9, color: m.tipo === 'ingreso' ? '#00b894' : '#e17055' },
+                { text: formatearMonto(m.valor), fontSize: 9, alignment: 'right' }
+            ]);
+        
+        contenido.push({
+            table: {
+                headerRows: 1,
+                widths: ['*', '*', 'auto', 'auto'],
+                body: [
+                    [
+                        { text: 'Fecha', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Descripción', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Tipo', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                        { text: 'Valor', bold: true, fillColor: '#6c5ce7', color: 'white', alignment: 'right' }
+                    ],
+                    ...filasTabla
+                ]
             },
-            {
-                table: {
-                    widths: ['*', 'auto'],
-                    body: [
-                        [{ text: 'Total Ingresos:', bold: true }, { text: formatearMonto(totalesActuales.ingresos), bold: true, color: '#00b894', alignment: 'right' }],
-                        [{ text: 'Total Gastos:', bold: true }, { text: formatearMonto(totalesActuales.gastos), bold: true, color: '#e17055', alignment: 'right' }],
-                        [{ text: 'Saldo:', bold: true, fontSize: 12 }, { text: formatearMonto(totalesActuales.saldo), bold: true, fontSize: 12, alignment: 'right' }]
-                    ]
-                },
-                layout: 'noBorders'
-            }
-        ],
+            margin: [0, 0, 0, 15]
+        });
+        
+        contenido.push({
+            table: {
+                widths: ['*', 'auto'],
+                body: [
+                    [{ text: 'Total Ingresos:', bold: true }, { text: formatearMonto(totalesActuales.ingresos), bold: true, color: '#00b894', alignment: 'right' }],
+                    [{ text: 'Total Gastos:', bold: true }, { text: formatearMonto(totalesActuales.gastos), bold: true, color: '#e17055', alignment: 'right' }],
+                    [{ text: 'Saldo:', bold: true, fontSize: 12 }, { text: formatearMonto(totalesActuales.saldo), bold: true, fontSize: 12, alignment: 'right' }]
+                ]
+            },
+            layout: 'noBorders',
+            margin: [0, 0, 0, 25]
+        });
+    } else {
+        contenido.push({ text: 'Sin movimientos registrados', italics: true, color: '#666', margin: [0, 0, 0, 20] });
+    }
+    
+    // === SECCIÓN METAS DE AHORRO ===
+    contenido.push({ text: '🎯 METAS DE AHORRO', fontSize: 14, bold: true, margin: [0, 0, 0, 10] });
+    
+    if (metas.length > 0) {
+        const tablaMetas = [
+            [
+                { text: 'Meta', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Total', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Ahorrado', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Falta', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Progreso', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Estado', bold: true, fillColor: '#6c5ce7', color: 'white' }
+            ]
+        ];
+        
+        metas.forEach(m => {
+            const porcentaje = Math.min(100, ((m.ahorrado || 0) / m.montoTotal) * 100);
+            const faltante = Math.max(0, m.montoTotal - (m.ahorrado || 0));
+            const estado = porcentaje >= 100 
+                ? { text: '✅ COMPLETA', bold: true, color: '#00b894' }
+                : { text: `${porcentaje.toFixed(0)}%`, color: '#6c5ce7' };
+            
+            tablaMetas.push([
+                { text: m.nombre, fontSize: 9 },
+                { text: '$ ' + m.montoTotal.toLocaleString(), fontSize: 9 },
+                { text: '$ ' + (m.ahorrado || 0).toLocaleString(), fontSize: 9, color: '#00b894' },
+                { text: '$ ' + faltante.toLocaleString(), fontSize: 9, color: '#e17055' },
+                { text: `${porcentaje.toFixed(1)}%`, fontSize: 9 },
+                estado
+            ]);
+        });
+        
+        contenido.push({
+            table: {
+                headerRows: 1,
+                widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto'],
+                body: tablaMetas
+            },
+            layout: 'lightHorizontalLines'
+        });
+    } else {
+        contenido.push({ text: 'Sin metas registradas aún 💪', italics: true, color: '#666' });
+    }
+    
+    // Descargar
+    pdfMake.createPdf({
+        content: contenido,
         pageSize: 'A4',
-        pageMargins: [40, 40, 40, 40]
-    };
-
-    pdfMake.createPdf(docDefinicion).download(`Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.pdf`);
+        pageMargins: [40, 40, 40, 40],
+        defaultStyle: { fontSize: 10 }
+    }).download(`Finanzas_${nombreUsuario}_${fechaExportacion.replaceAll('/', '-')}.pdf`);
 });
 
 // ===== COMPARTIR =====
