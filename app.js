@@ -52,7 +52,7 @@ function formatearFechaLarga(fecha) {
 el('btnCambiarModo').addEventListener('click', () => {
     esRegistro = !esRegistro;
     el('campoNombre').style.display = esRegistro ? 'block' : 'none';
-    el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Mis Finanzas';
+    el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
     el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
     el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
     el('btnCambiarModo').textContent = esRegistro ? '¿Ya tienes cuenta? Ingresar' : '¿No tienes cuenta? Crear una';
