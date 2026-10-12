@@ -1204,25 +1204,21 @@ function mostrarAlertaSaldo(saldo) {
     }
 }
 // ==============================================
-// VEYRA — ASISTENTE COMPLETO CON GEMINI + BÚSQUEDA + VOZ
+// VEYRA IA CON GROQ ⚡ — LISTO PARA USAR
 // ==============================================
-// 🔑 Tu clave de Gemini ya configurada
-const CLAVE_GEMINI = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
 
-// 📌 Declaración de variables
-// ==============================================
-// VEYRA — ASISTENTE COMPLETO
-// ==============================================
+// 🔑 Tu clave de Groq ya configurada
+const CLAVE_GROQ = "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";
 
 // 📌 Variables globales
 const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
 let escuchandoActivo = false;
 let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
 
-// ✅ Función auxiliar que faltaba
+// ✅ Función auxiliar
 function el(id) { return document.getElementById(id); }
 
-// 🔊 HABLAR — Veyra usa el altavoz
+// 🔊 HABLAR — Voz
 function hablar(texto, callbackCuandoTermine = null) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -1234,54 +1230,53 @@ function hablar(texto, callbackCuandoTermine = null) {
     window.speechSynthesis.speak(mensaje);
 }
 
-// 🔍 BUSCAR EN INTERNET CON GEMINI
-const CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
-const PROJECT_ID = "214976680792";
-
+// ⚡ CONSULTAR A GROQ
 async function buscarEnInternet(pregunta) {
-    console.log("🔄 Preparando conexión...");
-    
-    const URL = `https://generativelanguage.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/gemini-pro:streamGenerateContent`;
+    console.log("🔄 Consultando a Groq...");
+
+    const URL = "https://api.groq.com/openai/v1/chat/completions";
 
     try {
-        const respuesta = await fetch(`${URL}?key=${CLAVE_AQ}`, {
+        const respuesta = await fetch(URL, {
             method: "POST",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json",
-                "x-goog-api-key": CLAVE_AQ
+                "Authorization": `Bearer ${CLAVE_GROQ}`
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `Eres Veyra IA, asistente amable y cercano. 
-                        Habla claro, breve y natural. 
-                        Pregunta: ${pregunta}`
-                    }]
-                }]
+                model: "llama-3-8b-8192",
+                messages: [
+                    {
+                        role: "system",
+                        content: "Eres Veyra IA, asistente amable, cercana y servicial. Habla claro, breve y natural. Siempre en español. Eres parte de una app de control de finanzas, metas y hábitos."
+                    },
+                    {
+                        role: "user",
+                        content: pregunta
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 500
             })
         });
 
         const datos = await respuesta.json();
-        console.log("📦 Respuesta:", datos);
+        console.log("📦 Respuesta de Groq:", datos);
 
-        if (!respuesta.ok) {
-            if (datos.error) {
-                console.error("❌ Error:", datos.error);
-                return `⚠️ ${datos.error.message}`;
-            }
-            return "⚠️ No se pudo conectar";
+        if (!respuesta.ok || datos.error) {
+            console.error("❌ Error:", datos.error || respuesta.status);
+            return `⚠️ ${datos.error?.message || "No pude conectarme"}`;
         }
 
-        const texto = datos[0]?.candidates?.[0]?.content?.parts?.[0]?.text;
-        return texto || "No entendí la respuesta 😅";
+        return datos.choices[0].message.content.trim();
 
     } catch (error) {
         console.error("❌ Red:", error);
-        return "Sin conexión 🌐";
+        return "Sin conexión con la IA 🌐 Revisa tu internet.";
     }
 }
 
-// 📖 AGENDA — Guardar contactos
+// 📖 AGENDA
 function guardarContacto(nombre, numero) {
     numero = numero.replace(/\D/g, '');
     if (!numero.startsWith('57') && numero.length === 10) numero = '57' + numero;
@@ -1290,7 +1285,7 @@ function guardarContacto(nombre, numero) {
     hablar(`${nombre} guardado correctamente.`);
 }
 
-// 🎤 INICIAR ESCUCHA — Reconocimiento de voz
+// 🎤 RECONOCIMIENTO DE VOZ
 function iniciarEscucha() {
     if (escuchandoActivo) return;
     if (!ReconocimientoVoz) {
@@ -1301,55 +1296,41 @@ function iniciarEscucha() {
     const escucha = new ReconocimientoVoz();
     escucha.lang = 'es-ES';
     escucha.interimResults = false;
-    
+
     escucha.onresult = function(evento) {
         escuchandoActivo = false;
         const loQueDijo = evento.results[0][0].transcript;
         console.log("✅ Escuché:", loQueDijo);
         procesarComando(loQueDijo);
     };
-    
+
     escucha.onend = () => {
         escuchandoActivo = false;
     };
-    
+
     escucha.onerror = function(error) {
         escuchandoActivo = false;
         if (error === 'no-speech') {
-            hablar("No te escuché bien. Toca el botón y habla un poquito más cerca.");
+            hablar("No te escuché bien. Intenta de nuevo.");
         } else if (error === 'not-allowed') {
             alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
-        } else if (error === 'network') {
-            hablar("Necesitas conexión a internet para escucharte.");
         }
     };
-    
-    hablar("Te escucho", () => {
-        try { escucha.start(); console.log("🎤 ¡Escuchando! Di algo..."); }
-        catch (e) { console.log("Error al iniciar escucha:", e); }
-    });
+
+    hablar("Te escucho", () => escucha.start());
 }
 
-// 🧠 PROCESAR COMANDO
+// 🧠 PROCESAR COMANDOS
 async function procesarComando(frase) {
     const texto = frase.toLowerCase().trim();
 
-    // Búsqueda
-    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || 
-        texto.includes('cuánto') || texto.includes('por qué')) {
-        hablar("Lo busco por ti...");
-        const resultado = await buscarEnInternet(frase);
-        hablar(resultado);
-        return;
-    }
-
-    // Llamada
+    // Llamadas
     if (texto.includes('llama a') || texto.includes('llamar a')) {
         const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
         if (contacto) {
             hablar(`Marcando a ${contacto.nombre}`);
-            setTimeout(() => { window.location.href = `tel:${contacto.numero}`; }, 600);
+            setTimeout(() => window.location.href = `tel:${contacto.numero}`, 600);
         } else {
             hablar(`No encontré a ${nombre}. Agrégalo primero.`);
         }
@@ -1357,31 +1338,30 @@ async function procesarComando(frase) {
     }
 
     // WhatsApp
-    if (texto.includes('whatsapp') || texto.includes('escribe a') || 
-        texto.includes('mensaje a') || texto.includes('envía a')) {
-        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
+    if (texto.includes('whatsapp') || texto.includes('escribe a')) {
+        const nombre = texto.replace(/whatsapp|escribe a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
         if (contacto) {
             hablar(`Abriendo chat con ${contacto.nombre}`);
             window.open(`https://wa.me/${contacto.numero}`, '_blank');
         } else {
-            hablar(`No encontré a ${nombre}. Agrégalo primero.`);
+            hablar(`No encontré a ${nombre}.`);
         }
         return;
     }
 
-    // Respuesta general
+    // Consulta general
     const respuesta = await buscarEnInternet(frase);
-    hablar(respuesta || `Entendí: ${frase}. ¿En qué te ayudo?`);
+    hablar(respuesta);
 }
 
-// 💬 CHAT DE VEYRA IA
+// 💬 CHAT EN PANTALLA
 function agregarMensaje(texto, esUsuario = false) {
     const caja = el('cajaMensajes');
     if (!caja) return;
     const div = document.createElement('div');
     div.className = `mensaje ${esUsuario ? 'usuario' : 'asistente'}`;
-    div.innerHTML = esUsuario 
+    div.innerHTML = esUsuario
         ? `<strong>Tú:</strong> ${texto}`
         : `<strong>🤖 Veyra:</strong> ${texto}`;
     caja.appendChild(div);
@@ -1389,10 +1369,7 @@ function agregarMensaje(texto, esUsuario = false) {
 }
 
 async function obtenerRespuestaChat(texto) {
-    return await buscarEnInternet(
-        `Responde en español de forma natural, amable y breve. 
-         El usuario dice: "${texto}"`
-    ) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
+    return await buscarEnInternet(texto) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
 }
 
 async function enviarMensaje(texto) {
@@ -1404,6 +1381,7 @@ async function enviarMensaje(texto) {
     hablar(respuesta);
 }
 
+// 🎯 CONECTAR BOTONES
 document.addEventListener('click', e => {
     if (e.target.id === 'btnEnviarTexto') enviarMensaje(el('entradaTexto').value);
     if (e.target.id === 'btnVozChat') iniciarEscucha();
@@ -1412,12 +1390,3 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.id === 'entradaTexto') enviarMensaje(e.target.value);
 });
-
-// Conectar voz con chat
-const procesarComandoOriginal = procesarComando;
-procesarComando = async function(frase) {
-    agregarMensaje(frase, true);
-    const respuesta = await obtenerRespuestaChat(frase);
-    agregarMensaje(respuesta);
-    hablar(respuesta);
-};
