@@ -1129,6 +1129,12 @@ function mostrarAlertaSaldo(saldo) {
     let texto = '';
     let borde = '';
 
+    if (saldo > 1200000) {
+        mensaje = '🤑 RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
+        fondo = '#fff9c4';
+        texto = '#f57f17';
+        borde = '#ffc107';
+
     if (saldo >= 800000 && saldo <= 1200000) {
         mensaje = '✅ NUESTRA SALUD ECONÓMICA ESTÁ EXCELENTE 💚';
         fondo = '#e6f9f0';
