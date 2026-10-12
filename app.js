@@ -1269,13 +1269,12 @@ function iniciarEscucha() {
 }
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
-const CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
+cconst CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
 const PROJECT_ID = "214976680792";
 
-async function obtenerTokenYConsultar(pregunta) {
+async function buscarEnInternet(pregunta) {
     console.log("🔄 Preparando conexión...");
-
-    // Opción simplificada: usamos la clave en el encabezado (formato alternativo)
+    
     const URL = `https://generativelanguage.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/gemini-pro:streamGenerateContent`;
 
     try {
@@ -1316,15 +1315,60 @@ async function obtenerTokenYConsultar(pregunta) {
     }
 }
 
-// Reemplaza tu función buscarEnInternet por esta
-async function buscarEnInternet(pregunta) {
 // 📖 AGENDA — Guardar contactos
+let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+
 function guardarContacto(nombre, numero) {
     numero = numero.replace(/\D/g, '');
     if (!numero.startsWith('57') && numero.length === 10) numero = '57' + numero;
     agenda.push({ nombre, numero });
     localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
     hablar(`${nombre} guardado correctamente.`);
+}
+
+// 🧠 PROCESAR COMANDO
+async function procesarComando(frase) {
+    const texto = frase.toLowerCase().trim();
+
+    // Búsqueda
+    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || 
+        texto.includes('cuánto') || texto.includes('por qué')) {
+        hablar("Lo busco por ti...");
+        const resultado = await buscarEnInternet(frase);
+        hablar(resultado);
+        return;
+    }
+
+    // Llamada
+    if (texto.includes('llama a') || texto.includes('llamar a')) {
+        const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        if (contacto) {
+            hablar(`Marcando a ${contacto.nombre}`);
+            setTimeout(() => { window.location.href = `tel:${contacto.numero}`; }, 600);
+        } else {
+            hablar(`No encontré a ${nombre}. Agrégalo primero.`);
+        }
+        return;
+    }
+
+    // WhatsApp
+    if (texto.includes('whatsapp') || texto.includes('escribe a') || 
+        texto.includes('mensaje a') || texto.includes('envía a')) {
+        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        if (contacto) {
+            hablar(`Abriendo chat con ${contacto.nombre}`);
+            window.open(`https://wa.me/${contacto.numero}`, '_blank');
+        } else {
+            hablar(`No encontré a ${nombre}. Agrégalo primero.`);
+        }
+        return;
+    }
+
+    // Respuesta general
+    const respuesta = await buscarEnInternet(frase);
+    hablar(respuesta || `Entendí: ${frase}. ¿En qué te ayudo?`);
 }
 
 // ==============================================
