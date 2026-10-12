@@ -71,7 +71,14 @@ el('btnRecuperar').addEventListener('click', async () => {
 // ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
 el('btnCambiarModo').addEventListener('click', () => {
     esRegistro = !esRegistro;
-    el('campoNombre').style.display = esRegistro ? 'block' : 'none';
+    
+    // ✅ Usamos la MISMA forma que en el HTML: clase .oculto
+    if (esRegistro) {
+        el('campoNombre').classList.remove('oculto');
+    } else {
+        el('campoNombre').classList.add('oculto');
+    }
+    
     el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
     el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
     el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
@@ -85,7 +92,7 @@ el('btnIngresar').addEventListener('click', async () => {
     const contraseña = el('inputContraseña').value;
     const nombre = el('inputNombre').value.trim();
     el('errorLogin').textContent = '';
-
+    
     if (!correo || !contraseña) {
         el('errorLogin').textContent = 'Completa todos los campos';
         return;
@@ -94,7 +101,7 @@ el('btnIngresar').addEventListener('click', async () => {
         el('errorLogin').textContent = 'Escribe tu nombre';
         return;
     }
-
+    
     try {
         let credencial;
         if (esRegistro) {
