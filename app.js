@@ -1259,7 +1259,7 @@ function crearReconocimiento() {
 }
 
 // ▶️ INICIAR ESCUCHA — CORREGIDO: espera a que termine de hablar
-unction iniciarEscucha() {
+function iniciarEscucha() {
     if (escuchandoActivo) return;
     
     if (!ReconocimientoVoz) {
