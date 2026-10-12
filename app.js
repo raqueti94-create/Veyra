@@ -1269,7 +1269,7 @@ function iniciarEscucha() {
 }
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
-cconst CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
+const CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
 const PROJECT_ID = "214976680792";
 
 async function buscarEnInternet(pregunta) {
