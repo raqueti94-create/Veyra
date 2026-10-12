@@ -1284,25 +1284,40 @@ function iniciarEscucha() {
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
 async function buscarEnInternet(pregunta) {
+    try {
+        const respuesta = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Eres Veyra IA, asistente amable y cercano. 
+                            Habla claro, breve y natural. 
+                            Responde como si charlaras con un amigo. 
+                            Pregunta: ${pregunta}`
+                        }]
+                    }]
+                })
+            }
+        );
 
-// 🧠 PROCESAR COMANDOS — Aquí Veyra entiende todo
-async function procesarComando(frase) {
-    const texto = frase.toLowerCase().trim();
-    const agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-
-    // 🔍 ALGO INTERESANTE — Busca en internet
-    if (texto.includes('interesante') || texto.includes('curioso') || texto.includes('dato')) {
-        hablar("Déjame buscar algo interesante...");
+        const datos = await respuesta.json();
         
-        const resultado = await buscarEnInternet("un dato curioso e interesante nuevo para hoy");
-        
-        if (resultado) {
-            hablar(resultado);
-        } else {
-            hablar("¿Sabías que la Tierra no es perfectamente redonda? Está achatada por los polos y se ensancha en el ecuador.");
+        // Muestra el error real en consola
+        if (datos.error) {
+            console.log("❌ Error de Gemini:", datos.error);
+            return `⚠️ ${datos.error.message || "No pude conectarme bien"}`;
         }
-        return;
+        
+        return datos.candidates[0].content.parts[0].text.trim();
+
+    } catch (error) {
+        console.log("❌ Error de conexión:", error);
+        return "No pude conectarme. Revisa tu conexión o la clave 🌐";
     }
+}
 
     // 🔍 BÚSQUEDA LIBRE
     if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || texto.includes('cuánto') || texto.includes('por qué')) {
