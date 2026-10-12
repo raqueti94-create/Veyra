@@ -1310,3 +1310,45 @@ window.addEventListener('load', () => {
         hablar("¡Hola! Aquí estoy. Cuéntame qué necesitas.");
     }, 1000);
 });
+
+// ==============================================
+// AGENDA DE CONTACTOS
+// ==============================================
+
+// Guardar contacto
+function guardarContacto(nombre, numero) {
+    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+    
+    // Formatear número: código de Colombia + sin espacios
+    numero = numero.replace(/\D/g, '');
+    if (!numero.startsWith('57') && numero.length === 10) {
+        numero = '57' + numero;
+    }
+    
+    agenda.push({ nombre, numero });
+    localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
+    hablar(`${nombre} guardado correctamente.`);
+}
+
+// Ejemplo de uso:
+// guardarContacto("Mamá", "3123456789");
+💡 Para probarlo rápido, abre la Consola de Desarrollador en tu navegador (F12 o Inspeccionar → Consola) y escribe:
+guardarContacto("Mamá", "3123456789");
+🔗 PASO 5: Conectar con la App Puente (HTTP Shortcuts) — Para llamadas SOLAS
+Cuando ya tengas lo anterior funcionando, configuramos esto:
+En HTTP Shortcuts (instalada desde Play Store):
+Nueva acción → Recibir evento del sistema → SMS recibido
+Configurar:
+URL: https://tu-veyra.github.io/api/sms (creamos este punto de conexión)
+Método: POST
+Cuerpo: { "remitente": "{{sms_from}}", "texto": "{{sms_body}}" }
+En Veyra agregamos:
+javascript
+Run
+// Recibir orden de la app puente
+window.addEventListener('message', (evento) => {
+    if (evento.data.llamar) {
+        const numero = evento.data.llamar;
+        window.location.href = `tel:${numero}`; // O la app puente llama SOLA ✅
+    }
+});
