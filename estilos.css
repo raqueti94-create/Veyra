@@ -876,3 +876,38 @@ button:disabled {
         font-size: 1rem;
     }
 }
+/* ========== CENTRAR LEYENDA DEL GRÁFICO ========== */
+/* Contenedor de la leyenda */
+.chartjs-legend {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 2rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Cada elemento de la leyenda */
+.chartjs-legend li {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transform: translateY(-6px) !important; /* Ajusta este valor para subir/bajar */
+}
+
+/* El círculo de color */
+.chartjs-legend li span:first-child {
+  transform: translateY(-2px) !important;
+}
+
+/* El texto */
+.chartjs-legend li span:last-child {
+  transform: translateY(-2px) !important;
+}
+
+/* Ajuste general del gráfico */
+.grafico canvas {
+  margin-top: -10px !important; /* Sube o baja todo el gráfico */
+}
