@@ -1270,33 +1270,39 @@ function iniciarEscucha() {
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
 async function buscarEnInternet(pregunta) {
+    const CLAVE = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
+    const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CLAVE}`;
+
+    console.log("🔗 Conectando a Gemini...");
+
     try {
-        const respuesta = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `Eres Veyra IA, asistente amable y cercano. 
-                            Habla claro, breve y natural. 
-                            Responde como si charlaras con un amigo. 
-                            Pregunta: ${pregunta}`
-                        }]
+        const respuesta = await fetch(URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `Eres Veyra IA, asistente amable y cercano. 
+                        Habla claro, breve y natural. 
+                        Pregunta: ${pregunta}`
                     }]
-                })
-            }
-        );
+                }]
+            })
+        });
+
         const datos = await respuesta.json();
-        if (datos.error) {
-            console.log("❌ Error de Gemini:", datos.error);
-            return `No pude conectarme bien. Intenta de nuevo.`;
+        console.log("📦 Respuesta de Gemini:", datos);
+
+        if (!respuesta.ok || datos.error) {
+            console.error("❌ Error API:", datos.error || respuesta.status);
+            return `⚠️ ${datos.error?.message || "No pude conectarme"}`;
         }
+
         return datos.candidates[0].content.parts[0].text.trim();
+
     } catch (error) {
-        console.log("❌ Error de conexión:", error);
-        return "No pude conectarme. Revisa tu conexión 🌐";
+        console.error("❌ Error de red:", error);
+        return "No hay conexión con Gemini. Revisa tu clave o conexión 🌐";
     }
 }
 
