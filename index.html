@@ -401,20 +401,24 @@
         
    <!-- ✅ PEGA TODO EL BLOQUE DEL CHAT JUSTO AQUÍ 👇 -->
         <section class="contenido-pestaña oculto" id="pestaña-ia">
-            <div class="contenedor-chat">
-                <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA — Tu asistente</h2>
-                <div id="cajaMensajes" class="caja-mensajes">
-                    <div class="mensaje asistente">
-                        <strong>🤖 Veyra:</strong> ¡Hola! Estoy aquí para ayudarte. Pregúntame lo que quieras.
-                    </div>
-                </div>
-                <div class="entrada-chat">
-                    <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta..." />
-                    <button id="btnEnviarTexto" class="btn btn-primario">Enviar</button>
-                    <button id="btnVozChat" class="btn-microfono-chat">🎤</button>
-                </div>
+    <div class="contenedor-chat">
+        <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA — Tu asistente</h2>
+        
+        <div id="cajaMensajes" class="caja-mensajes">
+            <div class="mensaje asistente">
+                <strong>🤖 Veyra:</strong> ¡Hola! Estoy aquí para ayudarte. Pregúntame lo que quieras.
             </div>
-        </section>
+        </div>
+        
+        <div class="entrada-chat">
+            <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta..." />
+            <button id="btnEnviarTexto" class="btn-enviar-chat">Enviar</button>
+            <button id="btnVozChat" class="btn-microfono-chat">🎤</button>
+        </div>
+        
+        <button id="btnLimpiarChat" class="btn-limpiar-chat">🗑️ Limpiar conversación</button>
+    </div>
+</section>
         <!-- ✅ FIN del bloque del chat -->
 
     </main>
