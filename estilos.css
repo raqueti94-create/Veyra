@@ -240,43 +240,49 @@ body {
     padding-right: 1rem;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
-/* ===== Botón Cambiar Nombre — IGUAL A PESTAÑAS ===== */
+
+/* ===== Botón Cambiar Nombre ===== */
 .btn-cambiar-nombre {
-    background: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--texto-claro);
+    background: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: var(--texto-claro) !important;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: none;
 }
 
 .btn-cambiar-nombre:hover {
-    background: var(--primario);
-    color: white;
+    background: var(--primario) !important;
+    color: white !important;
     box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    transform: translateY(-2px);
 }
 
-/* ===== Botón Salir — IGUAL A PESTAÑAS ===== */
+/* ===== Botón Salir ===== */
 .btn-cerrar-sesion {
-    background: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--texto-claro);
+    background: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    color: var(--texto-claro) !important;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: none;
 }
 
 .btn-cerrar-sesion:hover {
-    background: #e17055;
-    color: white;
+    background: #e17055 !important;
+    color: white !important;
     box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
+    transform: translateY(-2px);
 }
+
 /* Estilo base para botones sueltos.
    :where() le quita la especificidad, así cualquier clase específica
    (btn-accion, habito-marca, btn-whatsapp...) puede sobrescribirlo sin !important. */
