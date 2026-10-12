@@ -1269,20 +1269,22 @@ function iniciarEscucha() {
 }
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
-async function buscarEnInternet(pregunta) {
-    // TU CLAVE TAL CUAL TE APARECE
-    const CLAVE = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
-    
-    // Prueba con esta versión de la API
-    // Opción B — con el ID de tu proyecto
-const URL = `https://generativelanguage.googleapis.com/v1/projects/214976680792/locations/global/publishers/google/models/gemini-pro:generateContent?key=${CLAVE}`;
+const CLAVE_AQ = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
+const PROJECT_ID = "214976680792";
 
-    console.log("🔗 Conectando...");
+async function obtenerTokenYConsultar(pregunta) {
+    console.log("🔄 Preparando conexión...");
+
+    // Opción simplificada: usamos la clave en el encabezado (formato alternativo)
+    const URL = `https://generativelanguage.googleapis.com/v1/projects/${PROJECT_ID}/locations/global/publishers/google/models/gemini-pro:streamGenerateContent`;
 
     try {
-        const respuesta = await fetch(URL, {
+        const respuesta = await fetch(`${URL}?key=${CLAVE_AQ}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "x-goog-api-key": CLAVE_AQ
+            },
             body: JSON.stringify({
                 contents: [{
                     parts: [{
@@ -1297,17 +1299,26 @@ const URL = `https://generativelanguage.googleapis.com/v1/projects/214976680792/
         const datos = await respuesta.json();
         console.log("📦 Respuesta:", datos);
 
-        if (!respuesta.ok || datos.error) {
-            console.error("❌ Error:", datos.error);
-            return `⚠️ ${datos.error?.message || "No conectó"}`;
+        if (!respuesta.ok) {
+            if (datos.error) {
+                console.error("❌ Error:", datos.error);
+                return `⚠️ ${datos.error.message}`;
+            }
+            return "⚠️ No se pudo conectar";
         }
 
-        return datos.candidates[0].content.parts[0].text.trim();
+        const texto = datos[0]?.candidates?.[0]?.content?.parts?.[0]?.text;
+        return texto || "No entendí la respuesta 😅";
 
     } catch (error) {
         console.error("❌ Red:", error);
         return "Sin conexión 🌐";
     }
+}
+
+// Reemplaza tu función buscarEnInternet por esta
+async function buscarEnInternet(pregunta) {
+    return await obtenerTokenYConsultar(pregunta);
 }
 
 // 🧠 PROCESAR COMANDO — FUNCIÓN PRINCIPAL ✅
