@@ -805,3 +805,65 @@ button:disabled {
     color: #ccc;
     font-size: 0.8rem;
 }
+/* ========== CORRECCIÓN DEFINITIVA BOTONES DE ACCIÓN ========== */
+.movimiento {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+}
+
+.info-mov {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.valor-botones {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.7rem !important;
+    flex-shrink: 0 !important;
+}
+
+.acciones {
+    display: flex !important;
+    gap: 0.4rem !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+.btn-accion {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    font-size: 0.95rem !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-accion:hover {
+    transform: scale(1.1) !important;
+}
+
+.btn-editar:hover {
+    background: #d4edda !important;
+    color: #155724 !important;
+}
+
+.btn-eliminar:hover {
+    background: #f8d7da !important;
+    color: #a71d2a !important;
+}
