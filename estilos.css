@@ -19,9 +19,8 @@
 }
 body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: var(--texto);
-    line-height: 1.6;
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ========== PANTALLA DE CARGA ========== */
