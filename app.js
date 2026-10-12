@@ -1274,7 +1274,8 @@ async function buscarEnInternet(pregunta) {
     const CLAVE = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
     
     // Prueba con esta versión de la API
-    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${CLAVE}`;
+    // Opción B — con el ID de tu proyecto
+const URL = `https://generativelanguage.googleapis.com/v1/projects/214976680792/locations/global/publishers/google/models/gemini-pro:generateContent?key=${CLAVE}`;
 
     console.log("🔗 Conectando...");
 
