@@ -1203,113 +1203,123 @@ function mostrarAlertaSaldo(saldo) {
         alerta.style.lineHeight = '1.6';
     }
 }
-// ==============================================
-// SISTEMA DE VOZ Y RECONOCIMIENTO PARA VEYRA
+v// ==============================================
+// SISTEMA DE VOZ CORREGIDO — SIN ALERTA DE SEGURIDAD
 // ==============================================
 
-// 🔊 HABLAR — Veyra usa el altavoz
-function hablar(texto) {
-    // Detiene cualquier voz anterior
+// 🔊 HABLAR
+function hablar(texto, callbackCuandoTermine = null) {
+    if (!window.speechSynthesis) return;
+    
     window.speechSynthesis.cancel();
     
     const mensaje = new SpeechSynthesisUtterance(texto);
     mensaje.lang = 'es-ES';
-    mensaje.rate = 1.05; // Velocidad: 1 normal
-    mensaje.pitch = 1;   // Tono normal
+    mensaje.rate = 1.05;
+    mensaje.pitch = 1;
+    
+    if (callbackCuandoTermine) {
+        mensaje.onend = callbackCuandoTermine;
+    }
+    
     window.speechSynthesis.speak(mensaje);
 }
 
-// 🎤 ESCUCHAR — Reconocimiento de voz
+// 🎤 RECONOCIMIENTO
 const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
-const escucha = new ReconocimientoVoz();
-escucha.lang = 'es-ES';
-escucha.interimResults = false; // Solo resultado final
-escucha.continuous = false;
-
 let escuchandoActivo = false;
 
-// Cuando obtiene el resultado
-escucha.onresult = function(evento) {
-    const loQueDijo = evento.results[0][0].transcript;
-    console.log("Escuché:", loQueDijo);
-    procesarComando(loQueDijo);
-};
-
-escucha.onend = function() {
-    escuchandoActivo = false;
-};
-
-escucha.onerror = function(error) {
-    escuchandoActivo = false;
-    console.log("Error de escucha:", error);
-};
-
-// ▶️ INICIAR ESCUCHA — llama a esta función con un botón
 function iniciarEscucha() {
     if (escuchandoActivo) return;
     
+    if (!ReconocimientoVoz) {
+        alert("Tu navegador no soporta reconocimiento de voz. Usa Chrome.");
+        return;
+    }
+    
     escuchandoActivo = true;
-    hablar("Te escucho");
-    escucha.start();
+    
+    const escucha = new ReconocimientoVoz();
+    escucha.lang = 'es-ES';
+    escucha.interimResults = false;
+    
+    escucha.onresult = function(evento) {
+        escuchandoActivo = false;
+        const loQueDijo = evento.results[0][0].transcript;
+        console.log("Escuché:", loQueDijo);
+        procesarComando(loQueDijo);
+    };
+    
+    escucha.onend = () => escuchandoActivo = false;
+    
+    escucha.onerror = function(error) {
+        escuchandoActivo = false;
+        console.log("Error:", error);
+        if (error === 'not-allowed') {
+            alert("Dale permiso al micrófono: toca el candado 🔒 arriba → Micrófono → Permitir");
+        }
+    };
+    
+    hablar("Te escucho", () => {
+        escucha.start();
+    });
 }
 
-// 🧠 PROCESAR COMANDOS — Aquí Veyra entiende qué le dices
+// 🧠 PROCESAR COMANDOS
 async function procesarComando(frase) {
     const texto = frase.toLowerCase().trim();
     const agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-    
-    // ---------- SALUDO / PRESENTACIÓN ----------
-    if (texto.includes('hola') || texto.includes('estoy aquí')) {
-        hablar("¡Hola! Aquí estoy. Cuéntame qué necesitas.");
+
+    if (texto.includes('interesante') || texto.includes('curioso')) {
+        hablar("¿Sabías que los pulpos tienen tres corazones? Dos envían sangre a las branquias y el tercero al resto del cuerpo. ¡Qué curioso!");
         return;
     }
 
-    // ---------- LLAMADA POR TELÉFONO (apertura directa) ----------
     if (texto.includes('llama a') || texto.includes('llamar a')) {
         const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
         
         if (contacto) {
             hablar(`Marcando a ${contacto.nombre}`);
-            // Abre el marcador con el número listo
-            window.location.href = `tel:${contacto.numero}`;
+            setTimeout(() => {
+                window.location.href = `tel:${contacto.numero}`;
+            }, 600);
         } else {
-            hablar(`No encontré a ${nombre}. Agrégalo en tu agenda primero.`);
+            hablar(`No encontré a ${nombre}. Agrégalo primero.`);
         }
         return;
     }
 
-    // ---------- MENSAJE POR WHATSAPP ----------
-    if (texto.includes('whatsapp') || texto.includes('escribe a') || texto.includes('mensaje a')) {
+    if (texto.includes('whatsapp') || texto.includes('escribe a')) {
         const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
         
         if (contacto) {
             hablar(`Abriendo chat con ${contacto.nombre}`);
-            // Abre WhatsApp con el contacto
             window.open(`https://wa.me/${contacto.numero}`, '_blank');
         } else {
-            hablar(`No encontré a ${nombre} en tu agenda.`);
+            hablar(`No encontré a ${nombre}.`);
         }
         return;
     }
 
-    // ---------- ALGO INTERESANTE ----------
-    if (texto.includes('interesante') || texto.includes('algo curioso')) {
-        hablar("¿Sabías que el cuerpo humano tiene más de 37 billones de células? ¡Increíble, verdad! ¿Quieres saber algo más?");
-        return;
-    }
-
-    // ---------- NO ENTENDÍ ----------
-    hablar("No estoy segura de qué necesitas. Intenta decir: llama a Mamá, o escríbele a Papá por WhatsApp.");
+    hablar(`Entendí: ${frase}. Prueba decir: llama a Mamá`);
 }
 
-// 👋 SALUDO AUTOMÁTICO al abrir Veyra
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        hablar("¡Hola! Aquí estoy. Cuéntame qué necesitas.");
-    }, 1000);
-});
+// 📖 AGENDA
+function guardarContacto(nombre, numero) {
+    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+    numero = numero.replace(/\D/g, '');
+    if (!numero.startsWith('57') && numero.length === 10) {
+        numero = '57' + numero;
+    }
+    agenda.push({ nombre, numero });
+    localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
+    hablar(`${nombre} guardado correctamente.`);
+}
+
+// ❌ ELIMINAMOS el saludo automático que causaba la alerta
+// En su lugar: el botón 🎤 es quien inicia todo
 
 // ==============================================
 // AGENDA DE CONTACTOS
