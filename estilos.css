@@ -334,22 +334,22 @@ body {
 }
 .pestaña {
     padding: 0.8rem 1.2rem;
-    background: rgba(255,255,255,0.2);
     border: none;
     border-radius: 10px;
-    color: white;
+    background: #f1f2f6;
+    color: #2d3436; /* Texto oscuro, se ve claro */
     cursor: pointer;
-    font-size: 0.95rem;
     transition: var(--transicion);
+    font-weight: 500;
+}
+.pestaña:hover {
+    background: #e4e5e9;
 }
 .pestaña.activa {
-    background: white;
-    color: var(--primario);
+    background: var(--primario);
+    color: white;
+    box-shadow: 0 4px 12px rgba(108,92,231,0.3);
     font-weight: 600;
-    box-shadow: var(--sombra);
-}
-.pestaña:hover:not(.activa) {
-    background: rgba(255,255,255,0.35);
 }
 
 /* ========== BLOQUES Y TARJETAS ========== */
