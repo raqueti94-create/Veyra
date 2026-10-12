@@ -1,25 +1,202 @@
-{
-  "name": "Veyra",
-  "short_name": "Veyra",
-  "description": "Control de hábitos y finanzas personales",
-  "start_url": "/Veyra/",
-  "scope": "/Veyra/",
-  "display": "standalone",
-  "background_color": "#1e3a8a",
-  "theme_color": "#7c3aed",
-  "lang": "es",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ]
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Veyra App V-A1 💵</title>
+
+    <!-- Estilos: el archivo debe estar en la misma carpeta que este index.html -->
+    <link rel="stylesheet" href="estilos.css">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Librerías -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
+</head>
+<body>
+
+<!-- PANTALLA LOGIN -->
+<div id="pantallaLogin" class="pantalla-login">
+    <div class="caja-login">
+        <span class="icono-app">📊</span>
+        <h1 id="tituloLogin">Veyra</h1>
+        <p class="subtitulo" id="subtituloLogin">Ingresa para continuar</p>
+
+        <!-- display:none en línea (no la clase "oculto") para que el JS pueda mostrarlo -->
+        <div id="campoNombre" class="grupo-input" style="display: none;">
+            <label for="inputNombre">Nombre</label>
+            <input type="text" id="inputNombre" placeholder="Tu nombre completo">
+        </div>
+        <div class="grupo-input">
+            <label for="inputCorreo">Correo</label>
+            <input type="email" id="inputCorreo" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="grupo-input">
+            <label for="inputContraseña">Contraseña</label>
+            <input type="password" id="inputContraseña" placeholder="Contraseña">
+        </div>
+
+        <p id="errorLogin" class="error"></p>
+
+        <div class="fila-botones">
+            <button id="btnIngresar" class="boton-principal">Ingresar</button>
+            <button id="btnCambiarModo" class="boton-secundario">¿No tienes cuenta? Crear una</button>
+        </div>
+    </div>
+</div>
+
+<!-- PANTALLA PRINCIPAL -->
+<div id="pantallaPrincipal" class="pantalla-principal oculto">
+
+    <!-- CABECERA -->
+    <header class="cabecera">
+        <h2>💰 Veyra</h2>
+        <div class="usuario-barra">
+            <span id="nombreUsuario" class="nombre-usuario-cabecera"></span>
+            <button id="btnCambiarNombre" class="btn-cambiar-nombre">✏️ Cambiar nombre</button>
+            <button id="btnCerrarSesion" class="btn-cerrar-sesion">🚪 Salir</button>
+        </div>
+    </header>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="navegacion">
+        <button class="pestaña activa" data-pestaña="resumen">📈 Resumen</button>
+        <button class="pestaña" data-pestaña="contable">💰 Contable</button>
+        <button class="pestaña" data-pestaña="ahorro">🎯 Metas de Ahorro</button>
+        <button class="pestaña" data-pestaña="habitos">✅ Hábitos</button>
+        <button class="pestaña" data-pestaña="exportar">📄 Exportar</button>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <main>
+
+        <!-- RESUMEN -->
+        <section class="contenido-pestaña" id="pestaña-resumen">
+            <div class="bloque">
+                <h3>Saldo Total</h3>
+                <p id="saldoActual" class="valor-grande">$ 0</p>
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                    <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
+                    <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
+                </div>
+            </div>
+            <div class="bloque">
+                <h3>Evolución</h3>
+                <div class="grafico">
+                    <canvas id="graficoEvolucion"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTABLE -->
+        <section class="contenido-pestaña oculto" id="pestaña-contable">
+            <div class="bloque">
+                <h3>Registrar Movimiento</h3>
+                <div class="selector-tipo">
+                    <button id="btnIngreso" class="btn-tipo-ingreso activo">📥 Ingreso</button>
+                    <button id="btnGasto" class="btn-tipo-gasto">📤 Gasto</button>
+                </div>
+                <div class="campos-formulario">
+                    <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción (ej: Sueldo, Comida)">
+                    <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="100">
+                </div>
+                <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
+            </div>
+            <div class="bloque">
+                <h3>Historial</h3>
+                <div id="listaMovimientos">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes movimientos</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- METAS DE AHORRO -->
+        <section class="contenido-pestaña oculto" id="pestaña-ahorro">
+            <div class="bloque">
+                <h3>🎯 Crear Meta de Ahorro</h3>
+                <div class="campos-formulario">
+                    <input type="text" id="nombreMeta" class="campo-dato" placeholder="Nombre de la meta (ej: Carro)">
+                    <input type="number" id="montoMeta" class="campo-dato" placeholder="Monto total a alcanzar" min="1000">
+                </div>
+                <button id="btnCrearMeta" class="btn-guardar-movimiento">➕ Crear Meta</button>
+            </div>
+            <div class="bloque">
+                <h3>📋 Mis Metas</h3>
+                <div id="listaMetas">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HÁBITOS -->
+        <section class="contenido-pestaña oculto" id="pestaña-habitos">
+            <div class="bloque">
+                <h3>✅ Agregar Hábito</h3>
+                <div class="campos-formulario">
+                    <input type="text" id="nombreHabito" class="campo-dato" placeholder="Nombre del hábito">
+                </div>
+                <button id="btnAgregarHabito" class="btn-guardar-movimiento">➕ Agregar</button>
+            </div>
+            <div class="bloque">
+                <h3>Mis Hábitos</h3>
+                <div id="listaHabitos">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Agrega tus hábitos arriba</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPORTAR Y COMPARTIR -->
+        <section class="contenido-pestaña oculto" id="pestaña-exportar">
+            <div class="bloque">
+                <h3>📄 Descargar Registros</h3>
+                <div class="botones-compartir">
+                    <button id="btnExportarExcel" class="btn btn-primario">📊 Exportar a Excel</button>
+                    <button id="btnExportarPDF" class="btn btn-primario">📄 Exportar a PDF</button>
+                </div>
+            </div>
+            <div class="bloque">
+                <h3>🔗 Compartir App</h3>
+                <div class="botones-compartir">
+                    <button id="btnCompartirWsp" class="btn-whatsapp">📱 WhatsApp</button>
+                    <button id="btnCopiarEnlace" class="btn-copiar">📋 Copiar Enlace</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- MODALES -->
+<div id="modalAgregarAhorro" class="modal-fondo oculto">
+    <div class="modal-contenido">
+        <h3>💰 Agregar Ahorro</h3>
+        <p id="nombreMetaModal" style="color: var(--primario); font-weight: 600; margin-bottom: 1rem; text-align: center;"></p>
+        <input type="number" id="montoAhorro" placeholder="Monto a guardar" min="100">
+        <div class="botones-modal">
+            <button id="btnCancelarAhorro" class="btn btn-cancelar">Cancelar</button>
+            <button id="btnConfirmarAhorro" class="btn btn-guardar">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalNombre" class="modal-fondo oculto">
+    <div class="modal-contenido">
+        <h3>✏️ Cambiar Nombre</h3>
+        <input type="text" id="inputNuevoNombre" placeholder="Escribe tu nuevo nombre">
+        <div class="botones-modal">
+            <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
+            <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- TU ARCHIVO JS -->
+<script src="app.js"></script>
+</body>
+</html>
