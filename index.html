@@ -1,9 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Veyra App 9 💵</title>
+    <link rel="icon" href="data:,">
+    <!-- ESTILOS -->
+    <link rel="stylesheet" href="estilos.css">
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <!-- Librerías -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
+</head>
+<body>
+
 <!-- PANTALLA LOGIN -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
         <span class="icono-app">📊</span>
-        <h1 id="tituloLogin">Veyra</h1>
-        <p class="subtitulo" id="subtituloLogin">Ingresa para continuar</p>
+        <h1>Veyra</h1>
+        <p class="subtitulo">Ingresa para continuar</p>
 
         <div id="campoNombre" class="grupo-input oculto">
             <label>Tu nombre completo</label>
@@ -32,9 +53,8 @@
 
 <!-- PANTALLA PRINCIPAL -->
 <div id="pantallaPrincipal" class="oculto pantalla-principal">
-    <!-- CABECERA -->
     <header class="cabecera">
-        <div class="logo">💰 Veyra App</div>
+        <h2>💰 Veyra App</h2>
         <div class="usuario-barra">
             <span id="nombreUsuario" class="nombre-usuario-cabecera"></span>
             <button id="btnCambiarNombre" class="boton-cabecera">✏️ Cambiar Nombre</button>
@@ -42,7 +62,6 @@
         </div>
     </header>
 
-    <!-- NAVEGACIÓN -->
     <nav class="navegacion">
         <button class="pestaña activa" data-pestaña="resumen">📈 Resumen</button>
         <button class="pestaña" data-pestaña="contable">💰 Contable</button>
@@ -52,23 +71,22 @@
         <button class="pestaña" data-pestaña="ia">🤖 Veyra IA</button>
     </nav>
 
-    <!-- CONTENIDO -->
     <main class="contenido">
         <!-- RESUMEN -->
         <section class="contenido-pestaña" id="pestaña-resumen">
             <div class="bloque">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
+                <div class="fila-doble">
                     <h3>Saldo Total</h3>
-                    <select id="mesResumen" class="campo" style="width: auto; padding: 0.5rem 1rem; margin: 0;">
-                        <!-- Se llena automáticamente desde el JS -->
+                    <select id="mesResumen">
+                        <!-- Se llena desde JS -->
                     </select>
                 </div>
-                <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
-                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                <p class="valor-grande" id="saldoActual">$ 0</p>
+                <div class="fila-doble">
                     <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
                     <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
                 </div>
-                <div id="alertaSaldo" class="alerta-saldo" style="margin: 1rem 0; padding: 1rem; border-radius: 12px; font-weight: 600; text-align: center; display: none;"></div>
+                <div id="alertaSaldo" class="alerta-saldo" style="display: none;"></div>
             </div>
             <div class="bloque">
                 <h3>Evolución</h3>
@@ -87,31 +105,31 @@
                     <button id="btnGasto" class="btn-tipo-gasto">📤 Gasto</button>
                 </div>
                 <div class="campos-formulario">
-                    <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción (ej: Sueldo, Comida)">
+                    <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción">
                     <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="100">
                 </div>
                 <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
             </div>
             <div class="bloque">
                 <h3>Historial</h3>
-                <div id="listaMovimientos" class="lista">
-                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes movimientos</p>
+                <div id="listaMovimientos">
+                    <p style="text-align:center; color:var(--texto-claro); padding:1rem;">Aún no tienes movimientos</p>
                 </div>
             </div>
         </section>
 
-        <!-- METAS DE AHORRO -->
+        <!-- METAS -->
         <section class="contenido-pestaña oculto" id="pestaña-ahorro">
             <div class="bloque">
-                <h3>🎯 Crear Meta de Ahorro</h3>
-                <input type="text" id="nombreMeta" class="campo" placeholder="Nombre de la meta (ej: Carro)">
-                <input type="number" id="montoMeta" class="campo" placeholder="Monto total a alcanzar" min="1000">
+                <h3>🎯 Crear Meta</h3>
+                <input type="text" id="nombreMeta" placeholder="Nombre de la meta">
+                <input type="number" id="montoMeta" placeholder="Monto objetivo" min="1000">
                 <button id="btnCrearMeta" class="btn-guardar-movimiento">➕ Crear Meta</button>
             </div>
             <div class="bloque">
                 <h3>📋 Mis Metas</h3>
                 <div id="listaMetas">
-                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>
+                    <p style="text-align:center; color:var(--texto-claro); padding:1rem;">Crea tu primera meta arriba 💪</p>
                 </div>
             </div>
         </section>
@@ -120,28 +138,28 @@
         <section class="contenido-pestaña oculto" id="pestaña-habitos">
             <div class="bloque">
                 <h3>✅ Agregar Hábito</h3>
-                <input type="text" id="nombreHabito" class="campo" placeholder="Nombre del hábito">
+                <input type="text" id="nombreHabito" placeholder="Nombre del hábito">
                 <button id="btnAgregarHabito" class="btn-guardar-movimiento">➕ Agregar</button>
             </div>
             <div class="bloque">
                 <h3>Mis Hábitos</h3>
                 <div id="listaHabitos">
-                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Agrega tus hábitos arriba</p>
+                    <p style="text-align:center; color:var(--texto-claro); padding:1rem;">Agrega tus hábitos arriba</p>
                 </div>
             </div>
         </section>
 
-        <!-- EXPORTAR Y COMPARTIR -->
+        <!-- EXPORTAR -->
         <section class="contenido-pestaña oculto" id="pestaña-exportar">
             <div class="bloque">
-                <h3>📄 Descargar Registros</h3>
+                <h3>📄 Descargar</h3>
                 <div class="fila-botones">
-                    <button id="btnExportarExcel" class="btn-whatsapp">📊 Exportar a Excel</button>
-                    <button id="btnExportarPDF" class="btn-copiar">📄 Exportar a PDF</button>
+                    <button id="btnExportarExcel" class="btn-whatsapp">📊 Excel</button>
+                    <button id="btnExportarPDF" class="btn-copiar">📄 PDF</button>
                 </div>
             </div>
             <div class="bloque">
-                <h3>🔗 Compartir App</h3>
+                <h3>🔗 Compartir</h3>
                 <div class="fila-botones">
                     <button id="btnCompartirWsp" class="btn-whatsapp">📱 WhatsApp</button>
                     <button id="btnCopiarEnlace" class="btn-copiar">📋 Copiar Enlace</button>
@@ -149,24 +167,21 @@
             </div>
         </section>
 
-        <!-- CHAT VEYRA IA -->
+        <!-- CHAT IA -->
         <section class="contenido-pestaña oculto" id="pestaña-ia">
             <div class="contenedor-chat">
-                <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA — Tu asistente</h2>
-                
+                <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA</h2>
                 <div id="cajaMensajes" class="caja-mensajes">
                     <div class="mensaje asistente">
-                        <strong>🤖 Veyra:</strong> ¡Hola! Soy Veyra. ¿En qué te ayudo hoy?
+                        <strong>🤖 Veyra:</strong> ¡Hola! ¿En qué te ayudo?
                     </div>
                 </div>
-                
                 <div class="entrada-chat">
-                    <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta..." />
+                    <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta...">
                     <button id="btnEnviarTexto" class="btn-enviar-chat">Enviar</button>
                     <button id="btnVozChat" class="btn-microfono-chat">🎤</button>
                 </div>
-                
-                <button id="btnLimpiarChat" class="btn-limpiar-chat">🗑️ Limpiar conversación</button>
+                <button id="btnLimpiarChat" class="btn-limpiar-chat">🗑️ Limpiar</button>
             </div>
         </section>
     </main>
@@ -176,8 +191,8 @@
 <div id="modalAgregarAhorro" class="modal-fondo oculto">
     <div class="modal-contenido">
         <h3>💰 Agregar Ahorro</h3>
-        <p id="nombreMetaModal" style="color: var(--primario); font-weight: 600; margin: 1rem 0;"></p>
-        <input type="number" id="montoAhorro" class="campo" placeholder="Monto a guardar" min="100">
+        <p id="nombreMetaModal"></p>
+        <input type="number" id="montoAhorro" placeholder="Monto" min="100">
         <div class="botones-modal">
             <button id="btnCancelarAhorro" class="btn btn-cancelar">Cancelar</button>
             <button id="btnConfirmarAhorro" class="btn btn-guardar">Guardar</button>
@@ -188,7 +203,7 @@
 <div id="modalNombre" class="modal-fondo oculto">
     <div class="modal-contenido">
         <h3>✏️ Cambiar Nombre</h3>
-        <input type="text" id="inputNuevoNombre" class="campo" placeholder="Escribe tu nuevo nombre">
+        <input type="text" id="inputNuevoNombre" placeholder="Tu nuevo nombre">
         <div class="botones-modal">
             <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
             <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
@@ -197,3 +212,5 @@
 </div>
 
 <script src="app.js"></script>
+</body>
+</html>
