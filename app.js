@@ -1286,38 +1286,35 @@ function iniciarEscucha() {
 async function buscarEnInternet(pregunta) {
     try {
         const respuesta = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CLAVE_GEMINI}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     contents: [{
-                        parts: [{ 
-                            text: `Responde en español de forma corta, clara y natural sobre: ${pregunta}. No uses listas ni encabezados. Sé amable.` 
+                        parts: [{
+                            text: `Eres Veyra IA, asistente amable y cercano. 
+                            Habla claro, breve y natural. 
+                            Responde como si charlaras con un amigo. 
+                            Pregunta: ${pregunta}`
                         }]
-                    }],
-                    tools: [{ google_search_retrieval: {} }]
+                    }]
                 })
             }
         );
-        
+
         const datos = await respuesta.json();
         
         if (datos.error) {
-            console.log("Error API:", datos.error);
-            return null;
+            console.error("Error:", datos.error);
+            return "No pude conectarme bien. Intenta de nuevo 😊";
         }
         
-        if (!datos.candidates || !datos.candidates[0]) {
-            return null;
-        }
-        
-        const textoRespuesta = datos.candidates[0].content.parts[0].text;
-        return textoRespuesta.trim();
-        
+        return datos.candidates[0].content.parts[0].text.trim();
+
     } catch (error) {
-        console.log("Error de búsqueda:", error);
-        return null;
+        console.error("Error:", error);
+        return "No pude obtener la respuesta. Revisa tu conexión 🌐";
     }
 }
 
