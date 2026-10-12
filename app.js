@@ -439,7 +439,7 @@ function dibujarGrafico() {
             barPercentage: 0.7,
             categoryPercentage: 0.7
         },
-        // ✅ LEYENDAS CENTRADAS SOBRE CADA BARRA
+        // ✅ LEYENDAS CENTRADAS — CÍRCULO Y TEXTO MÁS JUNTOS
         plugins: [{
             id: 'leyendas-por-barra',
             afterDatasetsDraw(chart) {
@@ -450,37 +450,40 @@ function dibujarGrafico() {
                 // Dibujar "Ingresos" sobre la barra verde
                 metaIngresos.data.forEach((barra, i) => {
                     if (ingresos[i] > 0) {
+                        const centroX = barra.x - 30;
+                        const lineaY = barra.y - 18;
+                        
                         ctx.fillStyle = '#00b894';
                         ctx.beginPath();
-                        ctx.arc(barra.x - 5, barra.y - 20, 5, 0, Math.PI * 2);
+                        ctx.arc(centroX, lineaY, 6, 0, Math.PI * 2);
                         ctx.fill();
                         
                         ctx.fillStyle = '#2d3436';
-                        ctx.font = 'bold 13px "Segoe UI", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('Ingresos', barra.x + 12, barra.y - 16);
+                        ctx.font = 'bold 14px "Segoe UI", sans-serif';
+                        ctx.textAlign = 'left';
+                        ctx.fillText('Ingresos', centroX + 12, lineaY + 5);
                     }
                 });
                 
                 // Dibujar "Gastos" sobre la barra naranja
                 metaGastos.data.forEach((barra, i) => {
                     if (gastos[i] > 0) {
+                        const centroX = barra.x - 25;
+                        const lineaY = barra.y - 18;
+                        
                         ctx.fillStyle = '#e17055';
                         ctx.beginPath();
-                        ctx.arc(barra.x - 5, barra.y - 20, 5, 0, Math.PI * 2);
+                        ctx.arc(centroX, lineaY, 6, 0, Math.PI * 2);
                         ctx.fill();
                         
                         ctx.fillStyle = '#2d3436';
-                        ctx.font = 'bold 13px "Segoe UI", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('Gastos', barra.x + 12, barra.y - 16);
+                        ctx.font = 'bold 14px "Segoe UI", sans-serif';
+                        ctx.textAlign = 'left';
+                        ctx.fillText('Gastos', centroX + 12, lineaY + 5);
                     }
                 });
             }
         }]
-    });
-}
-
 
 // ===== EXPORTAR A EXCEL =====
 el('btnExportarExcel').addEventListener('click', async () => {
