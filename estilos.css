@@ -240,48 +240,48 @@ body {
     padding-right: 1rem;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
-/* ===== Botón Cambiar Nombre — compacto y sutil ===== */
-.btn-cambiar-nombre,
-button.btn-cambiar-nombre {
-    background: #f1f1f1 !important;
-    border: none !important;
-    color: #444 !important;
-    border-radius: 8px !important;
-    padding: 0.3rem 0.9rem !important;
-    font-size: 0.8rem !important;
-    font-weight: 500 !important;
-    line-height: 1.2 !important;
-    height: auto !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
+/* ===== Botón Cambiar Nombre — TAMAÑO FINO ===== */
+.btn-cambiar-nombre {
+    background: #f1f1f1;
+    border: none;
+    color: #444;
+    border-radius: 8px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    box-sizing: border-box;
 }
 
-.btn-cambiar-nombre:hover,
-button.btn-cambiar-nombre:hover {
-    background: #e5e5e5 !important;
-    color: #6c5ce7 !important;
+.btn-cambiar-nombre:hover {
+    background: #e5e5e5;
+    color: #6c5ce7;
 }
 
 /* ===== Botón Cerrar Sesión — igual de pequeño ===== */
-.btn-cerrar-sesion,
-button.btn-cerrar-sesion {
-    background: transparent !important;
-    border: none !important;
-    color: #888 !important;
-    border-radius: 6px !important;
-    padding: 0.25rem 0.7rem !important;
-    font-size: 0.78rem !important;
-    font-weight: 500 !important;
-    line-height: 1.2 !important;
-    height: auto !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
+.btn-cerrar-sesion {
+    background: transparent;
+    border: none;
+    color: #ddd;
+    border-radius: 6px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    box-sizing: border-box;
 }
 
-.btn-cerrar-sesion:hover,
-button.btn-cerrar-sesion:hover {
-    color: #e17055 !important;
-    background: rgba(225, 112, 85, 0.08) !important;
+.btn-cerrar-sesion:hover {
+    color: #ffb5a0;
+    background: rgba(255, 255, 255, 0.1);
 }
 /* Estilo base para botones sueltos.
    :where() le quita la especificidad, así cualquier clase específica
