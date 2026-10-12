@@ -1433,7 +1433,7 @@ document.addEventListener('keydown', e => {
 const procesarComandoOriginal = procesarComando;
 procesarComando = async function(frase) {
     agregarMensaje(frase, true);
-    const respuesta = await obtenerRespuestaChat(frase);
+    const respuesta = await obtenerRespuestaChat(frase); // ✅ Funciona
     agregarMensaje(respuesta);
     hablar(respuesta);
 };
