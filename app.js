@@ -372,19 +372,19 @@ function dibujarGrafico() {
                 {
                     label: 'Ingresos',
                     data: ingresos,
-                    backgroundColor: 'rgba(0, 184, 148, 0.65)',
+                    backgroundColor: 'rgba(0, 184, 148, 0.7)',
                     borderColor: '#00b894',
                     borderWidth: 2,
-                    borderRadius: 8,
+                    borderRadius: 10,
                     borderSkipped: false
                 },
                 {
                     label: 'Gastos',
                     data: gastos,
-                    backgroundColor: 'rgba(225, 112, 85, 0.65)',
+                    backgroundColor: 'rgba(225, 112, 85, 0.7)',
                     borderColor: '#e17055',
                     borderWidth: 2,
-                    borderRadius: 8,
+                    borderRadius: 10,
                     borderSkipped: false
                 }
             ]
@@ -408,30 +408,17 @@ function dibujarGrafico() {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+                // 🔴 Quitamos la leyenda general de arriba
                 legend: {
-                    position: 'top',
-                    align: 'center',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 10,
-                        boxHeight: 10,
-                        padding: 25
-                    }
+                    display: false
                 },
                 tooltip: {
+                    backgroundColor: '#2d3436',
+                    padding: 12,
+                    cornerRadius: 10,
                     callbacks: {
                         label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
                     }
-                },
-                // ✅ ETIQUETAS CENTRADAS ENCIMA DE CADA BARRA
-                datalabels: {
-                    anchor: 'end',
-                    align: 'center',
-                    color: '#2d3436',
-                    font: { weight: 'bold', size: 11 },
-                    formatter: valor => formatearMonto(valor).replace('COP', '').trim()
                 }
             },
             scales: {
@@ -443,18 +430,57 @@ function dibujarGrafico() {
                     beginAtZero: true
                 },
                 x: {
-                    grid: { display: false },
-                    offset: true
+                    grid: { display: false }
                 }
             },
             layout: {
-                padding: { top: 25, bottom: 5 } // ✅ Espacio arriba para las etiquetas
+                padding: { top: 35, bottom: 10 } // Espacio para las etiquetas personalizadas
             },
-            barPercentage: 0.7, // ✅ Ancho de las barras
-            categoryPercentage: 0.65 // ✅ Espacio entre grupos
-        }
+            barPercentage: 0.7,
+            categoryPercentage: 0.7
+        },
+        // ✅ LEYENDAS CENTRADAS SOBRE CADA BARRA
+        plugins: [{
+            id: 'leyendas-por-barra',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                const metaIngresos = chart.getDatasetMeta(0);
+                const metaGastos = chart.getDatasetMeta(1);
+                
+                // Dibujar "Ingresos" sobre la barra verde
+                metaIngresos.data.forEach((barra, i) => {
+                    if (ingresos[i] > 0) {
+                        ctx.fillStyle = '#00b894';
+                        ctx.beginPath();
+                        ctx.arc(barra.x - 5, barra.y - 20, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#2d3436';
+                        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Ingresos', barra.x + 12, barra.y - 16);
+                    }
+                });
+                
+                // Dibujar "Gastos" sobre la barra naranja
+                metaGastos.data.forEach((barra, i) => {
+                    if (gastos[i] > 0) {
+                        ctx.fillStyle = '#e17055';
+                        ctx.beginPath();
+                        ctx.arc(barra.x - 5, barra.y - 20, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.fillStyle = '#2d3436';
+                        ctx.font = 'bold 13px "Segoe UI", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Gastos', barra.x + 12, barra.y - 16);
+                    }
+                });
+            }
+        }]
     });
 }
+
 
 // ===== EXPORTAR A EXCEL =====
 el('btnExportarExcel').addEventListener('click', async () => {
