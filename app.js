@@ -1318,55 +1318,6 @@ async function obtenerTokenYConsultar(pregunta) {
 
 // Reemplaza tu función buscarEnInternet por esta
 async function buscarEnInternet(pregunta) {
-    return await obtenerTokenYConsultar(pregunta);
-}
-
-// 🧠 PROCESAR COMANDO — FUNCIÓN PRINCIPAL ✅
-async function procesarComando(frase) {
-    const texto = frase.toLowerCase().trim();
-
-    // 🔍 BÚSQUEDA LIBRE
-    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || 
-        texto.includes('cuánto') || texto.includes('por qué')) {
-        hablar("Lo busco por ti...");
-        const resultado = await buscarEnInternet(frase);
-        if (resultado) hablar(resultado);
-        else hablar("No pude buscarlo ahora mismo. Revisa tu conexión e intenta de nuevo.");
-        return;
-    }
-
-    // 📞 LLAMADA TELEFÓNICA
-    if (texto.includes('llama a') || texto.includes('llamar a')) {
-        const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
-        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        if (contacto) {
-            hablar(`Marcando a ${contacto.nombre}`);
-            setTimeout(() => { window.location.href = `tel:${contacto.numero}`; }, 600);
-        } else {
-            hablar(`No encontré a ${nombre}. Agrégalo primero diciendo: guarda contacto.`);
-        }
-        return;
-    }
-
-    // 💬 WHATSAPP
-    if (texto.includes('whatsapp') || texto.includes('escribe a') || 
-        texto.includes('mensaje a') || texto.includes('envía a')) {
-        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
-        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        if (contacto) {
-            hablar(`Abriendo chat con ${contacto.nombre}`);
-            window.open(`https://wa.me/${contacto.numero}`, '_blank');
-        } else {
-            hablar(`No encontré a ${nombre} en tu agenda. Agrégalo primero.`);
-        }
-        return;
-    }
-
-    // 🤔 RESPUESTA GENERAL
-    const respuesta = await buscarEnInternet(frase);
-    hablar(respuesta || `Entendí: ${frase}. Puedo buscar información, contar algo interesante, llamar o escribir por WhatsApp.`);
-}
-
 // 📖 AGENDA — Guardar contactos
 function guardarContacto(nombre, numero) {
     numero = numero.replace(/\D/g, '');
