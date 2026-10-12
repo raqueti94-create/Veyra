@@ -241,47 +241,32 @@ body {
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* ===== Botón Cambiar Nombre ===== */
-.btn-cambiar-nombre {
-    background: white !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    color: var(--texto-claro) !important;
+/* ===== Botones de cabecera — IGUALES en estilo a las pestañas ===== */
+.boton-cabecera {
+    background: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--texto-claro);
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: none;
+    white-space: nowrap;
 }
 
-.btn-cambiar-nombre:hover {
-    background: var(--primario) !important;
-    color: white !important;
+.boton-cabecera:hover {
+    background: var(--primario);
+    color: white;
     box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
-    transform: translateY(-2px);
 }
 
-/* ===== Botón Salir ===== */
-.btn-cerrar-sesion {
-    background: white !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 0.9rem !important;
-    font-weight: 500 !important;
-    color: var(--texto-claro) !important;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: none;
-}
-
-.btn-cerrar-sesion:hover {
-    background: #e17055 !important;
-    color: white !important;
+/* Botón Salir — color naranja al pasar */
+.boton-cabecera:nth-child(3):hover {
+    background: var(--peligro);
     box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
-    transform: translateY(-2px);
 }
+
 
 /* Estilo base para botones sueltos.
    :where() le quita la especificidad, así cualquier clase específica
