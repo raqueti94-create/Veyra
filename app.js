@@ -95,7 +95,8 @@ el('btnCambiarModo').addEventListener('click', () => {
 el('btnIngresar').addEventListener('click', async () => {
     const correo = el('inputCorreo').value.trim();
     const contraseña = el('inputContraseña').value;
-    const nombre = el('inputNombre').value.trim();
+    // ✅ Leer el nombre SOLO si estamos en modo registro
+    const nombre = esRegistro ? el('inputNombre')?.value.trim() : '';
     el('errorLogin').textContent = '';
     
     if (!correo || !contraseña) {
@@ -1136,7 +1137,7 @@ function mostrarAlertaSaldo(saldo) {
 
     // ✅ NUEVO: SALDO MAYOR A 1.200.000
     if (saldo > 1200000) {
-        mensaje = '🤑 RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
+        mensaje = '🤑 OTRA RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
         fondo = '#fff9c4';
         texto = '#f57f17';
         borde = '#ffc107';
