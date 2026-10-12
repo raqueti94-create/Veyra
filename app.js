@@ -1410,7 +1410,7 @@ async function enviarMensaje(texto) {
     agregarMensaje(texto, true);
     el('entradaTexto').value = '';
     
-    const respuesta = await obtenerRespuestaChat(texto);
+    const respuesta = await obtenerRespuestaChat(texto); // ✅ Ahora "await" funciona
     agregarMensaje(respuesta);
     hablar(respuesta);
 }
