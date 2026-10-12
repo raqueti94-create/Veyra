@@ -1259,20 +1259,57 @@ function crearReconocimiento() {
 }
 
 // ▶️ INICIAR ESCUCHA — CORREGIDO: espera a que termine de hablar
-function iniciarEscucha() {
+unction iniciarEscucha() {
     if (escuchandoActivo) return;
     
-    crearReconocimiento(); // Nueva instancia cada vez = más estable
+    if (!ReconocimientoVoz) {
+        alert("Usa Chrome para que funcione el micrófono");
+        return;
+    }
     
-    // Primero habla, y CUANDO TERMINE → empieza a escuchar
-    hablar("Te escucho", () => {
-        escuchandoActivo = true;
-        try {
-            escucha.start();
-            console.log("🎤 Escuchando ahora...");
-        } catch (e) {
-            console.log("Error al iniciar escucha:", e);
+    escuchandoActivo = true;
+    
+    const escucha = new ReconocimientoVoz();
+    escucha.lang = 'es-ES';
+    escucha.interimResults = false;
+    escucha.continuous = false;
+    
+    // ⏱️ Más tiempo para empezar a hablar
+    escucha.onresult = function(evento) {
+        escuchandoActivo = false;
+        const loQueDijo = evento.results[0][0].transcript;
+        console.log("✅ Escuché:", loQueDijo);
+        procesarComando(loQueDijo);
+    };
+    
+    escucha.onend = () => {
+        escuchandoActivo = false;
+        console.log("🔚 Dejó de escuchar");
+    };
+    
+    escucha.onerror = function(error) {
+        escuchandoActivo = false;
+        console.log("❌ Error:", error);
+        
+        if (error === 'no-speech') {
+            // 🔄 Si no te escuchó, te avisa y te da otra oportunidad
+            hablar("No te escuché bien. Intenta de nuevo tocando el botón y habla más cerca.");
+        } else if (error === 'not-allowed') {
+            alert("Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
+        } else if (error === 'network') {
+            hablar("Necesitas conexión a internet para escucharte.");
         }
+    };
+    
+    hablar("Te escucho", () => {
+        setTimeout(() => {
+            try {
+                escucha.start();
+                console.log("🎤 Escuchando... ¡Habla ahora!");
+            } catch (e) {
+                console.log("Error al iniciar:", e);
+            }
+        }, 300); // Pequeña pausa para que no se corte la voz
     });
 }
 
