@@ -306,22 +306,27 @@
     <main class="contenido">
 
         <!-- RESUMEN -->
-        <section class="contenido-pestaña" id="pestaña-resumen">
-            <div class="bloque">
-                <h3>Saldo Total</h3>
-                <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
-                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                    <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
-                    <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
-                </div>
-            </div>
-            <div class="bloque">
-                <h3>Evolución</h3>
-                <div class="grafico">
-                    <canvas id="graficoEvolucion"></canvas>
-                </div>
-            </div>
-        </section>
+<section class="contenido-pestaña" id="pestaña-resumen">
+    <div class="bloque">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
+            <h3>Saldo Total</h3>
+            <select id="mesResumen" class="campo" style="width: auto; padding: 0.5rem 1rem; margin: 0;">
+                <!-- Se llena automáticamente desde el JS -->
+            </select>
+        </div>
+        <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
+            <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
+        </div>
+    </div>
+    <div class="bloque">
+        <h3>Evolución</h3>
+        <div class="grafico">
+            <canvas id="graficoEvolucion"></canvas>
+        </div>
+    </div>
+</section>
 
         <!-- CONTABLE -->
         <section class="contenido-pestaña oculto" id="pestaña-contable">
