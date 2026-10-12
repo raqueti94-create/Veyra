@@ -424,6 +424,31 @@
     </div>
 </div>
 
+<!-- Botón flotante de Micrófono -->
+<button onclick="iniciarEscucha()" id="botonMicrofono" style="
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    z-index: 9999;
+    transition: transform 0.2s;
+">🎤</button>
+
+<style>
+#botonMicrofono:active {
+    transform: scale(0.9);
+}
+</style>
+
+    
 <!-- TU ARCHIVO JS -->
 <script src="app.js"></script>
 </body>
