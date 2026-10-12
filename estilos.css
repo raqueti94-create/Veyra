@@ -911,3 +911,33 @@ button:disabled {
 .grafico canvas {
   margin-top: -10px !important; /* Sube o baja todo el gráfico */
 }
+/* ===== BARRAS DE PROGRESO — AJUSTADAS ===== */
+.barra-fondo {
+    width: 100%;
+    height: 28px;
+    background-color: #e9ecef;
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 0.8rem 0;
+    position: relative;
+}
+
+.barra-lleno {
+    height: 100%;
+    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.85rem;
+    transition: width 0.4s ease;
+    white-space: nowrap;
+    padding: 0 0.5rem;
+}
+
+/* Cuando el porcentaje es muy pequeño, cambiamos el texto */
+.barra-lleno span {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
