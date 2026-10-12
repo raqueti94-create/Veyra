@@ -1244,7 +1244,7 @@ async function buscarEnInternet(pregunta) {
                 "Authorization": `Bearer ${CLAVE_GROQ}`
             },
             body: JSON.stringify({
-                model: "llama3-8b-8192",
+                model: "llama3-8b-instant",
                 messages: [
                     {
                         role: "system",
