@@ -87,7 +87,7 @@ el('btnCambiarModo').addEventListener('click', () => {
     el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
     el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
     el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
-    el('btnCambiarModo').textContent = esRegistro ? '¿Ya tienes cuenta? Ingresar' : '¿No tienes cuenta? Crear una';
+    el('btnCambiarModo').textContent = esRegistro ? '¿Ya tienes cuenta? Ingresa' : '¿No tienes cuenta? Crear una';
     el('errorLogin').textContent = '';
 });
 
