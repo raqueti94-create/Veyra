@@ -240,23 +240,6 @@ body {
     padding-right: 1rem;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
-/* ===== Botón Cambiar Nombre — compacto ===== */
-.btn-cambiar-nombre {
-    background: #f1f1f1;
-    border: none;
-    color: #444;
-    border-radius: 6px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-cambiar-nombre:hover {
-    background: #e5e5e5;
-    color: #6c5ce7;
-}
 
 /* ===== Botón Cerrar Sesión — igual de pequeño ===== */
 .btn-cerrar-sesion {
