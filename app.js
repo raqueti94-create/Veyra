@@ -1206,43 +1206,34 @@ function mostrarAlertaSaldo(saldo) {
 // ==============================================
 // VEYRA — ASISTENTE COMPLETO CON GEMINI + BÚSQUEDA + VOZ
 // ==============================================
-
 // 🔑 Tu clave de Gemini ya configurada
 const CLAVE_GEMINI = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
 
 // 📌 Declaración de variables
 const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
 let escuchandoActivo = false;
+let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
 
 // 🔊 HABLAR — Veyra usa el altavoz
 function hablar(texto, callbackCuandoTermine = null) {
     if (!window.speechSynthesis) return;
-    
     window.speechSynthesis.cancel();
-    
     const mensaje = new SpeechSynthesisUtterance(texto);
     mensaje.lang = 'es-ES';
     mensaje.rate = 1.05;
     mensaje.pitch = 1;
-    
-    if (callbackCuandoTermine) {
-        mensaje.onend = callbackCuandoTermine;
-    }
-    
+    if (callbackCuandoTermine) mensaje.onend = callbackCuandoTermine;
     window.speechSynthesis.speak(mensaje);
 }
 
 // 🎤 INICIAR ESCUCHA — Reconocimiento de voz
 function iniciarEscucha() {
     if (escuchandoActivo) return;
-    
     if (!ReconocimientoVoz) {
         alert("Usa Chrome para que funcione el reconocimiento de voz");
         return;
     }
-    
     escuchandoActivo = true;
-    
     const escucha = new ReconocimientoVoz();
     escucha.lang = 'es-ES';
     escucha.interimResults = false;
@@ -1262,7 +1253,6 @@ function iniciarEscucha() {
     escucha.onerror = function(error) {
         escuchandoActivo = false;
         console.log("❌ Error:", error);
-        
         if (error === 'no-speech') {
             hablar("No te escuché bien. Toca el botón y habla un poquito más cerca.");
         } else if (error === 'not-allowed') {
@@ -1273,12 +1263,8 @@ function iniciarEscucha() {
     };
     
     hablar("Te escucho", () => {
-        try {
-            escucha.start();
-            console.log("🎤 ¡Escuchando! Di algo...");
-        } catch (e) {
-            console.log("Error al iniciar escucha:", e);
-        }
+        try { escucha.start(); console.log("🎤 ¡Escuchando! Di algo..."); }
+        catch (e) { console.log("Error al iniciar escucha:", e); }
     });
 }
 
@@ -1302,34 +1288,29 @@ async function buscarEnInternet(pregunta) {
                 })
             }
         );
-
         const datos = await respuesta.json();
-        
-        // Muestra el error real en consola
         if (datos.error) {
             console.log("❌ Error de Gemini:", datos.error);
-            return `⚠️ ${datos.error.message || "No pude conectarme bien"}`;
+            return `No pude conectarme bien. Intenta de nuevo.`;
         }
-        
         return datos.candidates[0].content.parts[0].text.trim();
-
     } catch (error) {
         console.log("❌ Error de conexión:", error);
-        return "No pude conectarme. Revisa tu conexión o la clave 🌐";
+        return "No pude conectarme. Revisa tu conexión 🌐";
     }
 }
 
+// 🧠 PROCESAR COMANDO — FUNCIÓN PRINCIPAL ✅
+async function procesarComando(frase) {
+    const texto = frase.toLowerCase().trim();
+
     // 🔍 BÚSQUEDA LIBRE
-    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || texto.includes('cuánto') || texto.includes('por qué')) {
+    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || 
+        texto.includes('cuánto') || texto.includes('por qué')) {
         hablar("Lo busco por ti...");
-        
         const resultado = await buscarEnInternet(frase);
-        
-        if (resultado) {
-            hablar(resultado);
-        } else {
-            hablar("No pude buscarlo ahora mismo. Revisa tu conexión e intenta de nuevo.");
-        }
+        if (resultado) hablar(resultado);
+        else hablar("No pude buscarlo ahora mismo. Revisa tu conexión e intenta de nuevo.");
         return;
     }
 
@@ -1337,12 +1318,9 @@ async function buscarEnInternet(pregunta) {
     if (texto.includes('llama a') || texto.includes('llamar a')) {
         const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        
         if (contacto) {
             hablar(`Marcando a ${contacto.nombre}`);
-            setTimeout(() => {
-                window.location.href = `tel:${contacto.numero}`;
-            }, 600);
+            setTimeout(() => { window.location.href = `tel:${contacto.numero}`; }, 600);
         } else {
             hablar(`No encontré a ${nombre}. Agrégalo primero diciendo: guarda contacto.`);
         }
@@ -1350,10 +1328,10 @@ async function buscarEnInternet(pregunta) {
     }
 
     // 💬 WHATSAPP
-    if (texto.includes('whatsapp') || texto.includes('escribe a') || texto.includes('mensaje a') || texto.includes('envía a')) {
+    if (texto.includes('whatsapp') || texto.includes('escribe a') || 
+        texto.includes('mensaje a') || texto.includes('envía a')) {
         const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
         const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        
         if (contacto) {
             hablar(`Abriendo chat con ${contacto.nombre}`);
             window.open(`https://wa.me/${contacto.numero}`, '_blank');
@@ -1363,37 +1341,31 @@ async function buscarEnInternet(pregunta) {
         return;
     }
 
-    // 🤔 NO RECONOCIDO
-    hablar(`Entendí: ${frase}. Puedo buscar información, contar algo interesante, llamar o escribir por WhatsApp.`);
+    // 🤔 RESPUESTA GENERAL
+    const respuesta = await buscarEnInternet(frase);
+    hablar(respuesta || `Entendí: ${frase}. Puedo buscar información, contar algo interesante, llamar o escribir por WhatsApp.`);
 }
 
 // 📖 AGENDA — Guardar contactos
 function guardarContacto(nombre, numero) {
-    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-    
     numero = numero.replace(/\D/g, '');
-    if (!numero.startsWith('57') && numero.length === 10) {
-        numero = '57' + numero;
-    }
-    
+    if (!numero.startsWith('57') && numero.length === 10) numero = '57' + numero;
     agenda.push({ nombre, numero });
     localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
     hablar(`${nombre} guardado correctamente.`);
 }
+
 // ==============================================
 // CHAT DE VEYRA IA
 // ==============================================
-
 function agregarMensaje(texto, esUsuario = false) {
     const caja = el('cajaMensajes');
     if (!caja) return;
-    
     const div = document.createElement('div');
     div.className = `mensaje ${esUsuario ? 'usuario' : 'asistente'}`;
     div.innerHTML = esUsuario 
         ? `<strong>Tú:</strong> ${texto}`
         : `<strong>🤖 Veyra:</strong> ${texto}`;
-    
     caja.appendChild(div);
     caja.scrollTop = caja.scrollHeight;
 }
@@ -1404,36 +1376,30 @@ async function obtenerRespuestaChat(texto) {
          El usuario dice: "${texto}"`
     ) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
 }
+
 async function enviarMensaje(texto) {
     if (!texto.trim()) return;
-    
     agregarMensaje(texto, true);
     el('entradaTexto').value = '';
-    
-    const respuesta = await obtenerRespuestaChat(texto); // ✅ Ahora "await" funciona
+    const respuesta = await obtenerRespuestaChat(texto);
     agregarMensaje(respuesta);
     hablar(respuesta);
 }
 
 document.addEventListener('click', e => {
-    if (e.target.id === 'btnEnviarTexto') {
-        enviarMensaje(el('entradaTexto').value);
-    }
-    if (e.target.id === 'btnVozChat') {
-        iniciarEscucha();
-    }
+    if (e.target.id === 'btnEnviarTexto') enviarMensaje(el('entradaTexto').value);
+    if (e.target.id === 'btnVozChat') iniciarEscucha();
 });
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.target.id === 'entradaTexto') {
-        enviarMensaje(e.target.value);
-    }
+    if (e.key === 'Enter' && e.target.id === 'entradaTexto') enviarMensaje(e.target.value);
 });
 
+// Conectar voz con chat
 const procesarComandoOriginal = procesarComando;
 procesarComando = async function(frase) {
     agregarMensaje(frase, true);
-    const respuesta = await obtenerRespuestaChat(frase); // ✅ Funciona
+    const respuesta = await obtenerRespuestaChat(frase);
     agregarMensaje(respuesta);
     hablar(respuesta);
 };
