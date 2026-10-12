@@ -340,14 +340,14 @@ function dibujarGrafico() {
         if (grafico) grafico.destroy();
         return;
     }
-
+    
     const porMes = {};
     datosMovimientos.forEach(m => {
         const mes = formatearMes(m.fecha);
         if (!porMes[mes]) porMes[mes] = { ingreso: 0, gasto: 0 };
         porMes[mes][m.tipo] += m.valor;
     });
-
+    
     const etiquetas = Object.keys(porMes).sort((a, b) => new Date(a) - new Date(b));
     const ingresos = etiquetas.map(m => porMes[m].ingreso);
     const gastos = etiquetas.map(m => porMes[m].gasto);
@@ -360,37 +360,98 @@ function dibujarGrafico() {
             return saldo;
         });
     }
-
+    
     if (grafico) grafico.destroy();
-
     const ctx = el('graficoEvolucion').getContext('2d');
+    
     grafico = new Chart(ctx, {
         type: tipoGraficoActivo === 'mensual' ? 'bar' : 'line',
         data: tipoGraficoActivo === 'mensual' ? {
             labels: etiquetas,
             datasets: [
-                { label: 'Ingresos', data: ingresos, backgroundColor: 'rgba(0, 184, 148, 0.65)', borderColor: '#00b894', borderWidth: 2, borderRadius: 8 },
-                { label: 'Gastos', data: gastos, backgroundColor: 'rgba(225, 112, 85, 0.65)', borderColor: '#e17055', borderWidth: 2, borderRadius: 8 }
+                {
+                    label: 'Ingresos',
+                    data: ingresos,
+                    backgroundColor: 'rgba(0, 184, 148, 0.65)',
+                    borderColor: '#00b894',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false
+                },
+                {
+                    label: 'Gastos',
+                    data: gastos,
+                    backgroundColor: 'rgba(225, 112, 85, 0.65)',
+                    borderColor: '#e17055',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    borderSkipped: false
+                }
             ]
         } : {
             labels: etiquetas,
             datasets: [{
-                label: 'Saldo Acumulado', data: datosSaldo,
-                borderColor: '#6c5ce7', backgroundColor: 'rgba(108, 92, 231, 0.15)',
-                fill: true, tension: 0.4, borderWidth: 3,
-                pointBackgroundColor: '#6c5ce7', pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5
+                label: 'Saldo Acumulado',
+                data: datosSaldo,
+                borderColor: '#6c5ce7',
+                backgroundColor: 'rgba(108, 92, 231, 0.15)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointBackgroundColor: '#6c5ce7',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'top', labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 } },
-                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` } }
+                legend: {
+                    position: 'top',
+                    align: 'center',
+                    labels: {
+                        font: { size: 14, weight: 'bold' },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        padding: 25
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
+                    }
+                },
+                // ✅ ETIQUETAS CENTRADAS ENCIMA DE CADA BARRA
+                datalabels: {
+                    anchor: 'end',
+                    align: 'center',
+                    color: '#2d3436',
+                    font: { weight: 'bold', size: 11 },
+                    formatter: valor => formatearMonto(valor).replace('COP', '').trim()
+                }
             },
             scales: {
-                y: { ticks: { callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
-            }
+                y: {
+                    ticks: {
+                        callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v)
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    beginAtZero: true
+                },
+                x: {
+                    grid: { display: false },
+                    offset: true
+                }
+            },
+            layout: {
+                padding: { top: 25, bottom: 5 } // ✅ Espacio arriba para las etiquetas
+            },
+            barPercentage: 0.7, // ✅ Ancho de las barras
+            categoryPercentage: 0.65 // ✅ Espacio entre grupos
         }
     });
 }
