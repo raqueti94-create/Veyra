@@ -255,7 +255,7 @@ el('btnGuardarMov').addEventListener('click', async () => {
 async function cargarMovimientos() {
     if (!usuarioActual) return;
     
-    // ✅ Tomar el mes que tiene seleccionado el usuario
+    // Tomar el mes seleccionado
     const selector = document.getElementById('mesResumen');
     const mesSeleccionado = selector ? selector.value : null;
     
@@ -266,7 +266,6 @@ async function cargarMovimientos() {
         let consulta = db.collection('movimientos')
             .where('uid', '==', usuarioActual.uid);
         
-        // ✅ Filtrar SOLO si hay un mes seleccionado
         if (mesSeleccionado) {
             consulta = consulta.where('mes', '==', mesSeleccionado);
         }
@@ -274,7 +273,7 @@ async function cargarMovimientos() {
         const snap = await consulta.orderBy('fecha', 'desc').get();
         
         datosMovimientos = [];
-        lista.innerHTML = '';
+        let html = ''; // ✅ Acumulamos TODO aquí
         let totalIng = 0, totalGas = 0;
         
         if (snap.empty) {
@@ -291,14 +290,14 @@ async function cargarMovimientos() {
             datosMovimientos.push(m);
             
             const f = new Date(m.fecha).toLocaleString('es-CO', {
-                day:'2-digit', month:'2-digit', year:'numeric', 
+                day:'2-digit', month:'2-digit', year:'numeric',
                 hour:'2-digit', minute:'2-digit'
             });
             
             if (m.tipo === 'ingreso') totalIng += m.valor;
             else totalGas += m.valor;
             
-            lista.innerHTML += `
+            html += `
                 <div class="movimiento">
                     <div class="info-mov">
                         <p class="descripcion">${m.descripcion}</p>
@@ -316,6 +315,9 @@ async function cargarMovimientos() {
                 </div>`;
         });
         
+        // ✅ UNA SOLA asignación al final con TODO
+        lista.innerHTML = html;
+        
         totalesActuales = { ingresos: totalIng, gastos: totalGas, saldo: totalIng - totalGas };
         
         el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
@@ -327,7 +329,6 @@ async function cargarMovimientos() {
         
         dibujarGrafico();
         
-        // ✅ Actualizar también el selector por si hay meses nuevos
         if (typeof llenarSelectorMeses === 'function') {
             llenarSelectorMeses();
         }
