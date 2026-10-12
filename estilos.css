@@ -23,6 +23,7 @@ body {
     color: var(--texto);
     line-height: 1.6;
 }
+
 /* ========== PANTALLA DE CARGA ========== */
 .pantalla-carga {
     position: fixed;
@@ -64,6 +65,7 @@ body {
     position: absolute !important;
     pointer-events: none !important;
 }
+
 /* ========== ANIMACIONES ========== */
 .aparecer {
     animation: aparecer 0.4s ease forwards;
@@ -79,6 +81,7 @@ body {
 .escala-hover:hover {
     transform: scale(1.02);
 }
+
 /* ========== PANTALLA LOGIN ========== */
 .pantalla-login {
     display: flex;
@@ -194,18 +197,21 @@ body {
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(108, 92, 231, 0.35);
 }
+
 /* ========== PANTALLA PRINCIPAL ========== */
 .pantalla-principal {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
 }
+
+/* ========== CABECERA ========== */
 .cabecera {
-    background: white;
-    padding: 1.5rem;
+    background: linear-gradient(135deg, #6c5ce7 0%, #5549d1 100%);
+    padding: 1.2rem 2rem;
     border-radius: 16px;
-    box-shadow: var(--sombra);
-    margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.25);
+    margin-bottom: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -213,10 +219,57 @@ body {
     gap: 1rem;
 }
 .cabecera h2 {
-    font-size: 1.3rem;
-    color: var(--primario);
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 700;
+    margin: 0;
 }
-.btn-cerrar, .boton-icono, button:not(.btn):not(.pestaña) {
+.usuario-barra {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    backdrop-filter: blur(8px);
+}
+.nombre-usuario-cabecera {
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    padding-right: 1rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+}
+.btn-cambiar-nombre,
+.btn-cerrar-sesion {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.btn-cambiar-nombre:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px);
+}
+.btn-cerrar-sesion {
+    background: rgba(225, 112, 85, 0.25);
+}
+.btn-cerrar-sesion:hover {
+    background: rgba(225, 112, 85, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Estilo base para botones sueltos.
+   :where() le quita la especificidad, así cualquier clase específica
+   (btn-accion, habito-marca, btn-whatsapp...) puede sobrescribirlo sin !important. */
+.btn-cerrar,
+.boton-icono,
+:where(button:not(.btn):not(.pestaña)) {
     background: none;
     border: none;
     color: var(--texto-claro);
@@ -226,10 +279,12 @@ body {
     border-radius: 8px;
     transition: var(--transicion);
 }
-.btn-cerrar:hover, .boton-icono:hover {
+.btn-cerrar:hover,
+.boton-icono:hover {
     background: #f1f2f6;
     color: var(--peligro);
 }
+
 /* ========== ALERTAS ========== */
 .alerta-saldo {
     padding: 1rem 1.25rem;
@@ -263,6 +318,7 @@ body {
     color: #155724;
     margin-bottom: 1rem;
 }
+
 /* ========== PESTAÑAS ========== */
 .navegacion {
     display: flex;
@@ -289,6 +345,7 @@ body {
 .pestaña:hover:not(.activa) {
     background: rgba(255,255,255,0.35);
 }
+
 /* ========== BLOQUES Y TARJETAS ========== */
 .bloque {
     background: white;
@@ -314,8 +371,9 @@ body {
     font-size: 1.8rem;
     font-weight: 700;
 }
-.positivo { color: var(--exito); }
-.negativo { color: var(--peligro); }
+.positivo { color: var(--exito); font-weight: 700; }
+.negativo { color: var(--peligro); font-weight: 700; }
+
 /* ========== FORMULARIOS ========== */
 select, input[type="number"], input[type="text"] {
     border-radius: 10px;
@@ -329,6 +387,7 @@ select:focus, input:focus {
     border-color: var(--primario);
     box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
 }
+
 /* ========== MOVIMIENTOS ========== */
 .movimiento {
     display: flex;
@@ -366,19 +425,27 @@ select:focus, input:focus {
 }
 .acciones {
     display: flex;
+    align-items: center;
     gap: 0.4rem;
 }
 .btn-accion {
-    background: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
     border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 0.95rem;
+    line-height: 1;
     cursor: pointer;
-    padding: 0.4rem;
-    border-radius: 6px;
-    transition: var(--transicion);
-    font-size: 1rem;
+    transition: all 0.2s ease;
 }
 .btn-accion:hover {
     background: #e1e5e9;
+    transform: scale(1.1);
 }
 .btn-editar:hover {
     background: #d4edda;
@@ -388,319 +455,8 @@ select:focus, input:focus {
     background: #f8d7da;
     color: #a71d2a;
 }
+
 /* ========== HÁBITOS ========== */
-.dias-habito {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-}
-.dia-habito {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.7rem 0.4rem;
-    border-radius: 10px;
-    background: #f1f2f6;
-    cursor: pointer;
-    transition: var(--transicion);
-}
-.dia-habito:hover {
-    transform: scale(1.05);
-}
-.dia-habito.hecho {
-    background: #d4edda;
-    color: #155724;
-    font-weight: 600;
-}
-.dia-habito.hoy {
-    border: 2px solid var(--primario);
-}
-/* ========== BOTÓN RECORDATORIO ========== */
-.boton-recordatorio {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.75rem !important;
-    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
-    color: #5d3a00 !important;
-    border: 3px solid #e68900 !important;
-    padding: 1rem 2rem !important;
-    border-radius: 14px !important;
-    font-size: 1.05rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35) !important;
-    margin-top: 1rem !important;
-}
-.boton-recordatorio:hover {
-    transform: translateY(-3px) scale(1.02) !important;
-    box-shadow: 0 10px 24px rgba(255, 152, 0, 0.45) !important;
-    background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%) !important;
-}
-/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
-.selector-tipo {
-    display: flex !important;
-    gap: 1rem !important;
-    justify-content: flex-start !important;
-    margin: 1.5rem 0 1.25rem !important;
-    width: 100% !important;
-}
-.btn-tipo-ingreso,
-.btn-tipo-gasto {
-    flex: 0 0 auto !important;
-    min-width: 140px !important;
-    padding: 1rem 1.5rem !important;
-    border: 2px solid var(--borde) !important;
-    border-radius: 14px !important;
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    background: white !important;
-    color: var(--texto-claro) !important;
-    text-align: center !important;
-}
-.btn-tipo-ingreso.activo {
-    border-color: var(--exito) !important;
-    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
-}
-.btn-tipo-gasto.activo {
-    border-color: var(--peligro) !important;
-    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
-}
-.btn-tipo-ingreso:not(.activo):hover {
-    border-color: var(--exito) !important;
-    color: var(--exito) !important;
-    background: #e8f5e9 !important;
-}
-.btn-tipo-gasto:not(.activo):hover {
-    border-color: var(--peligro) !important;
-    color: var(--peligro) !important;
-    background: #fff0f0 !important;
-}
-/* ========== CAMPOS DE FORMULARIO ========== */
-.campos-formulario {
-    display: flex !important;
-    gap: 0.8rem !important;
-    flex-wrap: wrap !important;
-    margin-bottom: 1.5rem !important;
-    width: 100% !important;
-}
-.campo-dato {
-    flex: 1 !important;
-    min-width: 150px !important;
-    padding: 0.9rem 1rem !important;
-    border: 2px solid var(--borde) !important;
-    border-radius: 12px !important;
-    font-size: 0.95rem !important;
-}
-/* ========== BOTÓN GUARDAR MOVIMIENTO ========== */
-.btn-guardar-movimiento {
-    margin-top: 1.5rem !important;
-    padding: 1rem 2rem !important;
-    border: none !important;
-    border-radius: 14px !important;
-    font-size: 1.05rem !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
-    color: white !important;
-    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
-    width: 100% !important;
-}
-.btn-guardar-movimiento:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
-}
-/* ========== COMPARTIR ========== */
-.botones-compartir {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: 1rem;
-}
-.btn-whatsapp {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-    color: white;
-    border: none;
-    padding: 0.9rem 1.5rem;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
-}
-.btn-whatsapp:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.45);
-}
-.btn-copiar {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
-    border: none;
-    padding: 0.9rem 1.5rem;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
-}
-.btn-copiar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.45);
-}
-/* ========== CIERRE DE SESIÓN ========== */
-.btn-cerrar-sesion,
-.btn-cambiar-nombre {
-    background: transparent;
-    border: 2px solid var(--primario);
-    color: var(--primario);
-    border-radius: 10px;
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transicion);
-}
-.btn-cerrar-sesion:hover,
-.btn-cambiar-nombre:hover {
-    background: var(--primario);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
-}
-.acciones-usuario {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-top: 0.5rem;
-}
-/* ========== MODALES ========== */
-.modal-fondo {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-    padding: 1rem;
-}
-.modal-fondo.oculto {
-    display: none;
-}
-.modal-contenido {
-    background: white;
-    padding: 2rem;
-    border-radius: 16px;
-    max-width: 420px;
-    width: 100%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    animation: aparecer 0.3s ease forwards;
-}
-.modal-contenido h3 {
-    text-align: center;
-    color: var(--primario);
-    margin-bottom: 1.5rem;
-}
-.modal-contenido input {
-    width: 100%;
-    padding: 0.9rem 1rem;
-    border: 2px solid var(--borde);
-    border-radius: 10px;
-    font-size: 1rem;
-    margin-bottom: 1.2rem;
-}
-.modal-contenido input:focus {
-    outline: none;
-    border-color: var(--primario);
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
-}
-.botones-modal {
-    display: flex;
-    gap: 0.8rem;
-    justify-content: flex-end;
-}
-.btn-cancelar {
-    background: #e1e5e9;
-    color: var(--texto);
-}
-.btn-guardar {
-    background: var(--primario);
-    color: white;
-}
-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-/* ========== RESPONSIVO ========== */
-@media (max-width: 768px) {
-    .fila-doble {
-        grid-template-columns: 1fr;
-    }
-    .pestaña {
-        padding: 0.7rem 0.9rem;
-        font-size: 0.85rem;
-    }
-    .cabecera {
-        flex-direction: column;
-        text-align: center;
-    }
-    .dias-habito {
-        gap: 0.3rem;
-    }
-    .dia-habito {
-        padding: 0.5rem 0.2rem;
-    }
-    .valor-grande {
-        font-size: 1.4rem;
-    }
-    .movimiento {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .valor-botones {
-        width: 100%;
-        justify-content: space-between;
-    }
-    .selector-tipo {
-        flex-direction: column;
-    }
-    .btn-tipo-ingreso,
-    .btn-tipo-gasto {
-        width: 100%;
-    }
-}
-@media (max-width: 480px) {
-    .caja-login {
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
-    }
-    .icono-app {
-        font-size: 3.8rem;
-    }
-    .caja-login h1 {
-        font-size: 1.8rem;
-    }
-    .boton-principal,
-    .boton-secundario {
-        padding: 1rem;
-        font-size: 1rem;
-    }
-}
 .habito-tarjeta {
     padding: 1.2rem;
     margin-bottom: 1.5rem;
@@ -738,8 +494,8 @@ button:disabled {
 }
 .habito-semana,
 .habito-mes {
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.5rem;
     width: 100%;
     box-sizing: border-box;
@@ -805,65 +561,318 @@ button:disabled {
     color: #ccc;
     font-size: 0.8rem;
 }
-/* ========== CORRECCIÓN DEFINITIVA BOTONES DE ACCIÓN ========== */
-.movimiento {
-    display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 0.5rem !important;
-    width: 100% !important;
+
+/* ========== METAS DE AHORRO Y GRÁFICO ========== */
+.grafico {
+    position: relative;
+    height: 300px;
+    margin: 1rem 0;
+}
+.barra-fondo {
+    background: var(--borde);
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.barra-lleno {
+    height: 100%;
+    background: var(--primario);
+    color: white;
+    text-align: center;
+    font-size: 0.75rem;
+    line-height: 12px;
+    font-weight: 600;
+    transition: width 0.3s;
 }
 
-.info-mov {
-    flex: 1 !important;
-    min-width: 0 !important;
+/* ========== BOTONES GENERALES (.btn) ========== */
+.btn {
+    padding: 0.8rem 1.4rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+.btn-primario {
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.35);
+}
+.btn-primario:hover {
+    transform: translateY(-2px);
 }
 
-.valor-botones {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.7rem !important;
-    flex-shrink: 0 !important;
-}
-
-.acciones {
-    display: flex !important;
-    gap: 0.4rem !important;
-    align-items: center !important;
-    flex-shrink: 0 !important;
-}
-
-.btn-accion {
+/* ========== BOTÓN RECORDATORIO ========== */
+.boton-recordatorio {
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    min-height: 34px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 8px !important;
-    background: transparent !important;
-    font-size: 0.95rem !important;
-    line-height: 1 !important;
+    gap: 0.75rem !important;
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+    color: #5d3a00 !important;
+    border: 3px solid #e68900 !important;
+    padding: 1rem 2rem !important;
+    border-radius: 14px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
     cursor: pointer !important;
-    transition: all 0.2s ease !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.35) !important;
+    margin-top: 1rem !important;
+}
+.boton-recordatorio:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 10px 24px rgba(255, 152, 0, 0.45) !important;
+    background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%) !important;
 }
 
-.btn-accion:hover {
-    transform: scale(1.1) !important;
+/* ========== SELECTOR TIPO: INGRESO / GASTO ========== */
+.selector-tipo {
+    display: flex !important;
+    gap: 1rem !important;
+    justify-content: flex-start !important;
+    margin: 1.5rem 0 1.25rem !important;
+    width: 100% !important;
+}
+.btn-tipo-ingreso,
+.btn-tipo-gasto {
+    flex: 0 0 auto !important;
+    min-width: 140px !important;
+    padding: 1rem 1.5rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 14px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: white !important;
+    color: var(--texto-claro) !important;
+    text-align: center !important;
+}
+.btn-tipo-ingreso.activo {
+    border-color: var(--exito) !important;
+    background: linear-gradient(135deg, #00b894 0%, #55efc4 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 184, 148, 0.35) !important;
+}
+.btn-tipo-gasto.activo {
+    border-color: var(--peligro) !important;
+    background: linear-gradient(135deg, #e17055 0%, #fab1a0 100%) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.35) !important;
+}
+.btn-tipo-ingreso:not(.activo):hover {
+    border-color: var(--exito) !important;
+    color: var(--exito) !important;
+    background: #e8f5e9 !important;
+}
+.btn-tipo-gasto:not(.activo):hover {
+    border-color: var(--peligro) !important;
+    color: var(--peligro) !important;
+    background: #fff0f0 !important;
 }
 
-.btn-editar:hover {
-    background: #d4edda !important;
-    color: #155724 !important;
+/* ========== CAMPOS DE FORMULARIO ========== */
+.campos-formulario {
+    display: flex !important;
+    gap: 0.8rem !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+}
+.campo-dato {
+    flex: 1 !important;
+    min-width: 150px !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--borde) !important;
+    border-radius: 12px !important;
+    font-size: 0.95rem !important;
 }
 
-.btn-eliminar:hover {
-    background: #f8d7da !important;
-    color: #a71d2a !important;
+/* ========== BOTÓN GUARDAR (movimiento, meta, hábito) ========== */
+.btn-guardar-movimiento {
+    margin-top: 1.5rem !important;
+    padding: 1rem 2rem !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%) !important;
+    color: white !important;
+    box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35) !important;
+    width: 100% !important;
+}
+.btn-guardar-movimiento:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 24px rgba(108, 92, 231, 0.45) !important;
+}
+
+/* ========== COMPARTIR ========== */
+.botones-compartir {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+.btn-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+.btn-whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.45);
+}
+.btn-copiar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 0.9rem 1.5rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35);
+}
+.btn-copiar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.45);
+}
+
+/* ========== MODALES ========== */
+.modal-fondo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 1rem;
+}
+.modal-fondo.oculto {
+    display: none;
+}
+.modal-contenido {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    animation: aparecer 0.3s ease forwards;
+}
+.modal-contenido h3 {
+    text-align: center;
+    color: var(--primario);
+    margin-bottom: 1.5rem;
+}
+.modal-contenido input {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--borde);
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-bottom: 1.2rem;
+}
+.modal-contenido input:focus {
+    outline: none;
+    border-color: var(--primario);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+.botones-modal {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: flex-end;
+}
+.btn-cancelar {
+    background: #e1e5e9;
+    color: var(--texto);
+}
+.btn-guardar {
+    background: var(--primario);
+    color: white;
+}
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========== RESPONSIVO ========== */
+@media (max-width: 768px) {
+    .fila-doble {
+        grid-template-columns: 1fr;
+    }
+    .pestaña {
+        padding: 0.7rem 0.9rem;
+        font-size: 0.85rem;
+    }
+    .cabecera {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.2rem 1rem;
+    }
+    .usuario-barra {
+        flex-direction: column;
+        width: 100%;
+        padding: 1rem;
+    }
+    .nombre-usuario-cabecera {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        padding-right: 0;
+        padding-bottom: 0.75rem;
+    }
+    .valor-grande {
+        font-size: 1.4rem;
+    }
+    .movimiento {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .valor-botones {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .selector-tipo {
+        flex-direction: column;
+    }
+    .btn-tipo-ingreso,
+    .btn-tipo-gasto {
+        width: 100%;
+    }
+}
+@media (max-width: 480px) {
+    .caja-login {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+    }
+    .icono-app {
+        font-size: 3.8rem;
+    }
+    .caja-login h1 {
+        font-size: 1.8rem;
+    }
+    .boton-principal,
+    .boton-secundario {
+        padding: 1rem;
+        font-size: 1rem;
+    }
 }
