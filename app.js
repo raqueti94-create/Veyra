@@ -71,14 +71,19 @@ el('btnRecuperar').addEventListener('click', async () => {
 // ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
 el('btnCambiarModo').addEventListener('click', () => {
     esRegistro = !esRegistro;
-    
-    // ✅ Usamos la MISMA forma que en el HTML: clase .oculto
+
     if (esRegistro) {
+        // Mostrar campo nombre
         el('campoNombre').classList.remove('oculto');
+        el('inputNombre').required = true;
     } else {
+        // Ocultar campo nombre
         el('campoNombre').classList.add('oculto');
+        el('inputNombre').required = false;
+        el('inputNombre').value = '';
     }
-    
+
+    // Cambiar textos
     el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
     el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
     el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
