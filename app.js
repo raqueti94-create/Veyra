@@ -1130,21 +1130,21 @@ function mostrarAlertaSaldo(saldo) {
     let texto = '';
     let borde = '';
 
-    // 🔴 SALDO EN NEGATIVO
+    // 🔴 PRIMERO: NEGATIVO
     if (saldo < 0) {
-        mensaje = '😱 DIOS MÍO, ¿CÓMO ES POSIBLE ESTE SUCESO? 😳\n¿EN SERIO? REVISA ESO, NO PUEDE SUCEDER 👀\n¿CÓMO ASÍ QUE EN NEGATIVO? 🤯';
+        mensaje = '😱 DIOS MÍO, ¿CÓMO ES POSIBLE ESTE SUCESO? 😳<br>ESO NO PUEDE SUCEDER 👀<br>¿CÓMO ASÍ QUE EN NEGATIVO? 🤯';
         fondo = '#2d3436';
         texto = '#ff7675';
         borde = '#e17055';
     }
-    // 🟡 SALDO EN CERO
+    // 🟡 SEGUNDO: EXACTAMENTE EN CERO
     else if (saldo === 0) {
-        mensaje = '😅 AH CARAY... AHORA SÍ URGE EL SUELDO 💸\n¿Cesantías? ¿Regalías? ¿Una guaca? ¿Algo? 🏺🤑';
+        mensaje = '😅 AH CARAY... AHORA SÍ URGE EL SUELDO 💸<br>¿Cesantías? ¿Regalías? ¿Una guaca? ¿Algo? 🏺🤑';
         fondo = '#fff3cd';
         texto = '#856404';
         borde = '#fdcb6e';
     }
-    // 🟢 SUPERIOR A 1.200.000
+    // 🤑 SUPERIOR A 1.200.000
     else if (saldo > 1200000) {
         mensaje = '🤑 RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
         fondo = '#fff9c4';
@@ -1188,13 +1188,13 @@ function mostrarAlertaSaldo(saldo) {
     }
 
     if (mensaje) {
-        alerta.innerHTML = mensaje.replaceAll('\n', '<br>');
+        alerta.innerHTML = mensaje;
         alerta.style.background = fondo;
         alerta.style.color = texto;
         alerta.style.borderLeft = `4px solid ${borde}`;
         alerta.style.display = 'block';
         alerta.style.fontWeight = '600';
         alerta.style.borderRadius = '12px';
-        alerta.style.lineHeight = '1.5';
+        alerta.style.lineHeight = '1.6';
     }
 }
