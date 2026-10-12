@@ -1125,48 +1125,61 @@ function mostrarAlertaSaldo(saldo) {
     const alerta = document.getElementById('alertaSaldo');
     if (!alerta) return;
 
-    if (saldo <= 0) {
-        alerta.style.display = 'none';
-        return;
-    }
-
     let mensaje = '';
     let fondo = '';
     let texto = '';
     let borde = '';
 
-    // ✅ NUEVO: SALDO MAYOR A 1.200.000
-    if (saldo > 1200000) {
-        mensaje = '🤑 OTRA RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
+    // 🔴 SALDO EN NEGATIVO
+    if (saldo < 0) {
+        mensaje = '😱 DIOS MÍO, ¿CÓMO ES POSIBLE ESTE SUCESO? 😳\n¿EN SERIO? REVISA ESO, NO PUEDE SUCEDER 👀\n¿CÓMO ASÍ QUE EN NEGATIVO? 🤯';
+        fondo = '#2d3436';
+        texto = '#ff7675';
+        borde = '#e17055';
+    }
+    // 🟡 SALDO EN CERO
+    else if (saldo === 0) {
+        mensaje = '😅 AH CARAY... AHORA SÍ URGE EL SUELDO 💸\n¿Cesantías? ¿Regalías? ¿Una guaca? ¿Algo? 🏺🤑';
+        fondo = '#fff3cd';
+        texto = '#856404';
+        borde = '#fdcb6e';
+    }
+    // 🟢 SUPERIOR A 1.200.000
+    else if (saldo > 1200000) {
+        mensaje = '🤑 RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
         fondo = '#fff9c4';
         texto = '#f57f17';
         borde = '#ffc107';
     }
-    // Rango original de excelente (ahora solo hasta 1.200.000)
+    // 💚 EXCELENTE
     else if (saldo >= 800000 && saldo <= 1200000) {
         mensaje = '✅ NUESTRA SALUD ECONÓMICA ESTÁ EXCELENTE 💚';
         fondo = '#e6f9f0';
         texto = '#00b894';
         borde = '#00b894';
     }
+    // ⚠️ CUIDADO
     else if (saldo < 800000 && saldo >= 400000) {
         mensaje = '⚠️ ESTAMOS BIEN, PERO CUIDA TUS GASTOS 🛡️';
         fondo = '#fff9e6';
         texto = '#fdcb6e';
         borde = '#fdcb6e';
     }
+    // 🚨 ALERTA
     else if (saldo < 400000 && saldo >= 50000) {
         mensaje = '🚨 ALERTA: ¡CUIDADO! ÚLTIMOS $50.000 🚨';
         fondo = '#ffe6e6';
         texto = '#e17055';
         borde = '#e17055';
     }
+    // 🍬 POQUITO
     else if (saldo < 50000 && saldo >= 1000) {
         mensaje = '😬 OJO QUE NO NOS ESTÁ QUEDANDO PA LOS DULCES 🍬';
         fondo = '#fff3cd';
         texto = '#d63031';
         borde = '#ff7675';
     }
+    // 😅 CASI NADA
     else if (saldo < 1000 && saldo >= 1) {
         mensaje = '💸 SE ACABÓ TODO... ¿ALGUIEN SABE CUÁNDO PAGAN OTRA VEZ? 📅😅';
         fondo = '#2d3436';
@@ -1175,12 +1188,13 @@ function mostrarAlertaSaldo(saldo) {
     }
 
     if (mensaje) {
-        alerta.textContent = mensaje;
+        alerta.innerHTML = mensaje.replaceAll('\n', '<br>');
         alerta.style.background = fondo;
         alerta.style.color = texto;
         alerta.style.borderLeft = `4px solid ${borde}`;
         alerta.style.display = 'block';
         alerta.style.fontWeight = '600';
         alerta.style.borderRadius = '12px';
+        alerta.style.lineHeight = '1.5';
     }
 }
