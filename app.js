@@ -1203,25 +1203,201 @@ function mostrarAlertaSaldo(saldo) {
         alerta.style.lineHeight = '1.6';
     }
 }
-<!-- Botón flotante de Micrófono -->
-<button onclick="iniciarEscucha()" id="botonMicrofono" style="
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border: none;
-    color: white;
-    font-size: 28px;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-    z-index: 9999;
-">🎤</button>
+// ==============================================
+// VEYRA — ASISTENTE COMPLETO CON GEMINI + BÚSQUEDA + VOZ
+// ==============================================
 
-<style>
-#botonMicrofono:active {
-    transform: scale(0.9);
+// 🔑 Tu clave de Gemini ya configurada
+const CLAVE_GEMINI = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
+
+// 📌 Declaración de variables
+const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
+let escuchandoActivo = false;
+
+// 🔊 HABLAR — Veyra usa el altavoz
+function hablar(texto, callbackCuandoTermine = null) {
+    if (!window.speechSynthesis) return;
+    
+    window.speechSynthesis.cancel();
+    
+    const mensaje = new SpeechSynthesisUtterance(texto);
+    mensaje.lang = 'es-ES';
+    mensaje.rate = 1.05;
+    mensaje.pitch = 1;
+    
+    if (callbackCuandoTermine) {
+        mensaje.onend = callbackCuandoTermine;
+    }
+    
+    window.speechSynthesis.speak(mensaje);
 }
-</style>
+
+// 🎤 INICIAR ESCUCHA — Reconocimiento de voz
+function iniciarEscucha() {
+    if (escuchandoActivo) return;
+    
+    if (!ReconocimientoVoz) {
+        alert("Usa Chrome para que funcione el reconocimiento de voz");
+        return;
+    }
+    
+    escuchandoActivo = true;
+    
+    const escucha = new ReconocimientoVoz();
+    escucha.lang = 'es-ES';
+    escucha.interimResults = false;
+    
+    escucha.onresult = function(evento) {
+        escuchandoActivo = false;
+        const loQueDijo = evento.results[0][0].transcript;
+        console.log("✅ Escuché:", loQueDijo);
+        procesarComando(loQueDijo);
+    };
+    
+    escucha.onend = () => {
+        escuchandoActivo = false;
+        console.log("🔚 Dejó de escuchar");
+    };
+    
+    escucha.onerror = function(error) {
+        escuchandoActivo = false;
+        console.log("❌ Error:", error);
+        
+        if (error === 'no-speech') {
+            hablar("No te escuché bien. Toca el botón y habla un poquito más cerca.");
+        } else if (error === 'not-allowed') {
+            alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
+        } else if (error === 'network') {
+            hablar("Necesitas conexión a internet para escucharte.");
+        }
+    };
+    
+    hablar("Te escucho", () => {
+        try {
+            escucha.start();
+            console.log("🎤 ¡Escuchando! Di algo...");
+        } catch (e) {
+            console.log("Error al iniciar escucha:", e);
+        }
+    });
+}
+
+// 🔍 BUSCAR EN INTERNET CON GEMINI
+async function buscarEnInternet(pregunta) {
+    try {
+        const respuesta = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CLAVE_GEMINI}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ 
+                            text: `Responde en español de forma corta, clara y natural sobre: ${pregunta}. No uses listas ni encabezados. Sé amable.` 
+                        }]
+                    }],
+                    tools: [{ google_search_retrieval: {} }]
+                })
+            }
+        );
+        
+        const datos = await respuesta.json();
+        
+        if (datos.error) {
+            console.log("Error API:", datos.error);
+            return null;
+        }
+        
+        if (!datos.candidates || !datos.candidates[0]) {
+            return null;
+        }
+        
+        const textoRespuesta = datos.candidates[0].content.parts[0].text;
+        return textoRespuesta.trim();
+        
+    } catch (error) {
+        console.log("Error de búsqueda:", error);
+        return null;
+    }
+}
+
+// 🧠 PROCESAR COMANDOS — Aquí Veyra entiende todo
+async function procesarComando(frase) {
+    const texto = frase.toLowerCase().trim();
+    const agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+
+    // 🔍 ALGO INTERESANTE — Busca en internet
+    if (texto.includes('interesante') || texto.includes('curioso') || texto.includes('dato')) {
+        hablar("Déjame buscar algo interesante...");
+        
+        const resultado = await buscarEnInternet("un dato curioso e interesante nuevo para hoy");
+        
+        if (resultado) {
+            hablar(resultado);
+        } else {
+            hablar("¿Sabías que la Tierra no es perfectamente redonda? Está achatada por los polos y se ensancha en el ecuador.");
+        }
+        return;
+    }
+
+    // 🔍 BÚSQUEDA LIBRE
+    if (texto.includes('busca') || texto.includes('qué es') || texto.includes('quién es') || texto.includes('cuánto') || texto.includes('por qué')) {
+        hablar("Lo busco por ti...");
+        
+        const resultado = await buscarEnInternet(frase);
+        
+        if (resultado) {
+            hablar(resultado);
+        } else {
+            hablar("No pude buscarlo ahora mismo. Revisa tu conexión e intenta de nuevo.");
+        }
+        return;
+    }
+
+    // 📞 LLAMADA TELEFÓNICA
+    if (texto.includes('llama a') || texto.includes('llamar a')) {
+        const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        
+        if (contacto) {
+            hablar(`Marcando a ${contacto.nombre}`);
+            setTimeout(() => {
+                window.location.href = `tel:${contacto.numero}`;
+            }, 600);
+        } else {
+            hablar(`No encontré a ${nombre}. Agrégalo primero diciendo: guarda contacto.`);
+        }
+        return;
+    }
+
+    // 💬 WHATSAPP
+    if (texto.includes('whatsapp') || texto.includes('escribe a') || texto.includes('mensaje a') || texto.includes('envía a')) {
+        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        
+        if (contacto) {
+            hablar(`Abriendo chat con ${contacto.nombre}`);
+            window.open(`https://wa.me/${contacto.numero}`, '_blank');
+        } else {
+            hablar(`No encontré a ${nombre} en tu agenda. Agrégalo primero.`);
+        }
+        return;
+    }
+
+    // 🤔 NO RECONOCIDO
+    hablar(`Entendí: ${frase}. Puedo buscar información, contar algo interesante, llamar o escribir por WhatsApp.`);
+}
+
+// 📖 AGENDA — Guardar contactos
+function guardarContacto(nombre, numero) {
+    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+    
+    numero = numero.replace(/\D/g, '');
+    if (!numero.startsWith('57') && numero.length === 10) {
+        numero = '57' + numero;
+    }
+    
+    agenda.push({ nombre, numero });
+    localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
+    hablar(`${nombre} guardado correctamente.`);
+}
