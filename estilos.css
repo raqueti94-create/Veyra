@@ -21,6 +21,7 @@ body {
     min-height: 100vh;
     margin: 0;
     font-family: 'Segoe UI', Roboto, sans-serif;
+    background: var(--fondo); /* Solo para la pantalla principal */
 }
 
 /* ========== PANTALLA DE CARGA ========== */
@@ -83,12 +84,15 @@ body {
 
 /* ========== PANTALLA LOGIN ========== */
 .pantalla-login {
+    position: fixed !important;  /* ← Esto la fija al fondo */
+    inset: 0 !important;         /* ← Cubre todo: arriba, abajo, izq, der */
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     padding: 1.5rem;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #fd79a8 100%);
+    z-index: 9999 !important;   /* ← Queda POR ENCIMA de todo lo demás */
 }
 .caja-login {
     background: white;
