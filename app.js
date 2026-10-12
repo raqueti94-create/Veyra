@@ -1270,7 +1270,7 @@ function iniciarEscucha() {
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
 async function buscarEnInternet(pregunta) {
-    const CLAVE = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
+    const CLAVE = "AQ.Ab8RN6KLAMdyHD1DvXHmm2g5V-Q_g33jX56nomW5K9B6QEZE8A";
     const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CLAVE}`;
 
     console.log("🔗 Conectando a Gemini...");
@@ -1295,14 +1295,14 @@ async function buscarEnInternet(pregunta) {
 
         if (!respuesta.ok || datos.error) {
             console.error("❌ Error API:", datos.error || respuesta.status);
-            return `⚠️ ${datos.error?.message || "No pude conectarme"}`;
+            return `⚠️ ${datos.error?.message || "No pude conectarme bien"}`;
         }
 
         return datos.candidates[0].content.parts[0].text.trim();
 
     } catch (error) {
         console.error("❌ Error de red:", error);
-        return "No hay conexión con Gemini. Revisa tu clave o conexión 🌐";
+        return "No hay conexión. Revisa tu conexión 🌐";
     }
 }
 
