@@ -161,14 +161,15 @@ document.querySelectorAll('.pestaña').forEach(boton => {
 });
 
 // ===== CAMBIAR TIPO GRÁFICO =====
-document.querySelectorAll('.btn-tipo-').forEach(boton => {
+document.querySelectorAll('.btn-tipo-grafico').forEach(boton => {
     boton.addEventListener('click', () => {
-        document.querySelectorAll('.btn-tipo-').forEach(b => b.classList.remove('activo'));
+        document.querySelectorAll('.btn-tipo-grafico').forEach(b => b.classList.remove('activo'));
         boton.classList.add('activo');
-        tipoActivo = boton.dataset.;
-        dibujar();
+        tipoGraficoActivo = boton.dataset.grafico;
+        dibujarGrafico();
     });
 });
+
 
 // ===== CAMBIAR TIPO MOVIMIENTO =====
 el('btnIngreso').addEventListener('click', () => {
