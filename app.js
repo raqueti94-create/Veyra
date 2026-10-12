@@ -1420,21 +1420,11 @@ function agregarMensaje(texto, esUsuario = false) {
 }
 
 async function obtenerRespuestaChat(texto) {
-    const t = texto.toLowerCase().trim();
-    
-    if (t.includes('interesante') || t.includes('curioso') || t.includes('dato')) {
-        return await buscarEnInternet("un dato curioso e interesante nuevo para hoy") 
-            || "¿Sabías que la Tierra no es perfectamente redonda? Está achatada por los polos.";
-    }
-    
-    if (t.includes('busca') || t.includes('qué es') || t.includes('quién es') || 
-        t.includes('cuánto') || t.includes('por qué') || t.includes('dime')) {
-        return await buscarEnInternet(texto) 
-            || "No pude buscarlo ahora mismo. Revisa tu conexión.";
-    }
-    
-    return await buscarEnInternet(texto) 
-        || "Entendí tu mensaje. Puedo buscar información o contarte algo interesante.";
+    // 🧠 Enviamos TODO directamente a Gemini para que lo entienda
+    return await buscarEnInternet(
+        `Responde en español de forma natural, amable y breve como un asistente cercano. 
+         El usuario dice: "${texto}"`
+    ) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
 }
 
 async function enviarMensaje(texto) {
