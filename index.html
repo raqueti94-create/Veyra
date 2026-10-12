@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Veyra App V1.7.4 💵</title>
+    <title>💰 Veyra App V1.7.3 💵</title>
     <link rel="icon" href="data:,">
     
     <!-- Firebase -->
@@ -255,59 +255,23 @@
 
         <!-- CONTABLE -->
         <section class="contenido-pestaña oculto" id="pestaña-contable">
-    <div class="bloque">
-        <h3>💰 Control de Movimientos</h3>
-        
-        <div class="fila" style="margin: 1rem 0;">
-            <button id="btnIngreso" class="btn btn-sm btn-ingreso activo">📥 Ingreso</button>
-            <button id="btnGasto" class="btn btn-sm btn-gasto">📤 Gasto</button>
-        </div>
-
-        <input type="text" id="descripcionMov" class="campo" placeholder="Descripción (ej: Sueldo, Comida)">
-        <input type="number" id="valorMov" class="campo" placeholder="Valor" min="100">
-        <button id="btnGuardarMov" class="btn btn-primario">✅ Guardar Movimiento</button>
-    </div>
-
-    <!-- ===== RESUMEN CON BARRAS ===== -->
-    <div class="bloque">
-        <h3>📊 Resumen del Mes</h3>
-        
-        <div class="barra-contenedor">
-            <div class="barra-etiquetas">
-                <span>📥 Ingresos</span>
-                <span id="valorIngresos">—</span>
+            <div class="bloque">
+                <h3>Registrar Movimiento</h3>
+                <div class="fila" style="margin: 1rem 0;">
+                    <button id="btnIngreso" class="btn btn-sm btn-ingreso activo">📥 Ingreso</button>
+                    <button id="btnGasto" class="btn btn-sm btn-gasto">📤 Gasto</button>
+                </div>
+                <input type="text" id="descripcionMov" class="campo" placeholder="Descripción (ej: Sueldo, Comida)">
+                <input type="number" id="valorMov" class="campo" placeholder="Valor" min="100">
+                <button id="btnGuardarMov" class="btn btn-primario">✅ Guardar Movimiento</button>
             </div>
-            <div class="barra-ingreso-fondo">
-                <div id="barraIngresos" class="barra-ingreso-llena" style="width:0%;">0%</div>
+            <div class="bloque">
+                <h3>Historial</h3>
+                <div id="listaMovimientos" class="lista">
+                    <p style="color: var(--texto-claro); text-align: center; padding: 1rem;">Aún no tienes movimientos</p>
+                </div>
             </div>
-        </div>
-
-        <div class="barra-contenedor" style="margin-top: 1rem;">
-            <div class="barra-etiquetas">
-                <span>📤 Gastos</span>
-                <span id="valorGastos">—</span>
-            </div>
-            <div class="barra-gasto-fondo">
-                <div id="barraGastos" class="barra-gasto-llena" style="width:0%;">0%</div>
-            </div>
-        </div>
-
-        <div class="barra-contenedor" style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--borde);">
-            <div class="barra-etiquetas">
-                <span style="font-weight: bold; font-size: 1.05rem;">💵 Saldo</span>
-                <span id="saldoActual" style="font-weight: bold; font-size: 1.1rem;">—</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== LISTA DE MOVIMIENTOS ===== -->
-    <div class="bloque">
-        <h3>📋 Historial</h3>
-        <div id="listaMovimientos" class="lista">
-            <p style="color: var(--texto-claro); text-align: center; padding: 2rem;">Aún no tienes movimientos</p>
-        </div>
-    </div>
-</section>
+        </section>
 
         <!-- METAS DE AHORRO -->
         <section class="contenido-pestaña oculto" id="pestaña-ahorro">
