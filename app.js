@@ -1244,7 +1244,7 @@ async function buscarEnInternet(pregunta) {
                 "Authorization": `Bearer ${CLAVE_GROQ}`
             },
             body: JSON.stringify({
-                model: "mixtral-8x7b-32768",
+                model: "llama-3.1-8b-instant",
                 messages: [
                     {
                         role: "system",
@@ -1308,14 +1308,14 @@ function iniciarEscucha() {
         escuchandoActivo = false;
     };
 
-    escucha.onerror = function(error) {
-        escuchandoActivo = false;
-        if (error === 'no-speech') {
-            hablar("No te escuché bien. Intenta de nuevo.");
-        } else if (error === 'not-allowed') {
-            alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
-        }
-    };
+   escucha.onerror = function(evento) {
+    escuchandoActivo = false;
+    if (evento.error === 'no-speech') {
+        hablar("No te escuché bien. Intenta de nuevo.");
+    } else if (evento.error === 'not-allowed') {
+        alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
+    }
+};
 
     hablar("Te escucho", () => escucha.start());
 }
@@ -1359,11 +1359,16 @@ async function procesarComando(frase) {
 function agregarMensaje(texto, esUsuario = false) {
     const caja = el('cajaMensajes');
     if (!caja) return;
+
     const div = document.createElement('div');
     div.className = `mensaje ${esUsuario ? 'usuario' : 'asistente'}`;
-    div.innerHTML = esUsuario
-        ? `<strong>Tú:</strong> ${texto}`
-        : `<strong>🤖 Veyra:</strong> ${texto}`;
+
+    const etiqueta = document.createElement('strong');
+    etiqueta.textContent = esUsuario ? 'Tú: ' : '🤖 Veyra: ';
+
+    div.appendChild(etiqueta);
+    div.appendChild(document.createTextNode(texto));
+
     caja.appendChild(div);
     caja.scrollTop = caja.scrollHeight;
 }
