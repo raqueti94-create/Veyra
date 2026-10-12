@@ -1,288 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Veyra App 9 💵</title>
-    <link rel="icon" href="data:,">
-   <link rel="stylesheet" href="estilos.css">
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
-    <!-- Librerías -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        :root {
-            --primario: #6c5ce7;
-            --exito: #00b894;
-            --peligro: #e17055;
-            --fondo: #f8f9fa;
-            --texto: #2d3436;
-            --texto-claro: #636e72;
-            --borde: #e1e5e9;
-            --sombra: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        body { background: var(--fondo); color: var(--texto); min-height: 100vh; }
-        .oculto { display: none !important; }
-
-        /* PANTALLA LOGIN */
-        .pantalla-login {
-            max-width: 420px; margin: 0 auto; padding: 2rem;
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white; border-radius: 16px; box-shadow: var(--sombra);
-        }
-        .titulo { text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem; }
-        .subtitulo { text-align: center; color: var(--texto-claro); margin-bottom: 2rem; }
-        .campo {
-            width: 100%; padding: 0.9rem; margin: 0.5rem 0;
-            border: 1px solid var(--borde); border-radius: 10px; font-size: 1rem;
-        }
-        .btn {
-            width: 100%; padding: 0.9rem; border: none; border-radius: 10px;
-            font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .btn-primario { background: var(--primario); color: white; margin-top: 0.5rem; }
-        .btn-primario:hover { background: #5549d1; }
-        .btn-secundario { background: transparent; color: var(--primario); margin-top: 1rem; }
-        .error { color: var(--peligro); margin-top: 0.5rem; text-align: center; min-height: 1.5rem; }
-
-        /* CABECERA */
-        .cabecera {
-            background: white; padding: 1rem 2rem; box-shadow: var(--sombra);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
-            flex-wrap: wrap; gap: 0.8rem;
-        }
-        .logo { font-size: 1.4rem; font-weight: 700; color: var(--primario); }
-        .usuario { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-        .btn-sm { padding: 0.5rem 1rem; font-size: 0.9rem; width: auto; }
-        #nombreUsuario { font-weight: 600; margin-right: 0.5rem; }
-
-        /* BOTONES DE LA CABECERA (mismo estilo que las pestañas) */
-        .boton-cabecera {
-            padding: 0.6rem 1.1rem;
-            border: none;
-            border-radius: 10px;
-            background: #f1f2f6;
-            color: var(--texto-claro);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-        .boton-cabecera:hover {
-            background: var(--primario);
-            color: white;
-            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
-        }
-        .boton-cabecera.boton-salir:hover {
-            background: var(--peligro);
-            box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
-        }
-
-        /* NAVEGACIÓN */
-        .navegacion {
-            display: flex; gap: 0.5rem; padding: 1rem 2rem; flex-wrap: wrap;
-        }
-        .pestaña {
-            padding: 0.7rem 1.2rem; border: none; background: white; border-radius: 10px;
-            cursor: pointer; font-weight: 500; color: var(--texto-claro);
-        }
-        .pestaña.activa {
-            background: var(--primario); color: white; box-shadow: 0 4px 12px rgba(108,92,231,0.3);
-        }
-
-        /* CONTENIDO */
-        .contenido { padding: 0 2rem 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
-        .bloque {
-            background: white; padding: 1.5rem; border-radius: 16px;
-            box-shadow: var(--sombra); margin-bottom: 1.5rem;
-        }
-        .fila { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
-        .btn-ingreso { background: var(--exito); color: white; }
-        .btn-gasto { background: var(--peligro); color: white; }
-        .btn-ingreso.activo, .btn-gasto.activo { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5); }
-        .positivo { color: var(--exito); font-weight: 700; }
-        .negativo { color: var(--peligro); font-weight: 700; }
-        .lista { margin-top: 1rem; }
-
-        /* ITEM DE MOVIMIENTO
-           (cubre ".item" y ".movimiento": el JS puede usar cualquiera de los dos nombres) */
-        .item,
-        .movimiento {
-            padding: 0.8rem 0;
-            border-bottom: 1px solid var(--borde);
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            flex-wrap: nowrap !important;
-            gap: 0.5rem !important;
-            width: 100% !important;
-        }
-        .info-mov {
-            flex: 1 !important;
-            min-width: 0 !important;
-        }
-        .fecha {
-            font-size: 0.85rem;
-            color: var(--texto-claro);
-        }
-        .descripcion {
-            font-weight: 600;
-            margin: 0.2rem 0;
-        }
-        .valor-botones {
-            display: flex !important;
-            align-items: center !important;
-            gap: 0.8rem !important;
-            flex-shrink: 0 !important;
-        }
-        .valor {
-            font-weight: 700 !important;
-            font-size: 1rem !important;
-            white-space: nowrap !important;
-        }
-        .acciones {
-            display: flex !important;
-            gap: 0.4rem !important;
-            align-items: center !important;
-            flex-shrink: 0 !important;
-        }
-        .btn-accion {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 34px !important;
-            height: 34px !important;
-            min-width: 34px !important;
-            min-height: 34px !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            border-radius: 8px !important;
-            background: transparent !important;
-            font-size: 1rem !important;
-            line-height: 1 !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            flex-shrink: 0 !important;
-        }
-        .btn-accion:hover {
-            transform: scale(1.15) !important;
-        }
-        .btn-editar:hover {
-            background: #d4edda !important;
-            color: #155724 !important;
-        }
-        .btn-eliminar:hover {
-            background: #f8d7da !important;
-            color: #a71d2a !important;
-        }
-
-        /* METAS Y BARRAS */
-        .barra-fondo { background: var(--borde); height: 12px; border-radius: 6px; overflow: hidden; margin: 0.8rem 0; }
-        .barra-lleno { height: 100%; background: var(--primario); color: white; text-align: center; font-size: 0.75rem; line-height: 12px; font-weight: 600; transition: width 0.3s; }
-
-        /* BARRAS SECCIÓN CONTABLE */
-        .contenedor-barras-contable {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-        .barra-contenedor { width: 100%; }
-        .barra-etiquetas {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            margin-bottom: 0.4rem;
-        }
-        .barra-ingreso-fondo,
-        .barra-gasto-fondo {
-            width: 100%;
-            height: 32px;
-            background-color: #e9ecef;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-        }
-        .barra-ingreso-llena,
-        .barra-gasto-llena {
-            height: 100%;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 0.7rem;
-            color: white;
-            font-weight: bold;
-            font-size: 0.85rem;
-            transition: width 0.4s ease;
-            white-space: nowrap;
-        }
-        .barra-ingreso-llena { background: linear-gradient(90deg, #00b894, #55efc4); }
-        .barra-gasto-llena { background: linear-gradient(90deg, #e17055, #fab1a0); }
-        .barra-porcentaje-externo { font-weight: bold; font-size: 0.85rem; }
-
-        /* MODALES */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200;
-        }
-        .modal-contenido {
-            background: white; padding: 2rem; border-radius: 16px; max-width: 400px; width: 90%;
-        }
-        .modal-botones { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
-        .btn-cancelar { background: var(--borde); color: var(--texto); }
-        .btn-guardar { background: var(--exito); color: white; }
-        .btn-compartir { background: #25D366; color: white; }
-        .btn-copiar { background: var(--primario); color: white; }
-        .grafico { height: 300px; margin: 1rem 0; }
-        .fila-botones { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
-
-        /* RESPONSIVO */
-        @media (max-width: 600px) {
-            .contenido { padding: 0 1rem 1.5rem; }
-            .cabecera { padding: 1rem; flex-direction: column; text-align: center; }
-            .usuario { justify-content: center; }
-            .navegacion { padding: 1rem; justify-content: center; }
-            .pestaña { padding: 0.6rem 0.9rem; font-size: 0.9rem; }
-        }
-    </style>
-</head>
-<body>
-
 <!-- PANTALLA LOGIN -->
-<div id="pantallaLogin" class="pantalla-login">
-    <h1 class="titulo" id="tituloLogin">📊 Veyra</h1>
-    <p class="subtitulo" id="subtituloLogin">Ingresa para continuar</p>
-
-    <!-- display:none en línea (no la clase "oculto") para que el JS pueda mostrarlo al crear cuenta -->
-   <div id="campoNombre" class="oculto">
-    <input type="text" id="inputNombre" class="campo" placeholder="Tu nombre completo">
-</div>
-    <input type="email" id="inputCorreo" class="campo" placeholder="correo@ejemplo.com">
-    <input type="password" id="inputContraseña" class="campo" placeholder="Contraseña">
-
-    <button id="btnIngresar" class="btn btn-primario">Ingresar</button>
-    <p id="errorLogin" class="error"></p>
-
-    <button id="btnCambiarModo" class="btn btn-secundario">¿No tienes cuenta? Crear una</button>
-    <button id="btnRecuperar" type="button" style="margin-top:0.5rem;color:#6c5ce7;border:none;background:none;cursor:pointer;">¿Olvidaste tu contraseña?</button>
-</div>
-
-<!-- PANTALLA PRINCIPAL -->
 <div id="pantallaLogin" class="pantalla-login">
     <div class="caja-login">
         <span class="icono-app">📊</span>
@@ -309,10 +25,21 @@
         <div class="fila-botones">
             <button id="btnIngresar" class="boton-principal">Ingresar</button>
             <button id="btnCambiarModo" class="boton-secundario">¿No tienes cuenta? Crear una</button>
-            <button id="btnRecuperar" type="button" style="color: #6c5ce7; border: none; background: transparent; cursor: pointer; font-weight: 500; text-decoration: underline;">¿Olvidaste tu contraseña?</button>
+            <button id="btnRecuperar" type="button" class="enlace-recuperar">¿Olvidaste tu contraseña?</button>
         </div>
     </div>
 </div>
+
+<!-- PANTALLA PRINCIPAL -->
+<div id="pantallaPrincipal" class="oculto pantalla-principal">
+    <!-- CABECERA -->
+    <header class="cabecera">
+        <div class="logo">💰 Veyra App</div>
+        <div class="usuario-barra">
+            <span id="nombreUsuario" class="nombre-usuario-cabecera"></span>
+            <button id="btnCambiarNombre" class="boton-cabecera">✏️ Cambiar Nombre</button>
+            <button id="btnCerrarSesion" class="boton-cabecera boton-salir">🚪 Salir</button>
+        </div>
     </header>
 
     <!-- NAVEGACIÓN -->
@@ -327,42 +54,43 @@
 
     <!-- CONTENIDO -->
     <main class="contenido">
-
         <!-- RESUMEN -->
-<section class="contenido-pestaña" id="pestaña-resumen">
-    <div class="bloque">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
-            <h3>Saldo Total</h3>
-            <select id="mesResumen" class="campo" style="width: auto; padding: 0.5rem 1rem; margin: 0;">
-                <!-- Se llena automáticamente desde el JS -->
-            </select>
-        </div>
-        <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
-        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-            <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
-            <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
-            <div id="alertaSaldo" class="alerta-saldo" style="margin: 1rem 0; padding: 1rem; border-radius: 12px; font-weight: 600; text-align: center; display: none;"></div>
-        </div>
-    </div>
-    <div class="bloque">
-        <h3>Evolución</h3>
-        <div class="grafico">
-            <canvas id="graficoEvolucion"></canvas>
-        </div>
-    </div>
-</section>
+        <section class="contenido-pestaña" id="pestaña-resumen">
+            <div class="bloque">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-bottom: 1rem;">
+                    <h3>Saldo Total</h3>
+                    <select id="mesResumen" class="campo" style="width: auto; padding: 0.5rem 1rem; margin: 0;">
+                        <!-- Se llena automáticamente desde el JS -->
+                    </select>
+                </div>
+                <p style="font-size: 2rem; font-weight: 700; margin: 1rem 0;" id="saldoActual">$ 0</p>
+                <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                    <p>Ingresos: <span id="totalIngresos" class="positivo">$ 0</span></p>
+                    <p>Gastos: <span id="totalGastos" class="negativo">$ 0</span></p>
+                </div>
+                <div id="alertaSaldo" class="alerta-saldo" style="margin: 1rem 0; padding: 1rem; border-radius: 12px; font-weight: 600; text-align: center; display: none;"></div>
+            </div>
+            <div class="bloque">
+                <h3>Evolución</h3>
+                <div class="grafico">
+                    <canvas id="graficoEvolucion"></canvas>
+                </div>
+            </div>
+        </section>
 
         <!-- CONTABLE -->
         <section class="contenido-pestaña oculto" id="pestaña-contable">
             <div class="bloque">
                 <h3>Registrar Movimiento</h3>
-                <div class="fila" style="margin: 1rem 0;">
-                    <button id="btnIngreso" class="btn btn-sm btn-ingreso activo">📥 Ingreso</button>
-                    <button id="btnGasto" class="btn btn-sm btn-gasto">📤 Gasto</button>
+                <div class="selector-tipo">
+                    <button id="btnIngreso" class="btn-tipo-ingreso activo">📥 Ingreso</button>
+                    <button id="btnGasto" class="btn-tipo-gasto">📤 Gasto</button>
                 </div>
-                <input type="text" id="descripcionMov" class="campo" placeholder="Descripción (ej: Sueldo, Comida)">
-                <input type="number" id="valorMov" class="campo" placeholder="Valor" min="100">
-                <button id="btnGuardarMov" class="btn btn-primario">✅ Guardar Movimiento</button>
+                <div class="campos-formulario">
+                    <input type="text" id="descripcionMov" class="campo-dato" placeholder="Descripción (ej: Sueldo, Comida)">
+                    <input type="number" id="valorMov" class="campo-dato" placeholder="Valor" min="100">
+                </div>
+                <button id="btnGuardarMov" class="btn-guardar-movimiento">✅ Guardar Movimiento</button>
             </div>
             <div class="bloque">
                 <h3>Historial</h3>
@@ -378,7 +106,7 @@
                 <h3>🎯 Crear Meta de Ahorro</h3>
                 <input type="text" id="nombreMeta" class="campo" placeholder="Nombre de la meta (ej: Carro)">
                 <input type="number" id="montoMeta" class="campo" placeholder="Monto total a alcanzar" min="1000">
-                <button id="btnCrearMeta" class="btn btn-primario">➕ Crear Meta</button>
+                <button id="btnCrearMeta" class="btn-guardar-movimiento">➕ Crear Meta</button>
             </div>
             <div class="bloque">
                 <h3>📋 Mis Metas</h3>
@@ -393,7 +121,7 @@
             <div class="bloque">
                 <h3>✅ Agregar Hábito</h3>
                 <input type="text" id="nombreHabito" class="campo" placeholder="Nombre del hábito">
-                <button id="btnAgregarHabito" class="btn btn-primario">➕ Agregar</button>
+                <button id="btnAgregarHabito" class="btn-guardar-movimiento">➕ Agregar</button>
             </div>
             <div class="bloque">
                 <h3>Mis Hábitos</h3>
@@ -408,68 +136,64 @@
             <div class="bloque">
                 <h3>📄 Descargar Registros</h3>
                 <div class="fila-botones">
-                    <button id="btnExportarExcel" class="btn btn-primario">📊 Exportar a Excel</button>
-                    <button id="btnExportarPDF" class="btn btn-primario">📄 Exportar a PDF</button>
+                    <button id="btnExportarExcel" class="btn-whatsapp">📊 Exportar a Excel</button>
+                    <button id="btnExportarPDF" class="btn-copiar">📄 Exportar a PDF</button>
                 </div>
             </div>
             <div class="bloque">
                 <h3>🔗 Compartir App</h3>
                 <div class="fila-botones">
-                    <button id="btnCompartirWsp" class="btn btn-compartir">📱 WhatsApp</button>
-                    <button id="btnCopiarEnlace" class="btn btn-copiar">📋 Copiar Enlace</button>
+                    <button id="btnCompartirWsp" class="btn-whatsapp">📱 WhatsApp</button>
+                    <button id="btnCopiarEnlace" class="btn-copiar">📋 Copiar Enlace</button>
                 </div>
             </div>
         </section>
-        
-   <!-- ✅ PEGA TODO EL BLOQUE DEL CHAT JUSTO AQUÍ 👇 -->
- <section class="contenido-pestaña oculto" id="pestaña-ia">
-    <div class="contenedor-chat">
-        <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA — Tu asistente</h2>
-        
-        <div id="cajaMensajes" class="caja-mensajes">
-            <div class="mensaje asistente">
-                <strong>🤖 Veyra:</strong> ¡Hola! Soy Veyra. ¿En qué te ayudo hoy?
-            </div>
-        </div>
-        
-        <div class="entrada-chat">
-            <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta..." />
-            <button id="btnEnviarTexto" class="btn-enviar-chat">Enviar</button>
-            <button id="btnVozChat" class="btn-microfono-chat">🎤</button>
-        </div>
-        
-        <button id="btnLimpiarChat" class="btn-limpiar-chat">🗑️ Limpiar conversación</button>
-    </div>
-</section>
-        <!-- ✅ FIN del bloque del chat -->
 
+        <!-- CHAT VEYRA IA -->
+        <section class="contenido-pestaña oculto" id="pestaña-ia">
+            <div class="contenedor-chat">
+                <h2 style="text-align:center; color:#6c5ce7; margin-bottom:1rem;">🤖 Veyra IA — Tu asistente</h2>
+                
+                <div id="cajaMensajes" class="caja-mensajes">
+                    <div class="mensaje asistente">
+                        <strong>🤖 Veyra:</strong> ¡Hola! Soy Veyra. ¿En qué te ayudo hoy?
+                    </div>
+                </div>
+                
+                <div class="entrada-chat">
+                    <input type="text" id="entradaTexto" placeholder="Escribe tu pregunta..." />
+                    <button id="btnEnviarTexto" class="btn-enviar-chat">Enviar</button>
+                    <button id="btnVozChat" class="btn-microfono-chat">🎤</button>
+                </div>
+                
+                <button id="btnLimpiarChat" class="btn-limpiar-chat">🗑️ Limpiar conversación</button>
+            </div>
+        </section>
     </main>
 </div>
+
 <!-- MODALES -->
-<div id="modalAgregarAhorro" class="modal oculto">
+<div id="modalAgregarAhorro" class="modal-fondo oculto">
     <div class="modal-contenido">
         <h3>💰 Agregar Ahorro</h3>
         <p id="nombreMetaModal" style="color: var(--primario); font-weight: 600; margin: 1rem 0;"></p>
         <input type="number" id="montoAhorro" class="campo" placeholder="Monto a guardar" min="100">
-        <div class="modal-botones">
+        <div class="botones-modal">
             <button id="btnCancelarAhorro" class="btn btn-cancelar">Cancelar</button>
             <button id="btnConfirmarAhorro" class="btn btn-guardar">Guardar</button>
         </div>
     </div>
 </div>
 
-<div id="modalNombre" class="modal oculto">
+<div id="modalNombre" class="modal-fondo oculto">
     <div class="modal-contenido">
         <h3>✏️ Cambiar Nombre</h3>
         <input type="text" id="inputNuevoNombre" class="campo" placeholder="Escribe tu nuevo nombre">
-        <div class="modal-botones">
+        <div class="botones-modal">
             <button id="btnCancelarNombre" class="btn btn-cancelar">Cancelar</button>
             <button id="btnGuardarNombre" class="btn btn-guardar">Guardar</button>
         </div>
     </div>
 </div>
-  
-<!-- TU ARCHIVO JS -->
+
 <script src="app.js"></script>
-</body>
-</html>
