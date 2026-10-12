@@ -390,7 +390,8 @@ function dibujarGrafico() {
         padding: { top: 10, bottom: 5 } // ✅ Alinea con las barras
     }
 }
-
+);
+    
 // ===== EXPORTAR A EXCEL =====
 el('btnExportarExcel').addEventListener('click', async () => {
     if (!usuarioActual) return;
