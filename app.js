@@ -986,3 +986,93 @@ async function cargarHabitos() {
         lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
 }
+// ========== SELECTOR DE MES EN RESUMEN ==========
+const nombresMeses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
+
+// Llenar el selector con meses disponibles
+async function llenarSelectorMeses() {
+    const selector = document.getElementById('mesResumen');
+    if (!selector || !usuarioActual) return;
+
+    // Obtener todos los meses con movimientos
+    const snap = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .orderBy('mes', 'desc')
+        .get();
+
+    const mesesUnicos = new Set();
+    const hoy = new Date();
+    const mesActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
+    
+    mesesUnicos.add(mesActual); // Siempre incluir el mes actual
+
+    snap.forEach(doc => {
+        if (doc.data().mes) mesesUnicos.add(doc.data().mes);
+    });
+
+    // Ordenar y llenar opciones
+    const mesesOrdenados = Array.from(mesesUnicos).sort().reverse();
+    selector.innerHTML = '';
+    
+    mesesOrdenados.forEach(mesStr => {
+        const [año, mes] = mesStr.split('-').map(Number);
+        const opcion = document.createElement('option');
+        opcion.value = mesStr;
+        opcion.textContent = `${nombresMeses[mes - 1]} ${año}`;
+        if (mesStr === mesActual) opcion.selected = true;
+        selector.appendChild(opcion);
+    });
+
+    // Al cambiar de mes, recargar todo
+    selector.onchange = () => cargarResumenPorMes(selector.value);
+}
+
+// Cargar datos solo del mes seleccionado
+async function cargarResumenPorMes(mesSeleccionado) {
+    if (!usuarioActual) return;
+
+    const snap = await db.collection('movimientos')
+        .where('userId', '==', usuarioActual.uid)
+        .where('mes', '==', mesSeleccionado)
+        .get();
+
+    let totalIngresos = 0, totalGastos = 0;
+    snap.forEach(doc => {
+        const m = doc.data();
+        if (m.tipo === 'ingreso') totalIngresos += m.monto;
+        else totalGastos += m.monto;
+    });
+
+    // Actualizar valores en pantalla
+    document.getElementById('saldoActual').textContent = 
+        `$ ${(totalIngresos - totalGastos).toLocaleString('es-CO')}`;
+    document.getElementById('totalIngresos').textContent = 
+        `$ ${totalIngresos.toLocaleString('es-CO')}`;
+    document.getElementById('totalGastos').textContent = 
+        `$ ${totalGastos.toLocaleString('es-CO')}`;
+
+    // Actualizar gráfico si existe la función
+    if (typeof actualizarGrafico === 'function') {
+        actualizarGrafico(totalIngresos, totalGastos);
+    }
+}
+
+// Llamar al entrar a la pestaña Resumen
+document.addEventListener('click', e => {
+    if (e.target.dataset.pestaña === 'resumen') {
+        setTimeout(llenarSelectorMeses, 50);
+    }
+});
+
+// Inicializar cuando la app esté lista
+document.addEventListener('DOMContentLoaded', () => {
+    const esperarUsuario = setInterval(() => {
+        if (usuarioActual) {
+            clearInterval(esperarUsuario);
+            llenarSelectorMeses();
+        }
+    }, 300);
+});
