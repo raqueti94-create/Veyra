@@ -212,26 +212,29 @@ el('btnGasto').addEventListener('click', () => {
 // ===== GUARDAR MOVIMIENTO =====
 el('btnGuardarMov').addEventListener('click', async () => {
     if (!usuarioActual) return;
+    
     const descripcion = el('descripcionMov').value.trim();
     const valor = parseFloat(el('valorMov').value);
+    
     if (!descripcion || isNaN(valor) || valor <= 0) {
         alert('Completa todos los datos correctamente');
         return;
     }
-    const fechaMov = new Date();
-const año = fechaMov.getFullYear();
-const mesNum = fechaMov.getMonth() + 1;
-const mes = `${año}-${String(mesNum).padStart(2, '0')}`;
 
-const datos = {
-    uid: usuarioActual.uid,
-    descripcion,
-    valor,
-    tipo: tipoMovimiento,
-    fecha: fechaMov.toISOString(),
-    mes: mes
-};
+    const fechaMov = new Date();
+    const año = fechaMov.getFullYear();
+    const mesNum = fechaMov.getMonth() + 1;
+    const mes = `${año}-${String(mesNum).padStart(2, '0')}`;
+
+    const datos = {
+        uid: usuarioActual.uid,
+        descripcion,
+        valor,
+        tipo: tipoMovimiento,
+        fecha: fechaMov.toISOString(),
+        mes: mes
     };
+
     try {
         if (modoEdicionId) {
             await db.collection('movimientos').doc(modoEdicionId).update(datos);
