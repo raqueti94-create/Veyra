@@ -1210,9 +1210,17 @@ function mostrarAlertaSaldo(saldo) {
 const CLAVE_GEMINI = "AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc";
 
 // 📌 Declaración de variables
+// ==============================================
+// VEYRA — ASISTENTE COMPLETO
+// ==============================================
+
+// 📌 Variables globales
 const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
 let escuchandoActivo = false;
 let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+
+// ✅ Función auxiliar que faltaba
+function el(id) { return document.getElementById(id); }
 
 // 🔊 HABLAR — Veyra usa el altavoz
 function hablar(texto, callbackCuandoTermine = null) {
@@ -1224,48 +1232,6 @@ function hablar(texto, callbackCuandoTermine = null) {
     mensaje.pitch = 1;
     if (callbackCuandoTermine) mensaje.onend = callbackCuandoTermine;
     window.speechSynthesis.speak(mensaje);
-}
-
-// 🎤 INICIAR ESCUCHA — Reconocimiento de voz
-function iniciarEscucha() {
-    if (escuchandoActivo) return;
-    if (!ReconocimientoVoz) {
-        alert("Usa Chrome para que funcione el reconocimiento de voz");
-        return;
-    }
-    escuchandoActivo = true;
-    const escucha = new ReconocimientoVoz();
-    escucha.lang = 'es-ES';
-    escucha.interimResults = false;
-    
-    escucha.onresult = function(evento) {
-        escuchandoActivo = false;
-        const loQueDijo = evento.results[0][0].transcript;
-        console.log("✅ Escuché:", loQueDijo);
-        procesarComando(loQueDijo);
-    };
-    
-    escucha.onend = () => {
-        escuchandoActivo = false;
-        console.log("🔚 Dejó de escuchar");
-    };
-    
-    escucha.onerror = function(error) {
-        escuchandoActivo = false;
-        console.log("❌ Error:", error);
-        if (error === 'no-speech') {
-            hablar("No te escuché bien. Toca el botón y habla un poquito más cerca.");
-        } else if (error === 'not-allowed') {
-            alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
-        } else if (error === 'network') {
-            hablar("Necesitas conexión a internet para escucharte.");
-        }
-    };
-    
-    hablar("Te escucho", () => {
-        try { escucha.start(); console.log("🎤 ¡Escuchando! Di algo..."); }
-        catch (e) { console.log("Error al iniciar escucha:", e); }
-    });
 }
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
@@ -1316,14 +1282,52 @@ async function buscarEnInternet(pregunta) {
 }
 
 // 📖 AGENDA — Guardar contactos
-let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-
 function guardarContacto(nombre, numero) {
     numero = numero.replace(/\D/g, '');
     if (!numero.startsWith('57') && numero.length === 10) numero = '57' + numero;
     agenda.push({ nombre, numero });
     localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
     hablar(`${nombre} guardado correctamente.`);
+}
+
+// 🎤 INICIAR ESCUCHA — Reconocimiento de voz
+function iniciarEscucha() {
+    if (escuchandoActivo) return;
+    if (!ReconocimientoVoz) {
+        alert("Usa Chrome para que funcione el reconocimiento de voz 🎤");
+        return;
+    }
+    escuchandoActivo = true;
+    const escucha = new ReconocimientoVoz();
+    escucha.lang = 'es-ES';
+    escucha.interimResults = false;
+    
+    escucha.onresult = function(evento) {
+        escuchandoActivo = false;
+        const loQueDijo = evento.results[0][0].transcript;
+        console.log("✅ Escuché:", loQueDijo);
+        procesarComando(loQueDijo);
+    };
+    
+    escucha.onend = () => {
+        escuchandoActivo = false;
+    };
+    
+    escucha.onerror = function(error) {
+        escuchandoActivo = false;
+        if (error === 'no-speech') {
+            hablar("No te escuché bien. Toca el botón y habla un poquito más cerca.");
+        } else if (error === 'not-allowed') {
+            alert("⚠️ Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
+        } else if (error === 'network') {
+            hablar("Necesitas conexión a internet para escucharte.");
+        }
+    };
+    
+    hablar("Te escucho", () => {
+        try { escucha.start(); console.log("🎤 ¡Escuchando! Di algo..."); }
+        catch (e) { console.log("Error al iniciar escucha:", e); }
+    });
 }
 
 // 🧠 PROCESAR COMANDO
@@ -1371,9 +1375,7 @@ async function procesarComando(frase) {
     hablar(respuesta || `Entendí: ${frase}. ¿En qué te ayudo?`);
 }
 
-// ==============================================
-// CHAT DE VEYRA IA
-// ==============================================
+// 💬 CHAT DE VEYRA IA
 function agregarMensaje(texto, esUsuario = false) {
     const caja = el('cajaMensajes');
     if (!caja) return;
