@@ -241,33 +241,32 @@ body {
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* ===== Botones de cabecera — IGUALES en estilo a las pestañas ===== */
+/* Botones de la cabecera: mismo estilo que las pestañas */
 .boton-cabecera {
-    background: white;
+    padding: 0.6rem 1.1rem;
     border: none;
     border-radius: 10px;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
+    background: #f1f2f6;
     color: var(--texto-claro);
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
     white-space: nowrap;
+    transition: all 0.3s ease;
 }
-
 .boton-cabecera:hover {
     background: var(--primario);
     color: white;
     box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
-
-/* Botón Salir — color naranja al pasar */
-.boton-cabecera:nth-child(3):hover {
+.boton-cabecera.boton-salir:hover {
     background: var(--peligro);
     box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
 }
-
-
+#nombreUsuario {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
 /* Estilo base para botones sueltos.
    :where() le quita la especificidad, así cualquier clase específica
    (btn-accion, habito-marca, btn-whatsapp...) puede sobrescribirlo sin !important. */
