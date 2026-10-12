@@ -1110,3 +1110,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 300);
 });
+// ========== ALERTAS DE SALDO ==========
+function mostrarAlertaSaldo(saldo) {
+    const alerta = document.getElementById('alertaSaldo');
+    if (!alerta) return;
+
+    if (saldo <= 0) {
+        alerta.style.display = 'none';
+        return;
+    }
+
+    let mensaje = '';
+    let fondo = '';
+    let texto = '';
+    let borde = '';
+
+    if (saldo >= 800000 && saldo <= 1200000) {
+        mensaje = '✅ NUESTRA SALUD ECONÓMICA ESTÁ EXCELENTE 💚';
+        fondo = '#e6f9f0';
+        texto = '#00b894';
+        borde = '#00b894';
+    } else if (saldo < 800000 && saldo >= 400000) {
+        mensaje = '⚠️ ESTAMOS BIEN, PERO CUIDA TUS GASTOS 🛡️';
+        fondo = '#fff9e6';
+        texto = '#fdcb6e';
+        borde = '#fdcb6e';
+    } else if (saldo < 400000 && saldo >= 50000) {
+        mensaje = '🚨 ALERTA: ¡CUIDADO! ÚLTIMOS $50.000 🚨';
+        fondo = '#ffe6e6';
+        texto = '#e17055';
+        borde = '#e17055';
+    } else if (saldo < 50000 && saldo >= 1000) {
+        mensaje = '😬 OJO QUE NO NOS ESTÁ QUEDANDO PA LOS DULCES 🍬';
+        fondo = '#fff3cd';
+        texto = '#d63031';
+        borde = '#ff7675';
+    } else if (saldo < 1000 && saldo >= 1) {
+        mensaje = '💸 SE ACABÓ TODO... ¿ALGUIEN SABE CUÁNDO PAGAN OTRA VEZ? 📅😅';
+        fondo = '#2d3436';
+        texto = '#fdcb6e';
+        borde = '#e17055';
+    }
+
+    if (mensaje) {
+        alerta.textContent = mensaje;
+        alerta.style.background = fondo;
+        alerta.style.color = texto;
+        alerta.style.borderLeft = `4px solid ${borde}`;
+        alerta.style.display = 'block';
+        alerta.style.fontWeight = '600';
+        alerta.style.borderRadius = '12px';
+    }
+}
