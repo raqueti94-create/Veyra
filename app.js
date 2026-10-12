@@ -1396,7 +1396,7 @@ function cargarHistorial() {
         // Mensaje de bienvenida si no hay nada guardado
         const div = document.createElement('div');
         div.className = 'mensaje asistente';
-        div.innerHTML = `<strong>🤖 Veyra:</strong> ¡Hola de nuevo! 😊 Todo listo. ¿En qué te ayudo?`;
+        div.innerHTML = `<strong>🤖 Veyra:</strong> ¡Hola! 😊 Soy Veyra. ¿En qué te ayudo hoy?`;
         caja.appendChild(div);
         return;
     }
@@ -1411,6 +1411,11 @@ function cargarHistorial() {
     });
     
     caja.scrollTop = caja.scrollHeight;
+}
+
+// ✅ FUNCIÓN QUE FALTABA — OBTENER RESPUESTA DE GROQ
+async function obtenerRespuestaChat(texto) {
+    return await buscarEnInternet(texto) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
 }
 
 async function enviarMensaje(texto) {
@@ -1445,8 +1450,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
 });
-// 🎯 CONECTAR BOTONES
+
+// 🎯 CONECTAR BOTONES — TODO JUNTO AQUÍ
 document.addEventListener('click', e => {
+    if (e.target.id === 'btnLimpiarChat') limpiarChat();
     if (e.target.id === 'btnEnviarTexto') enviarMensaje(el('entradaTexto').value);
     if (e.target.id === 'btnVozChat') iniciarEscucha();
 });
