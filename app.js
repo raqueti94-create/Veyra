@@ -1417,13 +1417,11 @@ function agregarMensaje(texto, esUsuario = false) {
 }
 
 async function obtenerRespuestaChat(texto) {
-    // 🧠 Enviamos TODO directamente a Gemini para que lo entienda
     return await buscarEnInternet(
-        `Responde en español de forma natural, amable y breve como un asistente cercano. 
+        `Responde en español de forma natural, amable y breve. 
          El usuario dice: "${texto}"`
     ) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
 }
-
 async function enviarMensaje(texto) {
     if (!texto.trim()) return;
     
