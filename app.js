@@ -137,10 +137,13 @@ auth.onAuthStateChanged(usuario => {
         usuarioActual = usuario;
         const nombre = usuario.displayName || usuario.email.split('@')[0];
         
-        // Verificamos que CADA elemento exista antes de usarlo ✅
         if (el('nombreUsuario')) el('nombreUsuario').textContent = nombre;
         if (el('pantallaLogin')) el('pantallaLogin').classList.add('oculto');
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.remove('oculto');
+        
+        // ✅ MUESTRA EL BOTÓN DEL MICRÓFONO CUANDO INICIA SESIÓN
+        const botonMicro = document.getElementById('botonMicrofono');
+        if (botonMicro) botonMicro.style.display = 'flex';
         
         cargarMovimientos();
         cargarMetas();
@@ -149,6 +152,10 @@ auth.onAuthStateChanged(usuario => {
         usuarioActual = null;
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.add('oculto');
         if (el('pantallaLogin')) el('pantallaLogin').classList.remove('oculto');
+        
+        // ✅ OCULTA EL BOTÓN AL CERRAR SESIÓN
+        const botonMicro = document.getElementById('botonMicrofono');
+        if (botonMicro) botonMicro.style.display = 'none';
     }
 });
 
