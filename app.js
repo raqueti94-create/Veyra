@@ -1401,3 +1401,72 @@ function guardarContacto(nombre, numero) {
     localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
     hablar(`${nombre} guardado correctamente.`);
 }
+// ==============================================
+// CHAT DE VEYRA IA
+// ==============================================
+
+function agregarMensaje(texto, esUsuario = false) {
+    const caja = el('cajaMensajes');
+    if (!caja) return;
+    
+    const div = document.createElement('div');
+    div.className = `mensaje ${esUsuario ? 'usuario' : 'asistente'}`;
+    div.innerHTML = esUsuario 
+        ? `<strong>Tú:</strong> ${texto}`
+        : `<strong>🤖 Veyra:</strong> ${texto}`;
+    
+    caja.appendChild(div);
+    caja.scrollTop = caja.scrollHeight;
+}
+
+async function obtenerRespuestaChat(texto) {
+    const t = texto.toLowerCase().trim();
+    
+    if (t.includes('interesante') || t.includes('curioso') || t.includes('dato')) {
+        return await buscarEnInternet("un dato curioso e interesante nuevo para hoy") 
+            || "¿Sabías que la Tierra no es perfectamente redonda? Está achatada por los polos.";
+    }
+    
+    if (t.includes('busca') || t.includes('qué es') || t.includes('quién es') || 
+        t.includes('cuánto') || t.includes('por qué') || t.includes('dime')) {
+        return await buscarEnInternet(texto) 
+            || "No pude buscarlo ahora mismo. Revisa tu conexión.";
+    }
+    
+    return await buscarEnInternet(texto) 
+        || "Entendí tu mensaje. Puedo buscar información o contarte algo interesante.";
+}
+
+async function enviarMensaje(texto) {
+    if (!texto.trim()) return;
+    
+    agregarMensaje(texto, true);
+    el('entradaTexto').value = '';
+    
+    const respuesta = await obtenerRespuestaChat(texto);
+    agregarMensaje(respuesta);
+    hablar(respuesta);
+}
+
+document.addEventListener('click', e => {
+    if (e.target.id === 'btnEnviarTexto') {
+        enviarMensaje(el('entradaTexto').value);
+    }
+    if (e.target.id === 'btnVozChat') {
+        iniciarEscucha();
+    }
+});
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.id === 'entradaTexto') {
+        enviarMensaje(e.target.value);
+    }
+});
+
+const procesarComandoOriginal = procesarComando;
+procesarComando = async function(frase) {
+    agregarMensaje(frase, true);
+    const respuesta = await obtenerRespuestaChat(frase);
+    agregarMensaje(respuesta);
+    hablar(respuesta);
+};
