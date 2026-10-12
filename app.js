@@ -323,6 +323,8 @@ async function cargarMovimientos() {
         el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
         el('totalIngresos').textContent = formatearMonto(totalIng);
         el('totalGastos').textContent = formatearMonto(totalGas);
+
+mostrarAlertaSaldo(totalesActuales.saldo);
         
         document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
         document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
@@ -1087,6 +1089,8 @@ async function cargarResumenPorMes(mesSeleccionado) {
         `$ ${totalIngresos.toLocaleString('es-CO')}`;
     document.getElementById('totalGastos').textContent = 
         `$ ${totalGastos.toLocaleString('es-CO')}`;
+
+    mostrarAlertaSaldo(totalIngresos - totalGastos);
 
     // Actualizar gráfico si existe la función
     if (typeof actualizarGrafico === 'function') {
