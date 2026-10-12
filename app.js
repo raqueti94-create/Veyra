@@ -44,6 +44,26 @@ function formatearFechaLarga(fecha) {
         hour: '2-digit', minute: '2-digit'
     });
 }
+
+// ===== RECUPERAR CONTRASEÑA =====
+el('btnRecuperar').addEventListener('click', async () => {
+    const correo = el('inputCorreo').value.trim();
+    if (!correo) {
+        alert('Escribe tu correo electrónico');
+        return;
+    }
+    try {
+        await auth.sendPasswordResetEmail(correo);
+        alert('✅ Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.');
+    } catch (error) {
+        let mensaje = 'No se pudo enviar el correo';
+        switch (error.code) {
+            case 'auth/invalid-email': mensaje = 'El correo no es válido'; break;
+            case 'auth/user-not-found': mensaje = 'No existe cuenta con este correo'; break;
+        }
+        alert(mensaje);
+    }
+});
 // ==============================================
 // PARTE 2: AUTENTICACIÓN, NAVEGACIÓN Y MOVIMIENTOS
 // ==============================================
