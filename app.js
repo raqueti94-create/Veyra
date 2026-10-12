@@ -218,12 +218,19 @@ el('btnGuardarMov').addEventListener('click', async () => {
         alert('Completa todos los datos correctamente');
         return;
     }
-    const datos = {
-        uid: usuarioActual.uid,
-        descripcion,
-        valor,
-        tipo: tipoMovimiento,
-        fecha: new Date().toISOString()
+    const fechaMov = new Date();
+const año = fechaMov.getFullYear();
+const mesNum = fechaMov.getMonth() + 1;
+const mes = `${año}-${String(mesNum).padStart(2, '0')}`;
+
+const datos = {
+    uid: usuarioActual.uid,
+    descripcion,
+    valor,
+    tipo: tipoMovimiento,
+    fecha: fechaMov.toISOString(),
+    mes: mes
+};
     };
     try {
         if (modoEdicionId) {
