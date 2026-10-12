@@ -251,20 +251,36 @@ const datos = {
 // ===== CARGAR MOVIMIENTOS =====
 async function cargarMovimientos() {
     if (!usuarioActual) return;
+    
+    // Obtener mes seleccionado
+    const selector = document.getElementById('mesResumen');
+    const mesSeleccionado = selector ? selector.value : null;
+    
     const lista = el('listaMovimientos');
     lista.innerHTML = '<p>Cargando...</p>';
+    
     try {
-        const snap = await db.collection('movimientos')
-            .where('uid', '==', usuarioActual.uid)
-            .orderBy('fecha', 'desc')
-            .get();
+        let consulta = db.collection('movimientos')
+            .where('uid', '==', usuarioActual.uid);
+        
+        // Filtrar por mes si hay uno seleccionado
+        if (mesSeleccionado) {
+            consulta = consulta.where('mes', '==', mesSeleccionado);
+        }
+        
+        const snap = await consulta.orderBy('fecha', 'desc').get();
         
         datosMovimientos = [];
         lista.innerHTML = '';
         let totalIng = 0, totalGas = 0;
         
         if (snap.empty) {
-            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Aún no tienes movimientos</p>';
+            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Sin movimientos este mes</p>';
+            el('saldoActual').textContent = formatearMonto(0);
+            el('totalIngresos').textContent = formatearMonto(0);
+            el('totalGastos').textContent = formatearMonto(0);
+            dibujarGrafico();
+            return;
         }
         
         snap.forEach(doc => {
@@ -298,9 +314,9 @@ async function cargarMovimientos() {
         
         totalesActuales = { ingresos: totalIng, gastos: totalGas, saldo: totalIng - totalGas };
         
+        el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
         el('totalIngresos').textContent = formatearMonto(totalIng);
         el('totalGastos').textContent = formatearMonto(totalGas);
-        el('saldoActual').textContent = formatearMonto(totalIng - totalGas);
         
         document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
         document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
