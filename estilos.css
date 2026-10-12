@@ -240,28 +240,43 @@ body {
     padding-right: 1rem;
     border-right: 1px solid rgba(255, 255, 255, 0.3);
 }
-.btn-cambiar-nombre,
-.btn-cerrar-sesion {
+/* Botón Cambiar Nombre */
+.btn-cambiar-nombre {
     background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
 }
+
 .btn-cambiar-nombre:hover {
     background: rgba(255, 255, 255, 0.35);
-    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* Botón Cerrar Sesión */
 .btn-cerrar-sesion {
-    background: rgba(225, 112, 85, 0.25);
+    background: rgba(225, 112, 85, 0.85);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
+
 .btn-cerrar-sesion:hover {
-    background: rgba(225, 112, 85, 0.4);
-    transform: translateY(-1px);
+    background: rgba(225, 112, 85, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
 }
 
 /* Estilo base para botones sueltos.
