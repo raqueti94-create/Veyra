@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+r<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Veyra App V1.8.8 💵</title>
+    <title>💰 Veyra App V1.8.9 💵</title>
     <link rel="icon" href="data:,">
-    
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    
+
     <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
-    
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
@@ -64,6 +64,30 @@
         .logo { font-size: 1.4rem; font-weight: 700; color: var(--primario); }
         .usuario { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
         .btn-sm { padding: 0.5rem 1rem; font-size: 0.9rem; width: auto; }
+        #nombreUsuario { font-weight: 600; margin-right: 0.5rem; }
+
+        /* BOTONES DE LA CABECERA (mismo estilo que las pestañas) */
+        .boton-cabecera {
+            padding: 0.6rem 1.1rem;
+            border: none;
+            border-radius: 10px;
+            background: #f1f2f6;
+            color: var(--texto-claro);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+        .boton-cabecera:hover {
+            background: var(--primario);
+            color: white;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+        .boton-cabecera.boton-salir:hover {
+            background: var(--peligro);
+            box-shadow: 0 4px 12px rgba(225, 112, 85, 0.3);
+        }
 
         /* NAVEGACIÓN */
         .navegacion {
@@ -91,8 +115,10 @@
         .negativo { color: var(--peligro); font-weight: 700; }
         .lista { margin-top: 1rem; }
 
-        /* ITEM DE MOVIMIENTO - CORREGIDO */
-        .item {
+        /* ITEM DE MOVIMIENTO
+           (cubre ".item" y ".movimiento": el JS puede usar cualquiera de los dos nombres) */
+        .item,
+        .movimiento {
             padding: 0.8rem 0;
             border-bottom: 1px solid var(--borde);
             display: flex !important;
@@ -166,6 +192,48 @@
         .barra-fondo { background: var(--borde); height: 12px; border-radius: 6px; overflow: hidden; margin: 0.8rem 0; }
         .barra-lleno { height: 100%; background: var(--primario); color: white; text-align: center; font-size: 0.75rem; line-height: 12px; font-weight: 600; transition: width 0.3s; }
 
+        /* BARRAS SECCIÓN CONTABLE */
+        .contenedor-barras-contable {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .barra-contenedor { width: 100%; }
+        .barra-etiquetas {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+        .barra-ingreso-fondo,
+        .barra-gasto-fondo {
+            width: 100%;
+            height: 32px;
+            background-color: #e9ecef;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        .barra-ingreso-llena,
+        .barra-gasto-llena {
+            height: 100%;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.7rem;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: width 0.4s ease;
+            white-space: nowrap;
+        }
+        .barra-ingreso-llena { background: linear-gradient(90deg, #00b894, #55efc4); }
+        .barra-gasto-llena { background: linear-gradient(90deg, #e17055, #fab1a0); }
+        .barra-porcentaje-externo { font-weight: bold; font-size: 0.85rem; }
+
         /* MODALES */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -186,6 +254,7 @@
         @media (max-width: 600px) {
             .contenido { padding: 0 1rem 1.5rem; }
             .cabecera { padding: 1rem; flex-direction: column; text-align: center; }
+            .usuario { justify-content: center; }
             .navegacion { padding: 1rem; justify-content: center; }
             .pestaña { padding: 0.6rem 0.9rem; font-size: 0.9rem; }
         }
@@ -197,16 +266,17 @@
 <div id="pantallaLogin" class="pantalla-login">
     <h1 class="titulo" id="tituloLogin">📊 Veyra</h1>
     <p class="subtitulo" id="subtituloLogin">Ingresa para continuar</p>
-    
-    <div id="campoNombre" class="oculto">
+
+    <!-- display:none en línea (no la clase "oculto") para que el JS pueda mostrarlo al crear cuenta -->
+    <div id="campoNombre" style="display: none;">
         <input type="text" id="inputNombre" class="campo" placeholder="Tu nombre completo">
     </div>
     <input type="email" id="inputCorreo" class="campo" placeholder="correo@ejemplo.com">
     <input type="password" id="inputContraseña" class="campo" placeholder="Contraseña">
-    
+
     <button id="btnIngresar" class="btn btn-primario">Ingresar</button>
     <p id="errorLogin" class="error"></p>
-    
+
     <button id="btnCambiarModo" class="btn btn-secundario">¿No tienes cuenta? Crear una</button>
     <button id="btnRecuperar" type="button" style="margin-top:0.5rem;color:#6c5ce7;border:none;background:none;cursor:pointer;">¿Olvidaste tu contraseña?</button>
 </div>
@@ -215,12 +285,12 @@
 <div id="pantallaPrincipal" class="oculto">
     <!-- CABECERA -->
     <header class="cabecera">
-        <div class="logo">💰 Veyra App </div>
-       <div class="usuario">
-    <span id="nombreUsuario"></span>
-    <button id="btnCambiarNombre" class="boton-cabecera">✏️ Cambiar Nombre</button>
-    <button id="btnCerrarSesion" class="boton-cabecera boton-salir">🚪 Salir</button>
-</div>
+        <div class="logo">💰 Veyra App</div>
+        <div class="usuario">
+            <span id="nombreUsuario"></span>
+            <button id="btnCambiarNombre" class="boton-cabecera">✏️ Cambiar Nombre</button>
+            <button id="btnCerrarSesion" class="boton-cabecera boton-salir">🚪 Salir</button>
+        </div>
     </header>
 
     <!-- NAVEGACIÓN -->
@@ -234,7 +304,7 @@
 
     <!-- CONTENIDO -->
     <main class="contenido">
-        
+
         <!-- RESUMEN -->
         <section class="contenido-pestaña" id="pestaña-resumen">
             <div class="bloque">
