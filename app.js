@@ -156,17 +156,17 @@ document.querySelectorAll('.pestaña').forEach(boton => {
         const id = boton.dataset.pestaña;
         document.querySelectorAll('.contenido-pestaña').forEach(c => c.classList.add('oculto'));
         el(`pestaña-${id}`).classList.remove('oculto');
-        if (id === 'resumen') setTimeout(dibujarGrafico, 100);
+        if (id === 'resumen') setTimeout(dibujar, 100);
     });
 });
 
 // ===== CAMBIAR TIPO GRÁFICO =====
-document.querySelectorAll('.btn-tipo-grafico').forEach(boton => {
+document.querySelectorAll('.btn-tipo-').forEach(boton => {
     boton.addEventListener('click', () => {
-        document.querySelectorAll('.btn-tipo-grafico').forEach(b => b.classList.remove('activo'));
+        document.querySelectorAll('.btn-tipo-').forEach(b => b.classList.remove('activo'));
         boton.classList.add('activo');
-        tipoGraficoActivo = boton.dataset.grafico;
-        dibujarGrafico();
+        tipoActivo = boton.dataset.;
+        dibujar();
     });
 });
 
@@ -271,7 +271,7 @@ async function cargarMovimientos() {
         document.querySelectorAll('.btn-editar').forEach(b => b.onclick = () => editar(b.dataset.id));
         document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
         
-        dibujarGrafico();
+        dibujar();
     } catch (err) {
         lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
     }
@@ -355,17 +355,39 @@ function dibujarGrafico() {
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top', labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 } },
-                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` } }
-            },
-            scales: {
-                y: { ticks: { callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
-                x: { grid: { display: false } }
+    responsive: true, 
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { 
+            position: 'top',
+            align: 'center',          // ✅ Centrado
+            labels: { 
+                font: { size: 14, weight: 'bold' },
+                usePointStyle: true,   // ✅ Círculos
+                pointStyle: 'circle',
+                boxWidth: 10,
+                boxHeight: 10,
+                padding: 25
             }
+        },
+        tooltip: { 
+            callbacks: { 
+                label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` 
+            } 
         }
-    });
+    },
+    scales: {
+        y: { 
+            ticks: { 
+                callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) 
+            }, 
+            grid: { color: 'rgba(0,0,0,0.05)' } 
+        },
+        x: { grid: { display: false } }
+    },
+    layout: {
+        padding: { top: 10, bottom: 5 } // ✅ Alinea con las barras
+    }
 }
 
 // ===== EXPORTAR A EXCEL =====
