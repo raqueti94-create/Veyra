@@ -394,17 +394,16 @@ function dibujarGrafico() {
 // ===== EXPORTAR A EXCEL =====
 el('btnExportarExcel').addEventListener('click', async () => {
     if (!usuarioActual) return;
-    
+
     const nombreUsuario = el('nombreUsuario').textContent;
     const fechaExportacion = new Date().toLocaleDateString('es-CO');
-    
+
     // Obtener METAS de ahorro
     const metasSnap = await db.collection('metas')
-        .where('userId', '==', usuarioActual.uid)
+        .where('uid', '==', usuarioActual.uid)
         .orderBy('creado', 'desc')
         .get();
-    const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    
+    const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));    
     // Sección MOVIMIENTOS
     const filas = [
         ['Nombre:', nombreUsuario],
