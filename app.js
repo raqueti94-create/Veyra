@@ -1167,7 +1167,7 @@ function mostrarAlertaSaldo(saldo) {
     }
     // 🚨 50.000 a 399.999
     else if (saldo >= 50000) {
-        mensaje = '🚨 ALERTA: ¡CUIDADO! ÚLTIMOS $50.000 🚨';
+        mensaje = '🚨 ALERTA: ¡CUIDADO! ÚLTIMOS BILLETICOS 🚨';
         fondo = '#ffe6e6';
         texto = '#e17055';
         borde = '#e17055';
