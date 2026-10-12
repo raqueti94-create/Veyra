@@ -255,18 +255,18 @@ el('btnGuardarMov').addEventListener('click', async () => {
 async function cargarMovimientos() {
     if (!usuarioActual) return;
     
-    // Obtener mes seleccionado
+    // ✅ Tomar el mes que tiene seleccionado el usuario
     const selector = document.getElementById('mesResumen');
     const mesSeleccionado = selector ? selector.value : null;
     
     const lista = el('listaMovimientos');
-    lista.innerHTML = '<p>Cargando...</p>';
+    lista.innerHTML = '<p style="text-align:center;padding:1rem;">Cargando...</p>';
     
     try {
         let consulta = db.collection('movimientos')
             .where('uid', '==', usuarioActual.uid);
         
-        // Filtrar por mes si hay uno seleccionado
+        // ✅ Filtrar SOLO si hay un mes seleccionado
         if (mesSeleccionado) {
             consulta = consulta.where('mes', '==', mesSeleccionado);
         }
@@ -278,7 +278,7 @@ async function cargarMovimientos() {
         let totalIng = 0, totalGas = 0;
         
         if (snap.empty) {
-            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:1rem;">Sin movimientos este mes</p>';
+            lista.innerHTML = '<p style="color:var(--texto-claro);text-align:center;padding:2rem;">Sin movimientos este mes</p>';
             el('saldoActual').textContent = formatearMonto(0);
             el('totalIngresos').textContent = formatearMonto(0);
             el('totalGastos').textContent = formatearMonto(0);
@@ -291,7 +291,8 @@ async function cargarMovimientos() {
             datosMovimientos.push(m);
             
             const f = new Date(m.fecha).toLocaleString('es-CO', {
-                day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+                day:'2-digit', month:'2-digit', year:'numeric', 
+                hour:'2-digit', minute:'2-digit'
             });
             
             if (m.tipo === 'ingreso') totalIng += m.valor;
@@ -325,6 +326,12 @@ async function cargarMovimientos() {
         document.querySelectorAll('.btn-eliminar').forEach(b => b.onclick = () => eliminar(b.dataset.id));
         
         dibujarGrafico();
+        
+        // ✅ Actualizar también el selector por si hay meses nuevos
+        if (typeof llenarSelectorMeses === 'function') {
+            llenarSelectorMeses();
+        }
+        
     } catch (err) {
         lista.innerHTML = `<p style="color:var(--peligro);">Error: ${err.message}</p>`;
     }
