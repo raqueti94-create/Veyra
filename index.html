@@ -424,11 +424,11 @@
     </div>
 </div>
 
-<!-- Botón flotante de Micrófono -->
 <button onclick="iniciarEscucha()" id="botonMicrofono" style="
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 70px;
     height: 70px;
     border-radius: 50%;
@@ -439,12 +439,14 @@
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
     z-index: 9999;
-    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 ">🎤</button>
 
 <style>
 #botonMicrofono:active {
-    transform: scale(0.9);
+    transform: translateX(-50%) scale(0.9);
 }
 </style>
 
