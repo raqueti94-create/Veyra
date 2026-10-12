@@ -1130,61 +1130,66 @@ function mostrarAlertaSaldo(saldo) {
     let texto = '';
     let borde = '';
 
-    // 🔴 PRIMERO: NEGATIVO
+    // 🔴 NEGATIVO
     if (saldo < 0) {
-        mensaje = '😱 DIOS MÍO, ¿CÓMO ES POSIBLE ESTE SUCESO? 😳<br>ESO NO PUEDE SUCEDER 👀<br>¿CÓMO ASÍ QUE EN NEGATIVO? 🤯';
+        mensaje = '😱 DIOS MÍO, ¿CÓMO ES POSIBLE ESTE SUCESO?<br>REVISA, ESO NO PUEDE SUCEDER 👀';
         fondo = '#2d3436';
         texto = '#ff7675';
         borde = '#e17055';
     }
-    // 🟡 SEGUNDO: EXACTAMENTE EN CERO
-    else if (saldo === 0) {
+    // 🟡 DE 1 A 1.999
+    else if (saldo >= 1 && saldo <= 1999) {
         mensaje = '😅 AH CARAY... AHORA SÍ URGE EL SUELDO 💸<br>¿Cesantías? ¿Regalías? ¿Una guaca? ¿Algo? 🏺🤑';
         fondo = '#fff3cd';
         texto = '#856404';
         borde = '#fdcb6e';
     }
-    // 🤑 SUPERIOR A 1.200.000
+    // 🤑 DESDE 1.200.001 PARA ARRIBA
     else if (saldo > 1200000) {
         mensaje = '🤑 RONDA PA\' ESTA MESA QUE LO QUE SOBRA ES BILLETE 😎💵';
         fondo = '#fff9c4';
         texto = '#f57f17';
         borde = '#ffc107';
     }
-    // 💚 EXCELENTE
-    else if (saldo >= 800000 && saldo <= 1200000) {
+    // 💚 800.000 a 1.200.000
+    else if (saldo >= 800000) {
         mensaje = '✅ NUESTRA SALUD ECONÓMICA ESTÁ EXCELENTE 💚';
         fondo = '#e6f9f0';
         texto = '#00b894';
         borde = '#00b894';
     }
-    // ⚠️ CUIDADO
-    else if (saldo < 800000 && saldo >= 400000) {
+    // ⚠️ 400.000 a 799.999
+    else if (saldo >= 400000) {
         mensaje = '⚠️ ESTAMOS BIEN, PERO CUIDA TUS GASTOS 🛡️';
         fondo = '#fff9e6';
         texto = '#fdcb6e';
         borde = '#fdcb6e';
     }
-    // 🚨 ALERTA
-    else if (saldo < 400000 && saldo >= 50000) {
+    // 🚨 50.000 a 399.999
+    else if (saldo >= 50000) {
         mensaje = '🚨 ALERTA: ¡CUIDADO! ÚLTIMOS $50.000 🚨';
         fondo = '#ffe6e6';
         texto = '#e17055';
         borde = '#e17055';
     }
-    // 🍬 POQUITO
-    else if (saldo < 50000 && saldo >= 1000) {
+    // 🍬 10.000 a 49.999
+    else if (saldo >= 10000) {
         mensaje = '😬 OJO QUE NO NOS ESTÁ QUEDANDO PA LOS DULCES 🍬';
         fondo = '#fff3cd';
         texto = '#d63031';
         borde = '#ff7675';
     }
-    // 😅 CASI NADA
-    else if (saldo < 1000 && saldo >= 1) {
+    // 💸 2.000 a 9.999
+    else if (saldo >= 2000) {
         mensaje = '💸 SE ACABÓ TODO... ¿ALGUIEN SABE CUÁNDO PAGAN OTRA VEZ? 📅😅';
         fondo = '#2d3436';
         texto = '#fdcb6e';
         borde = '#e17055';
+    }
+    // Si es exactamente 0 o no cae en ningún rango → ocultar
+    else {
+        alerta.style.display = 'none';
+        return;
     }
 
     if (mensaje) {
