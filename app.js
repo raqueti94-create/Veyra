@@ -1203,197 +1203,25 @@ function mostrarAlertaSaldo(saldo) {
         alerta.style.lineHeight = '1.6';
     }
 }
-// ==============================================
-// SISTEMA DE VOZ CORREGIDO PARA ANDROID
-// ==============================================
+<!-- Botón flotante de Micrófono -->
+<button onclick="iniciarEscucha()" id="botonMicrofono" style="
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    z-index: 9999;
+">🎤</button>
 
-// 🔊 HABLAR
-function hablar(texto, callbackCuandoTermine = null) {
-    window.speechSynthesis.cancel(); // Detiene cualquier habla anterior
-    
-    const mensaje = new SpeechSynthesisUtterance(texto);
-    mensaje.lang = 'es-ES';
-    mensaje.rate = 1.05;
-    mensaje.pitch = 1;
-    
-    if (callbackCuandoTermine) {
-        mensaje.onend = callbackCuandoTermine;
-    }
-    
-    window.speechSynthesis.speak(mensaje);
+<style>
+#botonMicrofono:active {
+    transform: scale(0.9);
 }
-
-// 🎤 RECONOCIMIENTO
-const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-let escucha = null;
-let escuchandoActivo = false;
-
-function crearReconocimiento() {
-    escucha = new ReconocimientoVoz();
-    escucha.lang = 'es-ES';
-    escucha.interimResults = false;
-    escucha.continuous = false;
-    
-    escucha.onresult = function(evento) {
-        const loQueDijo = evento.results[0][0].transcript;
-        console.log("✅ Escuché:", loQueDijo);
-        procesarComando(loQueDijo);
-    };
-    
-    escucha.onend = function() {
-        console.log("🔚 Reconocimiento terminado");
-        escuchandoActivo = false;
-    };
-    
-    escucha.onerror = function(error) {
-        console.log("❌ Error de escucha:", error);
-        escuchandoActivo = false;
-        
-        if (error === 'not-allowed') {
-            hablar("No tengo permiso del micrófono. Actívalo en los ajustes del sitio.");
-        } else if (error === 'network') {
-            hablar("Necesitas conexión a internet para escucharte.");
-        }
-    };
-}
-
-// ▶️ INICIAR ESCUCHA — CORREGIDO: espera a que termine de hablar
-function iniciarEscucha() {
-    if (escuchandoActivo) return;
-    
-    if (!ReconocimientoVoz) {
-        alert("Usa Chrome para que funcione el micrófono");
-        return;
-    }
-    
-    escuchandoActivo = true;
-    
-    const escucha = new ReconocimientoVoz();
-    escucha.lang = 'es-ES';
-    escucha.interimResults = false;
-    escucha.continuous = false;
-    
-    // ⏱️ Más tiempo para empezar a hablar
-    escucha.onresult = function(evento) {
-        escuchandoActivo = false;
-        const loQueDijo = evento.results[0][0].transcript;
-        console.log("✅ Escuché:", loQueDijo);
-        procesarComando(loQueDijo);
-    };
-    
-    escucha.onend = () => {
-        escuchandoActivo = false;
-        console.log("🔚 Dejó de escuchar");
-    };
-    
-    escucha.onerror = function(error) {
-        escuchandoActivo = false;
-        console.log("❌ Error:", error);
-        
-        if (error === 'no-speech') {
-            // 🔄 Si no te escuchó, te avisa y te da otra oportunidad
-            hablar("No te escuché bien. Intenta de nuevo tocando el botón y habla más cerca.");
-        } else if (error === 'not-allowed') {
-            alert("Dale permiso al micrófono: candado 🔒 → Micrófono → Permitir");
-        } else if (error === 'network') {
-            hablar("Necesitas conexión a internet para escucharte.");
-        }
-    };
-    
-    hablar("Te escucho", () => {
-        setTimeout(() => {
-            try {
-                escucha.start();
-                console.log("🎤 Escuchando... ¡Habla ahora!");
-            } catch (e) {
-                console.log("Error al iniciar:", e);
-            }
-        }, 300); // Pequeña pausa para que no se corte la voz
-    });
-}
-
-// 🧠 PROCESAR COMANDOS
-async function procesarComando(frase) {
-    const texto = frase.toLowerCase().trim();
-    console.log("📝 Procesando:", texto);
-    
-    const agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-
-    // ---------- INTERESANTE ----------
-    if (texto.includes('interesante') || texto.includes('curioso')) {
-        hablar("¿Sabías que los pulpos tienen tres corazones? Dos envían sangre a las branquias y el tercero al resto del cuerpo. ¡Qué locura!");
-        return;
-    }
-
-    // ---------- LLAMAR ----------
-    if (texto.includes('llama a') || texto.includes('llamar a')) {
-        const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
-        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        
-        if (contacto) {
-            hablar(`Marcando a ${contacto.nombre}`);
-            setTimeout(() => {
-                window.location.href = `tel:${contacto.numero}`;
-            }, 500);
-        } else {
-            hablar(`No encontré a ${nombre}. Agrégalo primero.`);
-        }
-        return;
-    }
-
-    // ---------- WHATSAPP ----------
-    if (texto.includes('whatsapp') || texto.includes('escribe a')) {
-        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
-        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        
-        if (contacto) {
-            hablar(`Abriendo chat con ${contacto.nombre}`);
-            window.open(`https://wa.me/${contacto.numero}`, '_blank');
-        } else {
-            hablar(`No encontré a ${nombre}.`);
-        }
-        return;
-    }
-
-    // ---------- NO RECONOCIDO ----------
-    hablar("Entendí: " + frase + ". Si quieres, di: llama a Mamá.");
-}
-
-// 👋 SALUDO INICIAL
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        hablar("¡Hola! Aquí estoy. Toca el botón del micrófono y cuéntame.");
-    }, 1000);
-});
-
-// 📖 AGENDA
-function guardarContacto(nombre, numero) {
-    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-    numero = numero.replace(/\D/g, '');
-    if (!numero.startsWith('57') && numero.length === 10) {
-        numero = '57' + numero;
-    }
-    agenda.push({ nombre, numero });
-    localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
-    hablar(`${nombre} guardado correctamente.`);
-}
-
-// ==============================================
-// AGENDA DE CONTACTOS
-// ==============================================
-
-// Guardar contacto
-function guardarContacto(nombre, numero) {
-    let agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
-    
-    // Formatear número: código de Colombia + sin espacios
-    numero = numero.replace(/\D/g, '');
-    if (!numero.startsWith('57') && numero.length === 10) {
-        numero = '57' + numero;
-    }
-    
-    agenda.push({ nombre, numero });
-    localStorage.setItem('agendaVeyra', JSON.stringify(agenda));
-    hablar(`${nombre} guardado correctamente.`);
-}
+</style>
