@@ -1270,10 +1270,13 @@ function iniciarEscucha() {
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
 async function buscarEnInternet(pregunta) {
-    const CLAVE = "AQ.Ab8RN6KLAMdyHD1DvXHmm2g5V-Q_g33jX56nomW5K9B6QEZE8A";
-    const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CLAVE}`;
+    // TU CLAVE TAL CUAL TE APARECE
+    const CLAVE = "AQ.Ab8RN6Icq3N97Q9Qi9_kkYtX-_fQ5b7FCqfGh2RyDHCVRlNFkw";
+    
+    // Prueba con esta versión de la API
+    const URL = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${CLAVE}`;
 
-    console.log("🔗 Conectando a Gemini...");
+    console.log("🔗 Conectando...");
 
     try {
         const respuesta = await fetch(URL, {
@@ -1291,18 +1294,18 @@ async function buscarEnInternet(pregunta) {
         });
 
         const datos = await respuesta.json();
-        console.log("📦 Respuesta de Gemini:", datos);
+        console.log("📦 Respuesta:", datos);
 
         if (!respuesta.ok || datos.error) {
-            console.error("❌ Error API:", datos.error || respuesta.status);
-            return `⚠️ ${datos.error?.message || "No pude conectarme bien"}`;
+            console.error("❌ Error:", datos.error);
+            return `⚠️ ${datos.error?.message || "No conectó"}`;
         }
 
         return datos.candidates[0].content.parts[0].text.trim();
 
     } catch (error) {
-        console.error("❌ Error de red:", error);
-        return "No hay conexión. Revisa tu conexión 🌐";
+        console.error("❌ Red:", error);
+        return "Sin conexión 🌐";
     }
 }
 
