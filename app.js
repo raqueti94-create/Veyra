@@ -1355,37 +1355,96 @@ async function procesarComando(frase) {
     hablar(respuesta);
 }
 
-// 💬 CHAT EN PANTALLA
+// 💬 CHAT — GUARDAR Y CARGAR HISTORIAL
+function obtenerHistorial() {
+    const guardado = localStorage.getItem('historialVeyra');
+    return guardado ? JSON.parse(guardado) : [];
+}
+
+function guardarHistorial(historial) {
+    localStorage.setItem('historialVeyra', JSON.stringify(historial));
+}
+
 function agregarMensaje(texto, esUsuario = false) {
     const caja = el('cajaMensajes');
     if (!caja) return;
-
+    
+    // Guardar en el historial
+    const historial = obtenerHistorial();
+    historial.push({ texto, esUsuario, fecha: Date.now() });
+    guardarHistorial(historial);
+    
+    // Mostrar en pantalla
     const div = document.createElement('div');
     div.className = `mensaje ${esUsuario ? 'usuario' : 'asistente'}`;
-
-    const etiqueta = document.createElement('strong');
-    etiqueta.textContent = esUsuario ? 'Tú: ' : '🤖 Veyra: ';
-
-    div.appendChild(etiqueta);
-    div.appendChild(document.createTextNode(texto));
-
+    div.innerHTML = esUsuario 
+        ? `<strong>Tú:</strong> ${texto}`
+        : `<strong>🤖 Veyra:</strong> ${texto}`;
     caja.appendChild(div);
     caja.scrollTop = caja.scrollHeight;
 }
 
-async function obtenerRespuestaChat(texto) {
-    return await buscarEnInternet(texto) || "Te escucho 😊 ¿Podrías decírmelo de otra forma?";
+// 📂 CARGAR HISTORIAL AL ABRIR LA PÁGINA
+function cargarHistorial() {
+    const caja = el('cajaMensajes');
+    if (!caja) return;
+    
+    caja.innerHTML = ''; // Limpiar saludo inicial
+    
+    const historial = obtenerHistorial();
+    if (historial.length === 0) {
+        // Mensaje de bienvenida si no hay nada guardado
+        const div = document.createElement('div');
+        div.className = 'mensaje asistente';
+        div.innerHTML = `<strong>🤖 Veyra:</strong> ¡Hola de nuevo! 😊 Todo listo. ¿En qué te ayudo?`;
+        caja.appendChild(div);
+        return;
+    }
+    
+    historial.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `mensaje ${item.esUsuario ? 'usuario' : 'asistente'}`;
+        div.innerHTML = item.esUsuario 
+            ? `<strong>Tú:</strong> ${item.texto}`
+            : `<strong>🤖 Veyra:</strong> ${item.texto}`;
+        caja.appendChild(div);
+    });
+    
+    caja.scrollTop = caja.scrollHeight;
 }
 
 async function enviarMensaje(texto) {
     if (!texto.trim()) return;
     agregarMensaje(texto, true);
     el('entradaTexto').value = '';
+    
     const respuesta = await obtenerRespuestaChat(texto);
     agregarMensaje(respuesta);
     hablar(respuesta);
 }
 
+// 🗑️ BOTÓN PARA BORRAR TODO EL CHAT
+function limpiarChat() {
+    if (!confirm('¿Borrar todo el historial del chat?')) return;
+    localStorage.removeItem('historialVeyra');
+    el('cajaMensajes').innerHTML = '';
+    // Mensaje de bienvenida limpio
+    const div = document.createElement('div');
+    div.className = 'mensaje asistente';
+    div.innerHTML = `<strong>🤖 Veyra:</strong> ¡Listo! Empezamos de nuevo 😊`;
+    el('cajaMensajes').appendChild(div);
+}
+
+// ⏳ CARGAR EL HISTORIAL CUANDO LA PÁGINA ESTÉ LISTA
+document.addEventListener('DOMContentLoaded', () => {
+    // Esperar a que exista la caja del chat
+    const esperarCaja = setInterval(() => {
+        if (el('cajaMensajes')) {
+            clearInterval(esperarCaja);
+            cargarHistorial();
+        }
+    }, 100);
+});
 // 🎯 CONECTAR BOTONES
 document.addEventListener('click', e => {
     if (e.target.id === 'btnEnviarTexto') enviarMensaje(el('entradaTexto').value);
