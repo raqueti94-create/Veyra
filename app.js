@@ -1284,39 +1284,6 @@ function iniciarEscucha() {
 
 // 🔍 BUSCAR EN INTERNET CON GEMINI
 async function buscarEnInternet(pregunta) {
-    try {
-        const respuesta = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=AIzaSyAs3VpOIRciEf-eFgbmGV1-t7zX1WUNgqc`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `Eres Veyra IA, asistente amable y cercano. 
-                            Habla claro, breve y natural. 
-                            Responde como si charlaras con un amigo. 
-                            Pregunta: ${pregunta}`
-                        }]
-                    }]
-                })
-            }
-        );
-
-        const datos = await respuesta.json();
-        
-        if (datos.error) {
-            console.error("Error:", datos.error);
-            return "No pude conectarme bien. Intenta de nuevo 😊";
-        }
-        
-        return datos.candidates[0].content.parts[0].text.trim();
-
-    } catch (error) {
-        console.error("Error:", error);
-        return "No pude obtener la respuesta. Revisa tu conexión 🌐";
-    }
-}
 
 // 🧠 PROCESAR COMANDOS — Aquí Veyra entiende todo
 async function procesarComando(frase) {
