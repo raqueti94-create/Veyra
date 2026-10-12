@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💰 Veyra App V1.1 💵</title>
+    <title>💰 Veyra App V1.2 💵</title>
     
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js"></script>
-
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
@@ -58,9 +58,10 @@
             background: white; padding: 1rem 2rem; box-shadow: var(--sombra);
             display: flex; justify-content: space-between; align-items: center;
             position: sticky; top: 0; z-index: 100;
+            flex-wrap: wrap; gap: 0.8rem;
         }
         .logo { font-size: 1.4rem; font-weight: 700; color: var(--primario); }
-        .usuario { display: flex; gap: 0.8rem; align-items: center; }
+        .usuario { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
         .btn-sm { padding: 0.5rem 1rem; font-size: 0.9rem; width: auto; }
 
         /* NAVEGACIÓN */
@@ -88,9 +89,83 @@
         .positivo { color: var(--exito); font-weight: 700; }
         .negativo { color: var(--peligro); font-weight: 700; }
         .lista { margin-top: 1rem; }
-        .item { padding: 0.8rem 0; border-bottom: 1px solid var(--borde); display: flex; justify-content: space-between; align-items: center; }
+
+        /* ITEM DE MOVIMIENTO - CORREGIDO */
+        .item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--borde);
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+        .info-mov {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+        .fecha {
+            font-size: 0.85rem;
+            color: var(--texto-claro);
+        }
+        .descripcion {
+            font-weight: 600;
+            margin: 0.2rem 0;
+        }
+        .valor-botones {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.8rem !important;
+            flex-shrink: 0 !important;
+        }
+        .valor {
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            white-space: nowrap !important;
+        }
+        .acciones {
+            display: flex !important;
+            gap: 0.4rem !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+        }
+        .btn-accion {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 34px !important;
+            height: 34px !important;
+            min-width: 34px !important;
+            min-height: 34px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 8px !important;
+            background: transparent !important;
+            font-size: 1rem !important;
+            line-height: 1 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+        }
+        .btn-accion:hover {
+            transform: scale(1.15) !important;
+        }
+        .btn-editar:hover {
+            background: #d4edda !important;
+            color: #155724 !important;
+        }
+        .btn-eliminar:hover {
+            background: #f8d7da !important;
+            color: #a71d2a !important;
+        }
+
+        /* METAS Y BARRAS */
         .barra-fondo { background: var(--borde); height: 12px; border-radius: 6px; overflow: hidden; margin: 0.8rem 0; }
         .barra-lleno { height: 100%; background: var(--primario); color: white; text-align: center; font-size: 0.75rem; line-height: 12px; font-weight: 600; transition: width 0.3s; }
+
+        /* MODALES */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200;
@@ -105,6 +180,14 @@
         .btn-copiar { background: var(--primario); color: white; }
         .grafico { height: 300px; margin: 1rem 0; }
         .fila-botones { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+        /* RESPONSIVO */
+        @media (max-width: 600px) {
+            .contenido { padding: 0 1rem 1.5rem; }
+            .cabecera { padding: 1rem; flex-direction: column; text-align: center; }
+            .navegacion { padding: 1rem; justify-content: center; }
+            .pestaña { padding: 0.6rem 0.9rem; font-size: 0.9rem; }
+        }
     </style>
 </head>
 <body>
@@ -236,7 +319,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 </div>
 
