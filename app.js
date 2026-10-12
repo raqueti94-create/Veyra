@@ -1203,3 +1203,110 @@ function mostrarAlertaSaldo(saldo) {
         alerta.style.lineHeight = '1.6';
     }
 }
+// ==============================================
+// SISTEMA DE VOZ Y RECONOCIMIENTO PARA VEYRA
+// ==============================================
+
+// 🔊 HABLAR — Veyra usa el altavoz
+function hablar(texto) {
+    // Detiene cualquier voz anterior
+    window.speechSynthesis.cancel();
+    
+    const mensaje = new SpeechSynthesisUtterance(texto);
+    mensaje.lang = 'es-ES';
+    mensaje.rate = 1.05; // Velocidad: 1 normal
+    mensaje.pitch = 1;   // Tono normal
+    window.speechSynthesis.speak(mensaje);
+}
+
+// 🎤 ESCUCHAR — Reconocimiento de voz
+const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
+const escucha = new ReconocimientoVoz();
+escucha.lang = 'es-ES';
+escucha.interimResults = false; // Solo resultado final
+escucha.continuous = false;
+
+let escuchandoActivo = false;
+
+// Cuando obtiene el resultado
+escucha.onresult = function(evento) {
+    const loQueDijo = evento.results[0][0].transcript;
+    console.log("Escuché:", loQueDijo);
+    procesarComando(loQueDijo);
+};
+
+escucha.onend = function() {
+    escuchandoActivo = false;
+};
+
+escucha.onerror = function(error) {
+    escuchandoActivo = false;
+    console.log("Error de escucha:", error);
+};
+
+// ▶️ INICIAR ESCUCHA — llama a esta función con un botón
+function iniciarEscucha() {
+    if (escuchandoActivo) return;
+    
+    escuchandoActivo = true;
+    hablar("Te escucho");
+    escucha.start();
+}
+
+// 🧠 PROCESAR COMANDOS — Aquí Veyra entiende qué le dices
+async function procesarComando(frase) {
+    const texto = frase.toLowerCase().trim();
+    const agenda = JSON.parse(localStorage.getItem('agendaVeyra')) || [];
+    
+    // ---------- SALUDO / PRESENTACIÓN ----------
+    if (texto.includes('hola') || texto.includes('estoy aquí')) {
+        hablar("¡Hola! Aquí estoy. Cuéntame qué necesitas.");
+        return;
+    }
+
+    // ---------- LLAMADA POR TELÉFONO (apertura directa) ----------
+    if (texto.includes('llama a') || texto.includes('llamar a')) {
+        const nombre = texto.replace(/llama a|llamar a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        
+        if (contacto) {
+            hablar(`Marcando a ${contacto.nombre}`);
+            // Abre el marcador con el número listo
+            window.location.href = `tel:${contacto.numero}`;
+        } else {
+            hablar(`No encontré a ${nombre}. Agrégalo en tu agenda primero.`);
+        }
+        return;
+    }
+
+    // ---------- MENSAJE POR WHATSAPP ----------
+    if (texto.includes('whatsapp') || texto.includes('escribe a') || texto.includes('mensaje a')) {
+        const nombre = texto.replace(/whatsapp|escribe a|mensaje a|envía a/gi, '').trim();
+        const contacto = agenda.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        
+        if (contacto) {
+            hablar(`Abriendo chat con ${contacto.nombre}`);
+            // Abre WhatsApp con el contacto
+            window.open(`https://wa.me/${contacto.numero}`, '_blank');
+        } else {
+            hablar(`No encontré a ${nombre} en tu agenda.`);
+        }
+        return;
+    }
+
+    // ---------- ALGO INTERESANTE ----------
+    if (texto.includes('interesante') || texto.includes('algo curioso')) {
+        hablar("¿Sabías que el cuerpo humano tiene más de 37 billones de células? ¡Increíble, verdad! ¿Quieres saber algo más?");
+        return;
+    }
+
+    // ---------- NO ENTENDÍ ----------
+    hablar("No estoy segura de qué necesitas. Intenta decir: llama a Mamá, o escríbele a Papá por WhatsApp.");
+}
+
+// 👋 SALUDO AUTOMÁTICO al abrir Veyra
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        hablar("¡Hola! Aquí estoy. Cuéntame qué necesitas.");
+    }, 1000);
+});
