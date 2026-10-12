@@ -1,5 +1,5 @@
 // ==============================================
-// PARTE 1: CONFIGURACIÓN, VARIABLES, AUTENTICACIÓN Y MOVIMIENTOS
+// PARTE 1: CONFIGURACIÓN, VARIABLES Y AUXILIARES
 // ==============================================
 
 // ===== CONFIGURACIÓN FIREBASE =====
@@ -12,6 +12,7 @@ const firebaseConfig = {
     appId: "1:100478048311:web:c103f0ecf7b33ebf5387b2",
     measurementId: "G-KW7ZE24BQ8"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
@@ -28,18 +29,24 @@ let totalesActuales = { ingresos: 0, gastos: 0, saldo: 0 };
 
 // ===== FUNCIONES AUXILIARES =====
 function el(id) { return document.getElementById(id); }
+
 function formatearMonto(valor) {
     return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(valor || 0);
 }
+
 function formatearMes(fecha) {
     return new Date(fecha).toLocaleDateString('es-CO', { month: 'short', year: 'numeric' });
 }
+
 function formatearFechaLarga(fecha) {
     return new Date(fecha).toLocaleString('es-CO', {
         day: '2-digit', month: 'long', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
 }
+// ==============================================
+// PARTE 2: AUTENTICACIÓN, NAVEGACIÓN Y MOVIMIENTOS
+// ==============================================
 
 // ===== CAMBIAR ENTRE INICIO SESIÓN Y REGISTRO =====
 el('btnCambiarModo').addEventListener('click', () => {
@@ -58,7 +65,7 @@ el('btnIngresar').addEventListener('click', async () => {
     const contraseña = el('inputContraseña').value;
     const nombre = el('inputNombre').value.trim();
     el('errorLogin').textContent = '';
-    
+
     if (!correo || !contraseña) {
         el('errorLogin').textContent = 'Completa todos los campos';
         return;
@@ -67,7 +74,7 @@ el('btnIngresar').addEventListener('click', async () => {
         el('errorLogin').textContent = 'Escribe tu nombre';
         return;
     }
-    
+
     try {
         let credencial;
         if (esRegistro) {
@@ -97,19 +104,21 @@ auth.onAuthStateChanged(usuario => {
         usuarioActual = usuario;
         const nombre = usuario.displayName || usuario.email.split('@')[0];
         
+        // Verificamos que CADA elemento exista antes de usarlo ✅
         if (el('nombreUsuario')) el('nombreUsuario').textContent = nombre;
         if (el('pantallaLogin')) el('pantallaLogin').classList.add('oculto');
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.remove('oculto');
         
         cargarMovimientos();
         cargarMetas();
-        cargarHabitos();
+        cargarHabitos(); 
     } else {
         usuarioActual = null;
         if (el('pantallaPrincipal')) el('pantallaPrincipal').classList.add('oculto');
         if (el('pantallaLogin')) el('pantallaLogin').classList.remove('oculto');
     }
 });
+
 
 // ===== CAMBIAR NOMBRE =====
 el('btnCambiarNombre').addEventListener('click', () => {
@@ -178,12 +187,10 @@ el('btnGuardarMov').addEventListener('click', async () => {
     if (!usuarioActual) return;
     const descripcion = el('descripcionMov').value.trim();
     const valor = parseFloat(el('valorMov').value);
-    
     if (!descripcion || isNaN(valor) || valor <= 0) {
         alert('Completa todos los datos correctamente');
         return;
     }
-    
     const datos = {
         uid: usuarioActual.uid,
         descripcion,
@@ -191,7 +198,6 @@ el('btnGuardarMov').addEventListener('click', async () => {
         tipo: tipoMovimiento,
         fecha: new Date().toISOString()
     };
-    
     try {
         if (modoEdicionId) {
             await db.collection('movimientos').doc(modoEdicionId).update(datos);
@@ -213,7 +219,6 @@ async function cargarMovimientos() {
     if (!usuarioActual) return;
     const lista = el('listaMovimientos');
     lista.innerHTML = '<p>Cargando...</p>';
-    
     try {
         const snap = await db.collection('movimientos')
             .where('uid', '==', usuarioActual.uid)
@@ -272,16 +277,14 @@ async function cargarMovimientos() {
     }
 }
 
-// ===== EDITAR MOVIMIENTO =====
+// ===== EDITAR =====
 async function editar(id) {
     const doc = await db.collection('movimientos').doc(id).get();
     if (!doc.exists) return;
     const d = doc.data();
-    
     el('descripcionMov').value = d.descripcion;
     el('valorMov').value = d.valor;
     tipoMovimiento = d.tipo;
-    
     if (d.tipo === 'ingreso') {
         el('btnIngreso').classList.add('activo');
         el('btnGasto').classList.remove('activo');
@@ -289,20 +292,19 @@ async function editar(id) {
         el('btnGasto').classList.add('activo');
         el('btnIngreso').classList.remove('activo');
     }
-    
     modoEdicionId = id;
     el('btnGuardarMov').textContent = '🔄 Actualizar Movimiento';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ===== ELIMINAR MOVIMIENTO =====
+// ===== ELIMINAR =====
 async function eliminar(id) {
     if (!confirm('¿Eliminar este movimiento?')) return;
     await db.collection('movimientos').doc(id).delete();
     cargarMovimientos();
 }
 // ==============================================
-// PARTE 2: GRÁFICOS, EXPORTACIÓN Y COMPARTIR
+// PARTE 3: GRÁFICOS, EXPORTACIÓN Y COMPARTIR
 // ==============================================
 
 // ===== DIBUJAR GRÁFICO =====
@@ -311,14 +313,14 @@ function dibujarGrafico() {
         if (grafico) grafico.destroy();
         return;
     }
-    
+
     const porMes = {};
     datosMovimientos.forEach(m => {
         const mes = formatearMes(m.fecha);
         if (!porMes[mes]) porMes[mes] = { ingreso: 0, gasto: 0 };
         porMes[mes][m.tipo] += m.valor;
     });
-    
+
     const etiquetas = Object.keys(porMes).sort((a, b) => new Date(a) - new Date(b));
     const ingresos = etiquetas.map(m => porMes[m].ingreso);
     const gastos = etiquetas.map(m => porMes[m].gasto);
@@ -331,10 +333,10 @@ function dibujarGrafico() {
             return saldo;
         });
     }
-    
+
     if (grafico) grafico.destroy();
+
     const ctx = el('graficoEvolucion').getContext('2d');
-    
     grafico = new Chart(ctx, {
         type: tipoGraficoActivo === 'mensual' ? 'bar' : 'line',
         data: tipoGraficoActivo === 'mensual' ? {
@@ -353,38 +355,14 @@ function dibujarGrafico() {
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'top',
-                    align: 'center',
-                    labels: {
-                        font: { size: 14, weight: 'bold' },
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 10,
-                        boxHeight: 10,
-                        padding: 25
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}`
-                    }
-                }
+                legend: { position: 'top', labels: { font: { size: 13, weight: 'bold' }, usePointStyle: true, padding: 20 } },
+                tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatearMonto(ctx.raw)}` } }
             },
             scales: {
-                y: {
-                    ticks: {
-                        callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v)
-                    },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
+                y: { ticks: { callback: v => new Intl.NumberFormat('es-CO', { notation: 'compact' }).format(v) }, grid: { color: 'rgba(0,0,0,0.05)' } },
                 x: { grid: { display: false } }
-            },
-            layout: {
-                padding: { top: 10, bottom: 5 }
             }
         }
     });
@@ -397,12 +375,14 @@ el('btnExportarExcel').addEventListener('click', async () => {
     const nombreUsuario = el('nombreUsuario').textContent;
     const fechaExportacion = new Date().toLocaleDateString('es-CO');
     
+    // Obtener METAS de ahorro
     const metasSnap = await db.collection('metas')
-        .where('uid', '==', usuarioActual.uid)
+        .where('userId', '==', usuarioActual.uid)
         .orderBy('creado', 'desc')
         .get();
     const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     
+    // Sección MOVIMIENTOS
     const filas = [
         ['Nombre:', nombreUsuario],
         ['Fecha de exportación:', fechaExportacion],
@@ -430,9 +410,17 @@ el('btnExportarExcel').addEventListener('click', async () => {
         filas.push(['', '', 'Sin movimientos', '']);
     }
     
+    // Espacio entre secciones
     filas.push([]);
     filas.push(['=== METAS DE AHORRO ===']);
-    filas.push(['Nombre de la Meta', 'Monto Total', 'Ahorrado', 'Falta', 'Progreso %', 'Estado']);
+    filas.push([
+        'Nombre de la Meta',
+        'Monto Total',
+        'Ahorrado',
+        'Falta',
+        'Progreso %',
+        'Estado'
+    ]);
     
     if (metas.length > 0) {
         metas.forEach(m => {
@@ -442,7 +430,14 @@ el('btnExportarExcel').addEventListener('click', async () => {
                 ? '✅ COMPLETA' 
                 : `${porcentaje.toFixed(1)}% — En progreso`;
             
-            filas.push([m.nombre, m.montoTotal, (m.ahorrado || 0), faltante, `${porcentaje.toFixed(1)}%`, estado]);
+            filas.push([
+                m.nombre,
+                m.montoTotal,
+                (m.ahorrado || 0),
+                faltante,
+                `${porcentaje.toFixed(1)}%`,
+                estado
+            ]);
         });
     } else {
         filas.push(['', '', 'Sin metas registradas', '', '', '']);
@@ -461,19 +456,24 @@ el('btnExportarPDF').addEventListener('click', async () => {
     const nombreUsuario = el('nombreUsuario').textContent;
     const fechaExportacion = new Date().toLocaleDateString('es-CO');
     
+    // Obtener METAS de ahorro
     const metasSnap = await db.collection('metas')
-        .where('uid', '==', usuarioActual.uid)
+        .where('userId', '==', usuarioActual.uid)
         .orderBy('creado', 'desc')
         .get();
     const metas = metasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     
+    // Construir contenido
     const contenido = [];
+    
+    // Encabezado
     contenido.push(
         { text: 'REPORTE COMPLETO', fontSize: 18, bold: true, alignment: 'center', margin: [0, 0, 0, 10] },
         { text: nombreUsuario, fontSize: 14, alignment: 'center', margin: [0, 0, 0, 5] },
         { text: `Exportado el ${fechaExportacion}`, fontSize: 10, color: '#666', alignment: 'center', margin: [0, 0, 0, 20] }
     );
     
+    // === SECCIÓN MOVIMIENTOS ===
     contenido.push({ text: '💰 MOVIMIENTOS', fontSize: 14, bold: true, margin: [0, 0, 0, 10] });
     
     if (datosMovimientos.length) {
@@ -519,17 +519,20 @@ el('btnExportarPDF').addEventListener('click', async () => {
         contenido.push({ text: 'Sin movimientos registrados', italics: true, color: '#666', margin: [0, 0, 0, 20] });
     }
     
+    // === SECCIÓN METAS DE AHORRO ===
     contenido.push({ text: '🎯 METAS DE AHORRO', fontSize: 14, bold: true, margin: [0, 0, 0, 10] });
     
     if (metas.length > 0) {
-        const tablaMetas = [[
-            { text: 'Meta', bold: true, fillColor: '#6c5ce7', color: 'white' },
-            { text: 'Total', bold: true, fillColor: '#6c5ce7', color: 'white' },
-            { text: 'Ahorrado', bold: true, fillColor: '#6c5ce7', color: 'white' },
-            { text: 'Falta', bold: true, fillColor: '#6c5ce7', color: 'white' },
-            { text: 'Progreso', bold: true, fillColor: '#6c5ce7', color: 'white' },
-            { text: 'Estado', bold: true, fillColor: '#6c5ce7', color: 'white' }
-        ]];
+        const tablaMetas = [
+            [
+                { text: 'Meta', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Total', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Ahorrado', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Falta', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Progreso', bold: true, fillColor: '#6c5ce7', color: 'white' },
+                { text: 'Estado', bold: true, fillColor: '#6c5ce7', color: 'white' }
+            ]
+        ];
         
         metas.forEach(m => {
             const porcentaje = Math.min(100, ((m.ahorrado || 0) / m.montoTotal) * 100);
@@ -560,6 +563,7 @@ el('btnExportarPDF').addEventListener('click', async () => {
         contenido.push({ text: 'Sin metas registradas aún 💪', italics: true, color: '#666' });
     }
     
+    // Descargar
     pdfMake.createPdf({
         content: contenido,
         pageSize: 'A4',
@@ -576,6 +580,7 @@ document.addEventListener('click', function(e) {
         window.open(`https://wa.me/?text=${texto}`, '_blank');
     }
 });
+
 document.addEventListener('click', async function(e) {
     if (e.target.id === 'btnCopiarEnlace') {
         try {
@@ -586,12 +591,12 @@ document.addEventListener('click', async function(e) {
         }
     }
 });
-// ==============================================
-// PARTE 3: METAS DE AHORRO Y HÁBITOS
-// ==============================================
 
-// ===== METAS DE AHORRO =====
+// ==============================================
+// METAS DE AHORRO
+// ==============================================
 document.addEventListener('click', async e => {
+    // Crear meta
     if (e.target.id === 'btnCrearMeta') {
         if (!usuarioActual) return;
         const nombre = document.getElementById('nombreMeta').value.trim();
@@ -601,15 +606,16 @@ document.addEventListener('click', async e => {
             alert('Completa todos los datos correctamente');
             return;
         }
-        
+
         try {
             await db.collection('metas').add({
-                uid: usuarioActual.uid,
+                userId: usuarioActual.uid,
                 nombre,
                 montoTotal: monto,
                 ahorrado: 0,
                 creado: new Date().toISOString()
             });
+            
             document.getElementById('nombreMeta').value = '';
             document.getElementById('montoMeta').value = '';
             cargarMetas();
@@ -617,7 +623,8 @@ document.addEventListener('click', async e => {
             alert('Error: ' + err.message);
         }
     }
-    
+
+    // Agregar ahorro a meta
     if (e.target.id === 'btnConfirmarAhorro') {
         if (!usuarioActual) return;
         const metaId = document.getElementById('modalAgregarAhorro').dataset.metaId;
@@ -627,14 +634,16 @@ document.addEventListener('click', async e => {
             alert('Ingresa un monto válido');
             return;
         }
-        
+
         try {
             const ref = db.collection('metas').doc(metaId);
             const doc = await ref.get();
             if (!doc.exists) return;
             
             const actual = doc.data();
-            await ref.update({ ahorrado: (actual.ahorrado || 0) + monto });
+            await ref.update({
+                ahorrado: (actual.ahorrado || 0) + monto
+            });
             
             cerrarModalAhorro();
             cargarMetas();
@@ -642,25 +651,30 @@ document.addEventListener('click', async e => {
             alert('Error: ' + err.message);
         }
     }
-    
+
+    // Eliminar meta
     if (e.target.classList.contains('btn-eliminar-meta')) {
         if (!confirm('¿Eliminar esta meta?')) return;
         await db.collection('metas').doc(e.target.dataset.id).delete();
         cargarMetas();
     }
-    
+
+    // Abrir modal para agregar ahorro
     if (e.target.classList.contains('btn-agregar-ahorro')) {
         document.getElementById('modalAgregarAhorro').dataset.metaId = e.target.dataset.id;
         document.getElementById('nombreMetaModal').textContent = e.target.dataset.nombre;
         document.getElementById('montoAhorro').value = '';
         document.getElementById('modalAgregarAhorro').classList.remove('oculto');
     }
-    
+
+    // Cerrar modal
     if (e.target.id === 'btnCancelarAhorro' || e.target.id === 'modalAgregarAhorro') {
         cerrarModalAhorro();
     }
-    
-    if (e.target.dataset.pestaña === 'ahorro' || e.target.closest('[data-pestaña="ahorro"]')) {
+
+    // Cargar metas al entrar a la pestaña
+    if (e.target.dataset.pestaña === 'ahorro' || 
+        e.target.closest('[data-pestaña="ahorro"]')) {
         setTimeout(cargarMetas, 50);
     }
 });
@@ -674,87 +688,94 @@ async function cargarMetas() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaMetas');
     if (!lista) return;
+
     lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:1rem;">Cargando metas...</p>';
-    
+
     try {
         const snap = await db.collection('metas')
-            .where('uid', '==', usuarioActual.uid)
+            .where('userId', '==', usuarioActual.uid)
             .orderBy('creado', 'desc')
             .get();
-        
+
         if (snap.empty) {
             lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Aún no tienes metas. ¡Crea una arriba! 💪</p>';
             return;
         }
-        
-        let html = '';
+
+        let html = ''; // ✅ Acumulamos todo en una sola variable
+
         snap.forEach(doc => {
             const m = { id: doc.id, ...doc.data() };
             const porcentaje = Math.min(100, ((m.ahorrado || 0) / m.montoTotal) * 100);
             const faltante = m.montoTotal - (m.ahorrado || 0);
-            
+
             html += `
 <div class="bloque" style="margin-bottom:1rem;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
     <h4 style="margin:0;color:#6c5ce7;font-size:1.1rem;">${m.nombre}</h4>
     <button data-id="${doc.id}" class="btn-eliminar-meta" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#e17055;" title="Eliminar">🗑️</button>
   </div>
+  
   <p style="margin:0.5rem 0;">Total: <strong>$ ${m.montoTotal.toLocaleString()}</strong></p>
   <p style="margin:0.5rem 0;">Ahorrado: <span style="color:#00b894;font-weight:bold;">$ ${(m.ahorrado || 0).toLocaleString()}</span></p>
   <p style="margin:0.5rem 0;">Falta: <span style="color:#e17055;font-weight:bold;">$ ${Math.max(0, faltante).toLocaleString()}</span></p>
+  
   <div class="barra-fondo" style="margin:1rem 0;">
     <div class="barra-lleno" style="width:${porcentaje}%;">${porcentaje.toFixed(0)}%</div>
   </div>
+  
   <button data-id="${doc.id}" data-nombre="${m.nombre}" class="btn-agregar-ahorro btn btn-primario" style="width:auto;padding:0.7rem 1.5rem;margin-top:0.5rem;">
     💰 Agregar Ahorro
   </button>
-</div>`;
+</div>
+`;
         });
-        lista.innerHTML = html;
+
+        lista.innerHTML = html; // ✅ Una sola asignación al final
+
     } catch (err) {
         lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
 }
 
+// ✅ CARGA AUTOMÁTICA al recargar la página
 const verificarMetas = setInterval(() => {
     if (usuarioActual && document.getElementById('listaMetas')) {
         cargarMetas();
         clearInterval(verificarMetas);
     }
 }, 300);
-
-// ===== HÁBITOS =====
+// ==============================================
+// HÁBITOS 
+// ==============================================
 document.addEventListener('click', async e => {
     if (e.target.id === 'btnAgregarHabito') {
         if (!usuarioActual) return;
         const nombre = document.getElementById('nombreHabito').value.trim();
         if (!nombre) { alert('Escribe el nombre del hábito'); return; }
-        
         try {
             await db.collection('habitos').add({
-                uid: usuarioActual.uid,
-                nombre,
-                dias: {},
+                uid: usuarioActual.uid, nombre, dias: {},
                 creado: new Date().toISOString()
             });
             document.getElementById('nombreHabito').value = '';
             cargarHabitos();
         } catch (err) { alert('Error: ' + err.message); }
     }
-    
+
     if (e.target.classList.contains('btn-eliminar-habito')) {
         if (!confirm('¿Eliminar este hábito?')) return;
         await db.collection('habitos').doc(e.target.dataset.id).delete();
         cargarHabitos();
     }
-    
+
     if (e.target.classList.contains('btn-editar-habito')) {
         const nuevoNombre = prompt('Nuevo nombre:');
         if (!nuevoNombre || !nuevoNombre.trim()) return;
         await db.collection('habitos').doc(e.target.dataset.id).update({ nombre: nuevoNombre.trim() });
         cargarHabitos();
     }
-    
+
     if (e.target.dataset.pestaña === 'habitos' || e.target.closest('[data-pestaña="habitos"]')) {
         setTimeout(cargarHabitos, 50);
     }
@@ -764,30 +785,35 @@ async function cargarHabitos() {
     if (!usuarioActual) return;
     const lista = document.getElementById('listaHabitos');
     if (!lista) return;
+
     lista.innerHTML = '<p style="text-align:center;padding:1rem;">Cargando...</p>';
-    
+
     try {
         const snap = await db.collection('habitos')
             .where('uid', '==', usuarioActual.uid)
-            .orderBy('creado', 'desc')
-            .get();
-        
+            .orderBy('creado', 'desc').get();
+
         if (snap.empty) {
             lista.innerHTML = '<p style="color:#636e72;text-align:center;padding:2rem;">Agrega tus hábitos arriba 👆</p>';
             return;
         }
-        
+
         const diasSemana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
         const hoy = new Date();
         const mes = hoy.getMonth(), año = hoy.getFullYear();
         const totalDias = new Date(año, mes + 1, 0).getDate();
         const primerDia = new Date(año, mes, 1).getDay();
-        const claveFecha = (a, m, d) => `${a}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        
-        let html = '';
+
+        // Clave de fecha LOCAL (toISOString usa UTC y puede cambiar el día)
+        const claveFecha = (a, m, d) =>
+            `${a}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+        let html = '';   // <-- acumulamos todo aquí
+
         snap.forEach(doc => {
             const h = { id: doc.id, ...doc.data() };
-            
+
+            // Cabecera del hábito + nombres de los días
             html += `
 <div style="padding:1rem 0;border-bottom:1px solid #eee;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -797,20 +823,24 @@ async function cargarHabitos() {
       <button data-id="${doc.id}" class="btn-eliminar-habito" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#e17055;">🗑️</button>
     </div>
   </div>
+
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.3rem;margin-bottom:0.5rem;">
     ${diasSemana.map(d => `<div style="text-align:center;font-weight:600;color:#666;font-size:0.8rem;">${d}</div>`).join('')}
   </div>
+
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.4rem;">`;
-            
+
+            // Espacios vacíos antes del día 1
             for (let i = 0; i < primerDia; i++) html += `<div></div>`;
-            
+
+            // Días del mes
             for (let dia = 1; dia <= totalDias; dia++) {
                 const fecha = new Date(año, mes, dia);
                 const clave = claveFecha(año, mes, dia);
                 const cumplido = h.dias?.[clave];
                 const esFuturo = fecha > hoy;
                 const esHoy = fecha.toDateString() === hoy.toDateString();
-                
+
                 html += `
     <div style="text-align:center;">
       <div style="font-size:0.7rem;color:#999;margin-bottom:0.2rem;${esHoy ? 'font-weight:bold;color:#6c5ce7;' : ''}">${dia}</div>
@@ -823,12 +853,13 @@ async function cargarHabitos() {
       }
     </div>`;
             }
-            
-            html += `</div></div>`;
+
+            html += `</div></div>`;   // cierra el grid de días y la tarjeta
         });
-        
-        lista.innerHTML = html;
-        
+
+        lista.innerHTML = html;       // <-- UNA sola asignación
+
+        // Conectar botones de marcar día
         document.querySelectorAll('[data-habito-id]').forEach(b => {
             b.addEventListener('click', async () => {
                 const ref = db.collection('habitos').doc(b.dataset.habitoId);
@@ -840,6 +871,7 @@ async function cargarHabitos() {
                 cargarHabitos();
             });
         });
+
     } catch (err) {
         lista.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
     }
