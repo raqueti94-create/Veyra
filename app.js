@@ -72,16 +72,22 @@ el('btnRecuperar').addEventListener('click', async () => {
 el('btnCambiarModo').addEventListener('click', () => {
     esRegistro = !esRegistro;
 
-    if (esRegistro) {
-        // Mostrar campo nombre
-        el('campoNombre').classList.remove('oculto');
-        el('inputNombre').required = true;
-    } else {
-        // Ocultar campo nombre
-        el('campoNombre').classList.add('oculto');
-        el('inputNombre').required = false;
-        el('inputNombre').value = '';
-    }
+    el('campoNombre').classList.toggle('oculto', !esRegistro);
+    el('inputNombre').required = esRegistro;
+    if (!esRegistro) el('inputNombre').value = '';
+
+    el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
+    el('subtituloLogin').textContent = esRegistro ? 'Completa tus datos' : 'Ingresa para continuar';
+    el('btnIngresar').textContent = esRegistro ? 'Crear Cuenta' : 'Ingresar';
+    el('btnCambiarModo').textContent = esRegistro
+        ? '¿Ya tienes cuenta? Ingresa con tus datos'
+        : '¿No tienes cuenta? Crear una';
+
+    // "¿Olvidaste tu contraseña?" solo se ve al ingresar
+    el('btnRecuperar').classList.toggle('oculto', esRegistro);
+
+    el('errorLogin').textContent = '';
+});
 
     // Cambiar textos
     el('tituloLogin').textContent = esRegistro ? 'Crear Cuenta' : 'Veyra App';
