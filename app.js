@@ -1205,7 +1205,7 @@ function mostrarAlertaSaldo(saldo) {
 // ==============================================
 
 // 🔑 Tu clave de Groq ya configurada
-const CLAVE_GROQ = "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";
+const CLAVE_GROQ = "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";
 
 // 📌 Variables globales
 const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
